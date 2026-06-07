@@ -1,6 +1,7 @@
 import axios from 'axios';
 import { getLoginDefaults } from './common';
 import type { User, LoginResponse } from '../store/userRedicure';
+import type { ActionItem, ActionListResponse } from '../store/action';
 
 // Base URL for the backend API
 const BASE_URL = 'http://3.209.161.158/api';
@@ -34,4 +35,81 @@ export const adminLogin = async (
   );
 
   return { token: access_token, user };
+};
+
+export const fetchActionList = async (): Promise<ActionItem[]> => {
+  const token = localStorage.getItem('authToken');
+  const { language_code } = getLoginDefaults();
+  const response = await axios.get<ActionListResponse>(
+    `${BASE_URL}/v1/global-api/action-list?platform=web&language_code=${language_code}&action_when=action_list`,
+    {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    }
+  );
+  if (response.data && response.data.status) {
+    return response.data.data;
+  }
+  throw new Error(response.data.message || 'Failed to fetch action list');
+};
+
+export const createAction = async (payload: {
+  action_when: string;
+}): Promise<void> => {
+  const token = localStorage.getItem('authToken');
+  const { platform, language_code } = getLoginDefaults();
+
+  const payloadData = {
+    platform,
+    language_code,
+    action_when: payload.action_when,
+  };
+
+  const response = await axios.post(
+    `${BASE_URL}/v1/global-api/action-create`,
+    payloadData,
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+    }
+  );
+
+  if (!response.data || !response.data.status) {
+    throw new Error(response.data?.message);
+  }
+};
+
+
+
+export const editAction = async (payload: {
+  uuid: string;
+  action_when: string;
+}): Promise<void> => {
+  const token = localStorage.getItem('authToken');
+  const { platform, language_code } = getLoginDefaults();
+
+  const payloadData = {
+    platform,
+    language_code,
+    uuid: payload.uuid,
+    action_when: payload.action_when,
+  };
+
+  const response = await axios.post(
+    `${BASE_URL}/v1/global-api/action-create`,
+    payloadData,
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+    }
+  );
+
+  if (!response.data || !response.data.status) {
+    throw new Error(response.data?.message);
+  }
 };

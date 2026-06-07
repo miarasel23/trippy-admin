@@ -6,7 +6,7 @@ export const Header: React.FC<{ onToggleSidebar?: () => void }> = ({ onToggleSid
   const { user, isAuthenticated } = useContext(AuthContextTrippy);
   const [userName, setUserName] = useState<string>('Guest User');
   const [userRole, setUserRole] = useState<string>('Role');
-  const [avatarUrl, setAvatarUrl] = useState<string>('https://via.placeholder.com/160');
+  const [avatarUrl, setAvatarUrl] = useState<string>('https://pngtree.com/so/no-image-available');
 
   useEffect(() => {
     if (user) {
@@ -30,10 +30,10 @@ export const Header: React.FC<{ onToggleSidebar?: () => void }> = ({ onToggleSid
       {/* Left navbar links */}
       <ul className="navbar-nav">
         <li className="nav-item">
-          <a 
-            className="nav-link" 
-            data-widget="pushmenu" 
-            href="#" 
+          <a
+            className="nav-link"
+            data-widget="pushmenu"
+            href="#"
             role="button"
             onClick={(e) => {
               e.preventDefault();
@@ -53,9 +53,9 @@ export const Header: React.FC<{ onToggleSidebar?: () => void }> = ({ onToggleSid
               <span className="d-block font-weight-bold text-dark">{userName}</span>
               <small className="text-muted text-capitalize">{userRole}</small>
             </div>
-            <img 
-              src={avatarUrl} 
-              className="user-image img-circle elevation-2" 
+            <img
+              src={avatarUrl}
+              className="user-image img-circle elevation-2"
               alt={userName}
               style={{ width: '40px', height: '40px', objectFit: 'cover' }}
             />

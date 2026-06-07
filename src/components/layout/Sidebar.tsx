@@ -70,8 +70,8 @@ export default function Sidebar({ isOpen = true }: { isOpen?: boolean }) {
               if (hasSubItems) {
                 return (
                   <li key={index} className={`nav-item has-treeview ${isSettingsOpen ? 'menu-open' : ''}`}>
-                    <a 
-                      href="#" 
+                    <a
+                      href="#"
                       className={`nav-link ${location.pathname.includes('/setting') ? 'active' : ''}`}
                       onClick={(e) => { e.preventDefault(); setIsSettingsOpen(!isSettingsOpen); }}
                     >
