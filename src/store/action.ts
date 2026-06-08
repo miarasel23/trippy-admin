@@ -24,3 +24,19 @@ export interface ActionWithLanguageItem {
   messages: ActionLanguageMessage[];
 }
 
+export interface PermissionItem {
+  uuid: string;
+  name: string;
+  code: string;
+  description?: string;
+}
+
+export interface RoleItem {
+  id: number;
+  uuid: string;
+  name: string;
+  description: string | null;
+  permissions: PermissionItem[];
+}
+
+

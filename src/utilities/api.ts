@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { getLoginDefaults } from './common';
 import type { User, LoginResponse } from '../store/userRedicure';
-import type { ActionItem, ActionListResponse, ActionWithLanguageItem } from '../store/action';
+import type { ActionItem, ActionListResponse, ActionWithLanguageItem, RoleItem, PermissionItem } from '../store/action';
 
 // Base URL for the backend API
 const BASE_URL = 'http://3.209.161.158/api';
@@ -162,4 +162,74 @@ export const createUpdateLanguage = async (payload: {
     throw new Error(response.data?.message || 'Failed to update action language');
   }
 };
+
+export const fetchRoleList = async (): Promise<RoleItem[]> => {
+  const token = localStorage.getItem('authToken');
+  const { language_code } = getLoginDefaults();
+  const response = await axios.get(
+    `${BASE_URL}/v1/admin/role-permissions/roles-list?platform=web&language_code=${language_code}&action_when=role_list`,
+    {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    }
+  );
+  if (response.data && response.data.status) {
+    return response.data.data;
+  }
+  throw new Error(response.data.message || 'Failed to fetch role list');
+};
+
+export const fetchPermissionList = async (): Promise<PermissionItem[]> => {
+  try {
+    const roles = await fetchRoleList();
+    const permissionMap = new Map<string, PermissionItem>();
+    roles.forEach(role => {
+      if (role.permissions && Array.isArray(role.permissions)) {
+        role.permissions.forEach(perm => {
+          if (perm.code && !permissionMap.has(perm.code)) {
+            permissionMap.set(perm.code, perm);
+          }
+        });
+      }
+    });
+    return Array.from(permissionMap.values());
+  } catch (err: any) {
+    throw new Error(err.message || 'Failed to fetch permission list');
+  }
+};
+
+export const createRole = async (payload: {
+  name: string;
+  description?: string | null;
+  permissions: string[];
+}): Promise<void> => {
+  const token = localStorage.getItem('authToken');
+  const { platform, language_code } = getLoginDefaults();
+
+  const payloadData = {
+    platform,
+    language_code,
+    action_when: 'role_create',
+    name: payload.name,
+    description: payload.description,
+    permissions: payload.permissions,
+  };
+
+  const response = await axios.post(
+    `${BASE_URL}/v1/admin/role-permissions/create-role`,
+    payloadData,
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+    }
+  );
+
+  if (!response.data || !response.data.status) {
+    throw new Error(response.data?.message || 'Failed to create role');
+  }
+};
+
 

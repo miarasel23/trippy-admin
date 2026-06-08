@@ -23,7 +23,7 @@ export default function ActionList() {
   const [submitting, setSubmitting] = useState<boolean>(false);
   const [formError, setFormError] = useState<string | null>(null);
   // Common popup for API success/error messages
-  const [popup, setPopup] = useState<{show:boolean; type:'success'|'error'; message:string}>({show:false, type:'error', message:''});
+  const [popup, setPopup] = useState<{ show: boolean; type: 'success' | 'error'; message: string }>({ show: false, type: 'error', message: '' });
 
   const loadActions = async () => {
     try {
@@ -78,14 +78,14 @@ export default function ActionList() {
       // Clear any previous global error
       setGlobalError(null);
       // Show success popup
-      setPopup({show:true, type:'success', message: editUuid ? 'Action updated successfully' : 'Action added successfully'});
+      setPopup({ show: true, type: 'success', message: editUuid ? 'Action updated successfully' : 'Action added successfully' });
     } catch (err: any) {
       console.error('Error processing action:', err);
       const apiMessage = err?.response?.data?.message || err.message || 'Failed to process action';
       setGlobalError(apiMessage);
       setFormError(apiMessage);
       // Show error popup
-      setPopup({show:true, type:'error', message: apiMessage});
+      setPopup({ show: true, type: 'error', message: apiMessage });
     } finally {
       setSubmitting(false);
     }
@@ -118,33 +118,37 @@ export default function ActionList() {
 
   return (
     <div className="card w-100">
-      <div className="card-header d-flex align-items-center justify-content-between flex-wrap" style={{ gap: '15px' }}>
-        <h3 className="card-title m-0">Action List</h3>
-        <div className="card-tools d-flex align-items-center" style={{ gap: '10px' }}>
-          <button
-            type="button"
-            className="btn btn-primary btn-sm"
-            onClick={() => {
-              setFormError(null);
-              setShowModal(true);
-            }}
-          >
-            <i className="fa fa-plus mr-1"></i> Add Action
-          </button>
-          <div className="input-group input-group-sm" style={{ width: '250px' }}>
-            <input
-              type="text"
-              name="table_search"
-              className="form-control float-right"
-              placeholder="Search actions..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
-            <div className="input-group-append">
-              <button type="submit" className="btn btn-default">
-                <i className="fa fa-search"></i>
-              </button>
+      <div className="card-header">
+        <div className="d-flex align-items-center justify-content-between flex-wrap w-100" style={{ gap: '15px' }}>
+          <div className="d-flex align-items-center flex-wrap" style={{ gap: '15px' }}>
+            <h3 className="card-title m-0">Action List</h3>
+            <div className="input-group input-group-sm" style={{ width: '250px' }}>
+              <input
+                type="text"
+                name="table_search"
+                className="form-control"
+                placeholder="Search actions..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+              <div className="input-group-append">
+                <button type="submit" className="btn btn-default">
+                  <i className="fa fa-search"></i>
+                </button>
+              </div>
             </div>
+          </div>
+          <div className="card-tools">
+            <button
+              type="button"
+              className="btn btn-primary btn-sm"
+              onClick={() => {
+                setFormError(null);
+                setShowModal(true);
+              }}
+            >
+              <i className="fa fa-plus mr-1"></i> Add Action
+            </button>
           </div>
         </div>
       </div>
@@ -259,7 +263,7 @@ export default function ActionList() {
         show={popup.show}
         type={popup.type}
         message={popup.message}
-        onClose={() => setPopup(prev => ({...prev, show:false}))}
+        onClose={() => setPopup(prev => ({ ...prev, show: false }))}
       />
     </div>
   );

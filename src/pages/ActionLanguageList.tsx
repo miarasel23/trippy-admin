@@ -154,22 +154,24 @@ export default function ActionLanguageList() {
 
   return (
     <div className="card w-100">
-      <div className="card-header d-flex align-items-center justify-content-between flex-wrap" style={{ gap: '15px' }}>
-        <h3 className="card-title m-0">Action with Language List</h3>
-        <div className="card-tools d-flex align-items-center" style={{ gap: '10px' }}>
-          <div className="input-group input-group-sm" style={{ width: '250px' }}>
-            <input
-              type="text"
-              name="table_search"
-              className="form-control float-right"
-              placeholder="Search actions or translations..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
-            <div className="input-group-append">
-              <button type="submit" className="btn btn-default">
-                <i className="fa fa-search"></i>
-              </button>
+      <div className="card-header">
+        <div className="d-flex align-items-center justify-content-between flex-wrap w-100" style={{ gap: '15px' }}>
+          <div className="d-flex align-items-center flex-wrap" style={{ gap: '15px' }}>
+            <h3 className="card-title m-0">Action with Language List</h3>
+            <div className="input-group input-group-sm" style={{ width: '250px' }}>
+              <input
+                type="text"
+                name="table_search"
+                className="form-control"
+                placeholder="Search actions or translations..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+              <div className="input-group-append">
+                <button type="submit" className="btn btn-default">
+                  <i className="fa fa-search"></i>
+                </button>
+              </div>
             </div>
           </div>
         </div>
