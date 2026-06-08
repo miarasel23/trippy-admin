@@ -48,7 +48,7 @@ export const AppRoutes = () => {
                 <Route path="/home" element={isAuthenticated ? <Home /> : <Navigate to="/" replace />} />
                 <Route path="/dashboard/setting/action" element={isAuthenticated ? <ActionList /> : <Navigate to="/" replace />} />
                 <Route path="/dashboard/setting/action-language" element={isAuthenticated ? <ActionLanguageList /> : <Navigate to="/" replace />} />
-                <Route path="/dashboard/setting/role" element={isAuthenticated ? <RoleList /> : <Navigate to="/" replace />} />
+                <Route path="/dashboard/setting/role-permission" element={isAuthenticated ? <RoleList /> : <Navigate to="/" replace />} />
               </Routes>
             </div>
           </section>

@@ -33,7 +33,7 @@ export default function Sidebar({ isOpen = true }: { isOpen?: boolean }) {
         { to: '/dashboard/setting/car-setup', text: 'Car Setup' },
         { to: '/dashboard/setting/action', text: 'Action' },
         { to: '/dashboard/setting/action-language', text: 'Action with Language', icon: 'fa-language' },
-        { to: '/dashboard/setting/role', text: 'Role' },
+        { to: '/dashboard/setting/role-permission', text: 'Role Permission' },
         { to: '/dashboard/setting/driver-subscription', text: 'Driver Subscription' },
         { to: '/dashboard/setting/user-setting', text: 'User Setting' }
       ]
