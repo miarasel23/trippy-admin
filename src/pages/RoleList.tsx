@@ -199,6 +199,7 @@ export default function RoleList() {
                 <th>Role Name</th>
                 <th>Description</th>
                 <th>Permissions Count</th>
+                <th>Permissions</th>
               </tr>
             </thead>
             <tbody>
@@ -217,11 +218,28 @@ export default function RoleList() {
                       {item.permissions ? item.permissions.length : 0} Permissions
                     </span>
                   </td>
+                  <td>
+                    <div style={{ 
+                      maxWidth: '400px', 
+                      maxHeight: '85px', 
+                      overflowY: 'auto', 
+                      fontSize: '12px',
+                      lineHeight: '1.4',
+                      color: '#495057',
+                      wordBreak: 'break-word'
+                    }}>
+                      {item.permissions && item.permissions.length > 0 ? (
+                        item.permissions.map(p => p.name).join(', ')
+                      ) : (
+                        <span className="text-muted">-</span>
+                      )}
+                    </div>
+                  </td>
                 </tr>
               ))}
               {filteredRoles.length === 0 && (
                 <tr>
-                  <td colSpan={5} className="text-center p-3 text-muted">
+                  <td colSpan={6} className="text-center p-3 text-muted">
                     No roles match the search query.
                   </td>
                 </tr>
