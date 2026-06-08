@@ -28,6 +28,7 @@ export default function Sidebar({ isOpen = true }: { isOpen?: boolean }) {
     { to: '/dashboard/trip', icon: 'fa-search', text: t('trip'), perms: [] },
     { to: '/dashboard/customer', icon: 'fa-users', text: t('customer'), perms: [] },
     { to: '/dashboard/rider', icon: 'fa-user-circle', text: t('rider'), perms: [] },
+    { to: '/dashboard/admin-user', icon: 'fa-user-secret', text: t('adminUser'), perms: [] },
     {
       text: t('settings'),
       icon: 'fa-cog',

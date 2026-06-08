@@ -8,6 +8,7 @@ import { Login } from '../pages/Login';
 import ActionList from '../pages/ActionList';
 import ActionLanguageList from '../pages/ActionLanguageList';
 import RoleList from '../pages/RoleList';
+import AdminUserList from '../pages/AdminUserList';
 import Sidebar from '../components/layout/Sidebar';
 import Header from '../components/layout/Header';
 
@@ -49,6 +50,7 @@ export const AppRoutes = () => {
                 <Route path="/dashboard/setting/action" element={isAuthenticated ? <ActionList /> : <Navigate to="/" replace />} />
                 <Route path="/dashboard/setting/action-language" element={isAuthenticated ? <ActionLanguageList /> : <Navigate to="/" replace />} />
                 <Route path="/dashboard/setting/role-permission" element={isAuthenticated ? <RoleList /> : <Navigate to="/" replace />} />
+                <Route path="/dashboard/admin-user" element={isAuthenticated ? <AdminUserList /> : <Navigate to="/" replace />} />
               </Routes>
             </div>
           </section>
