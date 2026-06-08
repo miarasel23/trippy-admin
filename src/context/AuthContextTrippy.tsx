@@ -9,6 +9,8 @@ interface AuthContextProps {
     login: (userData: { data: any; token: string }, type: string) => void;
     logout: () => Promise<void>;
     loading: boolean;
+    language: string;
+    setLanguage: (lang: string) => void;
 }
 
 // Create context (default undefined, will be provided by AuthProviderTrippy)
@@ -20,6 +22,15 @@ export const AuthProviderTrippy = ({ children }: { children: ReactNode }) => {
     const [userType, setUserType] = useState<string | null>(null);
     const [userToken, setUserToken] = useState<string | null>(null);
     const [loading, setLoading] = useState(true);
+    const [language, setLanguageState] = useState<string>(() => {
+        return localStorage.getItem('language_code') || 'en';
+    });
+
+    const setLanguage = (lang: string) => {
+        setLanguageState(lang);
+        localStorage.setItem('language_code', lang);
+        localStorage.setItem('lang', lang);
+    };
 
     // Initialise from localStorage
     useEffect(() => {
@@ -74,7 +85,7 @@ export const AuthProviderTrippy = ({ children }: { children: ReactNode }) => {
 
     return (
         <AuthContextTrippy.Provider
-            value={{ isAuthenticated, user, userType, userToken, login, logout, loading }}
+            value={{ isAuthenticated, user, userType, userToken, login, logout, loading, language, setLanguage }}
         >
             {children}
         </AuthContextTrippy.Provider>

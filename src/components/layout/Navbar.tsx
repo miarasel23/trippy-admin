@@ -3,6 +3,8 @@ import { NavLink } from 'react-router-dom';
 import styled from 'styled-components';
 import Sidebar from './Sidebar';
 import { newwork_image_url } from '../../utilities/api';
+import noImage from '../../assets/no-image.png';
+
 
 // ------------------- Layout & Styling -------------------
 const Nav = styled.nav`
@@ -84,7 +86,7 @@ export const Navbar: React.FC = () => {
   const [showSidebar, setShowSidebar] = useState(false);
   const [userName, setUserName] = useState<string>('User');
   const [userRole, setUserRole] = useState<string>('');
-  const [avatarUrl, setAvatarUrl] = useState<string>('https://via.placeholder.com/32');
+  const [avatarUrl, setAvatarUrl] = useState<string>(noImage);
 
   // Load user data from localStorage on mount
   useEffect(() => {
@@ -94,12 +96,14 @@ export const Navbar: React.FC = () => {
         const user = JSON.parse(stored);
         setUserName(`${user.first_name} ${user.last_name}`);
         setUserRole(user.role?.name ?? '');
-        if (user.profile_picture) {
+        if (user.profile_picture && user.profile_picture !== 'null' && user.profile_picture !== 'undefined') {
           // If the picture is a relative path, prepend the media base URL
           const imgSrc = user.profile_picture.startsWith('http')
             ? user.profile_picture
             : `${newwork_image_url}${user.profile_picture}`;
           setAvatarUrl(imgSrc);
+        } else {
+          setAvatarUrl(noImage);
         }
       } catch (e) {
         console.warn('Failed to parse user data from localStorage', e);
@@ -120,7 +124,14 @@ export const Navbar: React.FC = () => {
 
         {/* Right side user profile */}
         <ProfileWrapper onClick={() => setShowSidebar(!showSidebar)}>
-          <Avatar src={avatarUrl} alt="Avatar" />
+          <Avatar
+            src={avatarUrl}
+            alt="Avatar"
+            onError={(e) => {
+              e.currentTarget.onerror = null;
+              e.currentTarget.src = noImage;
+            }}
+          />
           <UserInfo>
             <UserName>{userName}</UserName>
             {userRole && <UserRole>{userRole}</UserRole>}

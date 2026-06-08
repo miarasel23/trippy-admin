@@ -2,6 +2,7 @@ import React, { useState, useContext, useMemo } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import Spinner from '../../ui-share/Spinner';
 import { AuthContextTrippy } from '../../context/AuthContextTrippy';
+import { useTranslation } from '../../utilities/translation';
 
 export default function Sidebar({ isOpen = true }: { isOpen?: boolean }) {
   const [loading, setLoading] = useState(false);
@@ -20,22 +21,24 @@ export default function Sidebar({ isOpen = true }: { isOpen?: boolean }) {
     return required.some((code) => permissionCodes.includes(code));
   };
 
+  const t = useTranslation();
+
   const links = [
-    { to: '/dashboard', icon: 'fa-dashboard', text: 'Dashboard', perms: [] },
-    { to: '/dashboard/trip', icon: 'fa-search', text: 'Trip', perms: [] },
-    { to: '/dashboard/customer', icon: 'fa-users', text: 'Customer', perms: [] },
-    { to: '/dashboard/rider', icon: 'fa-user-circle', text: 'Rider', perms: [] },
+    { to: '/dashboard', icon: 'fa-dashboard', text: t('dashboard'), perms: [] },
+    { to: '/dashboard/trip', icon: 'fa-search', text: t('trip'), perms: [] },
+    { to: '/dashboard/customer', icon: 'fa-users', text: t('customer'), perms: [] },
+    { to: '/dashboard/rider', icon: 'fa-user-circle', text: t('rider'), perms: [] },
     {
-      text: 'Settings',
+      text: t('settings'),
       icon: 'fa-cog',
       perms: [],
       subItems: [
-        { to: '/dashboard/setting/car-setup', text: 'Car Setup' },
-        { to: '/dashboard/setting/action', text: 'Action' },
-        { to: '/dashboard/setting/action-language', text: 'Action with Language', icon: 'fa-language' },
-        { to: '/dashboard/setting/role-permission', text: 'Role Permission' },
-        { to: '/dashboard/setting/driver-subscription', text: 'Driver Subscription' },
-        { to: '/dashboard/setting/user-setting', text: 'User Setting' }
+        { to: '/dashboard/setting/car-setup', text: t('carSetup') },
+        { to: '/dashboard/setting/action', text: t('action') },
+        { to: '/dashboard/setting/action-language', text: t('actionWithLanguage'), icon: 'fa-language' },
+        { to: '/dashboard/setting/role-permission', text: t('rolePermission') },
+        { to: '/dashboard/setting/driver-subscription', text: t('driverSubscription') },
+        { to: '/dashboard/setting/user-setting', text: t('userSetting') }
       ]
     }
   ].filter(item => hasAny(item.perms));
@@ -110,12 +113,12 @@ export default function Sidebar({ isOpen = true }: { isOpen?: boolean }) {
               );
             })}
 
-            <li className="nav-header">ACTIONS</li>
+            <li className="nav-header">{t('actionsHeader')}</li>
             <li className="nav-item">
               <a href="#" className="nav-link text-danger" onClick={(e) => { e.preventDefault(); handleLogout(); }}>
                 <i className="nav-icon fa fa-sign-out"></i>
                 <span>
-                  Sign Out
+                  {t('signOut')}
                   {loading && <span className="ml-2"><Spinner /></span>}
                 </span>
               </a>

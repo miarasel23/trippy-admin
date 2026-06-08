@@ -2,8 +2,10 @@ import React, { useEffect, useState } from 'react';
 import { fetchRoleList, fetchPermissionList, createRole } from '../utilities/api';
 import { PopupMessage } from '../components/common/PopupMessage';
 import type { RoleItem, PermissionItem } from '../store/action';
+import { useTranslation } from '../utilities/translation';
 
 export default function RoleList() {
+  const t = useTranslation();
   const [roles, setRoles] = useState<RoleItem[]>([]);
   const [permissions, setPermissions] = useState<PermissionItem[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -98,11 +100,11 @@ export default function RoleList() {
   const handleSubmitRole = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formName.trim()) {
-      setFormError('Role Name is required');
+      setFormError(t('nameRequiredError'));
       return;
     }
     if (selectedPermissions.length === 0) {
-      setFormError('Select at least one permission');
+      setFormError(t('selectAtLeastOneError'));
       return;
     }
 
@@ -133,7 +135,7 @@ export default function RoleList() {
       setPopup({
         show: true,
         type: 'success',
-        message: editRoleItem ? 'Role updated successfully' : 'Role created successfully'
+        message: editRoleItem ? t('roleUpdatedSuccess') : t('roleCreatedSuccess')
       });
     } catch (err: any) {
       console.error('Error saving role:', err);
@@ -167,13 +169,13 @@ export default function RoleList() {
       <div className="card-header">
         <div className="d-flex align-items-center justify-content-between flex-wrap w-100" style={{ gap: '15px' }}>
           <div className="d-flex align-items-center flex-wrap" style={{ gap: '15px' }}>
-            <h3 className="card-title m-0">Role List</h3>
+            <h3 className="card-title m-0">{t('roleList')}</h3>
             <div className="input-group input-group-sm" style={{ width: '250px' }}>
               <input
                 type="text"
                 name="table_search"
                 className="form-control"
-                placeholder="Search roles..."
+                placeholder={t('searchRoles')}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
@@ -193,7 +195,7 @@ export default function RoleList() {
                 setShowModal(true);
               }}
             >
-              <i className="fa fa-plus mr-1"></i> Add Role
+              <i className="fa fa-plus mr-1"></i> {t('addRole')}
             </button>
           </div>
         </div>
@@ -202,7 +204,7 @@ export default function RoleList() {
         {loading && (
           <div className="p-4 text-center">
             <div className="spinner-border text-primary" role="status">
-              <span className="sr-only">Loading...</span>
+              <span className="sr-only">{t('loadingLabel')}</span>
             </div>
           </div>
         )}
@@ -215,13 +217,13 @@ export default function RoleList() {
           <table className="table table-striped table-hover w-100 m-0">
             <thead>
               <tr>
-                <th style={{ width: '70px' }}>SL No</th>
-                <th>UUID</th>
-                <th>Role Name</th>
-                <th>Description</th>
-                <th>Permissions Count</th>
-                <th>Permissions</th>
-                <th style={{ width: '100px' }}>Action</th>
+                <th style={{ width: '70px' }}>{t('slNo')}</th>
+                <th>{t('uuid')}</th>
+                <th>{t('roleName')}</th>
+                <th>{t('description')}</th>
+                <th>{t('permissionsCount')}</th>
+                <th>{t('permissions')}</th>
+                <th style={{ width: '100px' }}>{t('actionLabel')}</th>
               </tr>
             </thead>
             <tbody>
@@ -237,7 +239,7 @@ export default function RoleList() {
                   <td>{item.description || '-'}</td>
                   <td>
                     <span className="badge badge-info">
-                      {item.permissions ? item.permissions.length : 0} Permissions
+                      {item.permissions ? item.permissions.length : 0} {t('permissions')}
                     </span>
                   </td>
                   <td>
@@ -263,7 +265,7 @@ export default function RoleList() {
                       className="btn btn-info btn-xs"
                       onClick={() => handleEditClick(item)}
                     >
-                      <i className="fa fa-edit mr-1"></i> Edit
+                      <i className="fa fa-edit mr-1"></i> {t('edit')}
                     </button>
                   </td>
                 </tr>
@@ -271,7 +273,7 @@ export default function RoleList() {
               {filteredRoles.length === 0 && (
                 <tr>
                   <td colSpan={7} className="text-center p-3 text-muted">
-                    No roles match the search query.
+                    {t('noRolesFound')}
                   </td>
                 </tr>
               )}
@@ -287,7 +289,7 @@ export default function RoleList() {
             <div className="modal-dialog modal-lg modal-dialog-centered" role="document">
               <div className="modal-content">
                 <div className="modal-header">
-                  <h5 className="modal-title">{editRoleItem ? 'Edit Role' : 'Add New Role'}</h5>
+                  <h5 className="modal-title">{editRoleItem ? t('editRole') : t('addNewRole')}</h5>
                   <button type="button" className="close" onClick={handleCloseModal}>
                     <span>&times;</span>
                   </button>
@@ -300,7 +302,7 @@ export default function RoleList() {
                       </div>
                     )}
                     <div className="form-group mb-3">
-                      <label className="font-weight-bold">Role Name <span className="text-danger">*</span></label>
+                      <label className="font-weight-bold">{t('roleNameRequired')} <span className="text-danger">*</span></label>
                       <input
                         type="text"
                         className="form-control"
@@ -312,11 +314,11 @@ export default function RoleList() {
                       />
                     </div>
                     <div className="form-group mb-3">
-                      <label className="font-weight-bold">Description</label>
+                      <label className="font-weight-bold">{t('description')}</label>
                       <textarea
                         className="form-control"
                         rows={2}
-                        placeholder="Describe the role's responsibilities..."
+                        placeholder={t('describeResponsibilities')}
                         value={formDescription}
                         onChange={(e) => setFormDescription(e.target.value)}
                       />
@@ -325,19 +327,19 @@ export default function RoleList() {
                     <div className="border rounded p-3 bg-light">
                       <div className="d-flex justify-content-between align-items-center flex-wrap mb-2" style={{ gap: '10px' }}>
                         <label className="font-weight-bold m-0">
-                          Select Permissions ({selectedPermissions.length} selected) <span className="text-danger">*</span>
+                          {t('selectPermissions')} ({selectedPermissions.length} {t('selected')}) <span className="text-danger">*</span>
                         </label>
                         <div className="d-flex align-items-center" style={{ gap: '10px' }}>
                           <button type="button" className="btn btn-xs btn-outline-secondary" onClick={handleSelectAllFiltered}>
-                            Select All
+                            {t('selectAll')}
                           </button>
                           <button type="button" className="btn btn-xs btn-outline-secondary" onClick={handleDeselectAllFiltered}>
-                            Clear All
+                            {t('clearAll')}
                           </button>
                           <input
                             type="text"
                             className="form-control form-control-sm"
-                            placeholder="Filter permissions..."
+                            placeholder={t('filterPermissions')}
                             style={{ width: '180px' }}
                             value={permissionFilter}
                             onChange={(e) => setPermissionFilter(e.target.value)}
@@ -363,7 +365,7 @@ export default function RoleList() {
                         ))}
                         {filteredPermissions.length === 0 && (
                           <div className="col-12 text-center text-muted p-2">
-                            No permissions match the filter query.
+                            {t('noPermissionsMatch')}
                           </div>
                         )}
                       </div>
@@ -371,10 +373,10 @@ export default function RoleList() {
                   </div>
                   <div className="modal-footer">
                     <button type="button" className="btn btn-secondary" onClick={handleCloseModal}>
-                      Cancel
+                      {t('cancel')}
                     </button>
                     <button type="submit" className="btn btn-primary" disabled={submitting}>
-                      {submitting ? 'Submitting...' : (editRoleItem ? 'Update Role' : 'Save Role')}
+                      {submitting ? t('submitting') : (editRoleItem ? t('updateRole') : t('saveRole'))}
                     </button>
                   </div>
                 </form>
