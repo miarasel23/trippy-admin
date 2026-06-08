@@ -85,7 +85,7 @@ export default function Sidebar({ isOpen = true }: { isOpen?: boolean }) {
                     <ul className="nav nav-treeview" style={{ display: isSettingsOpen ? 'block' : 'none' }}>
                       {link.subItems.map((sub, sIdx) => {
                         const isSubActive = location.pathname === sub.to;
-                        const subIcon = (sub as any).icon || 'fa-circle-o';
+                        const subIcon = (sub as any).icon || 'fa-bookmark-o';
                         return (
                           <li key={sIdx} className="nav-item">
                             <Link to={sub.to} className={`nav-link ${isSubActive ? 'active' : ''}`}>
