@@ -6,6 +6,7 @@ import { Footer } from '../components/layout/Footer';
 import Home from '../pages/Home';
 import { Login } from '../pages/Login';
 import ActionList from '../pages/ActionList';
+import ActionLanguageList from '../pages/ActionLanguageList';
 import Sidebar from '../components/layout/Sidebar';
 import Header from '../components/layout/Header';
 
@@ -45,6 +46,7 @@ export const AppRoutes = () => {
                 <Route path="/" element={isAuthenticated ? <Navigate to="/home" replace /> : <Login />} />
                 <Route path="/home" element={isAuthenticated ? <Home /> : <Navigate to="/" replace />} />
                 <Route path="/dashboard/setting/action" element={isAuthenticated ? <ActionList /> : <Navigate to="/" replace />} />
+                <Route path="/dashboard/setting/action-language" element={isAuthenticated ? <ActionLanguageList /> : <Navigate to="/" replace />} />
               </Routes>
             </div>
           </section>

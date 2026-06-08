@@ -32,6 +32,7 @@ export default function Sidebar({ isOpen = true }: { isOpen?: boolean }) {
       subItems: [
         { to: '/dashboard/setting/car-setup', text: 'Car Setup' },
         { to: '/dashboard/setting/action', text: 'Action' },
+        { to: '/dashboard/setting/action-language', text: 'Action with Language', icon: 'fa-language' },
         { to: '/dashboard/setting/role-permission', text: 'Role Permission' },
         { to: '/dashboard/setting/driver-subscription', text: 'Driver Subscription' },
         { to: '/dashboard/setting/user-setting', text: 'User Setting' }
@@ -84,10 +85,11 @@ export default function Sidebar({ isOpen = true }: { isOpen?: boolean }) {
                     <ul className="nav nav-treeview" style={{ display: isSettingsOpen ? 'block' : 'none' }}>
                       {link.subItems.map((sub, sIdx) => {
                         const isSubActive = location.pathname === sub.to;
+                        const subIcon = (sub as any).icon || 'fa-circle-o';
                         return (
                           <li key={sIdx} className="nav-item">
                             <Link to={sub.to} className={`nav-link ${isSubActive ? 'active' : ''}`}>
-                              <i className="fa fa-circle-o nav-icon"></i>
+                              <i className={`fa ${subIcon} nav-icon`}></i>
                               <p>{sub.text}</p>
                             </Link>
                           </li>

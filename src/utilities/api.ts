@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { getLoginDefaults } from './common';
 import type { User, LoginResponse } from '../store/userRedicure';
-import type { ActionItem, ActionListResponse } from '../store/action';
+import type { ActionItem, ActionListResponse, ActionWithLanguageItem } from '../store/action';
 
 // Base URL for the backend API
 const BASE_URL = 'http://3.209.161.158/api';
@@ -113,3 +113,53 @@ export const editAction = async (payload: {
     throw new Error(response.data?.message);
   }
 };
+
+export const fetchActionListWithLanguage = async (): Promise<ActionWithLanguageItem[]> => {
+  const token = localStorage.getItem('authToken');
+  const { language_code } = getLoginDefaults();
+  const response = await axios.get(
+    `${BASE_URL}/v1/global-api/action-list-with-language?platform=web&language_code=${language_code}&action_when=action_list`,
+    {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    }
+  );
+  if (response.data && response.data.status) {
+    return response.data.data;
+  }
+  throw new Error(response.data.message || 'Failed to fetch action list with language');
+};
+
+export const createUpdateLanguage = async (payload: {
+  action_uuid: string;
+  action_when: string;
+  messages: { language_code: string; message: string; uuid?: string | null }[];
+}): Promise<void> => {
+  const token = localStorage.getItem('authToken');
+  const { platform, language_code } = getLoginDefaults();
+
+  const payloadData = {
+    action_uuid: payload.action_uuid,
+    platform,
+    language_code,
+    action_when: payload.action_when,
+    messages: payload.messages,
+  };
+
+  const response = await axios.post(
+    `${BASE_URL}/v1/global-api/create-update-language`,
+    payloadData,
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+    }
+  );
+
+  if (!response.data || !response.data.status) {
+    throw new Error(response.data?.message || 'Failed to update action language');
+  }
+};
+
