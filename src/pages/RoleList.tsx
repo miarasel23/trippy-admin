@@ -17,6 +17,7 @@ export default function RoleList() {
   const [formName, setFormName] = useState<string>('');
   const [formDescription, setFormDescription] = useState<string>('');
   const [selectedPermissions, setSelectedPermissions] = useState<string[]>([]);
+  const [editRoleItem, setEditRoleItem] = useState<RoleItem | null>(null);
   
   // Permission modal filter
   const [permissionFilter, setPermissionFilter] = useState<string>('');
@@ -75,6 +76,25 @@ export default function RoleList() {
     setSelectedPermissions(prev => prev.filter(code => !filteredCodes.includes(code)));
   };
 
+  const handleEditClick = (item: RoleItem) => {
+    setEditRoleItem(item);
+    setFormName(item.name);
+    setFormDescription(item.description || '');
+    setSelectedPermissions(item.permissions ? item.permissions.map(p => p.code) : []);
+    setFormError(null);
+    setShowModal(true);
+  };
+
+  const handleCloseModal = () => {
+    setShowModal(false);
+    setEditRoleItem(null);
+    setFormName('');
+    setFormDescription('');
+    setSelectedPermissions([]);
+    setPermissionFilter('');
+    setFormError(null);
+  };
+
   const handleSubmitRole = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formName.trim()) {
@@ -103,6 +123,7 @@ export default function RoleList() {
       setFormDescription('');
       setSelectedPermissions([]);
       setPermissionFilter('');
+      setEditRoleItem(null);
       setShowModal(false);
       
       // Refresh list
@@ -112,11 +133,11 @@ export default function RoleList() {
       setPopup({
         show: true,
         type: 'success',
-        message: 'Role created successfully'
+        message: editRoleItem ? 'Role updated successfully' : 'Role created successfully'
       });
     } catch (err: any) {
-      console.error('Error creating role:', err);
-      const apiMessage = err?.response?.data?.message || err.message || 'Failed to create role';
+      console.error('Error saving role:', err);
+      const apiMessage = err?.response?.data?.message || err.message || 'Failed to save role';
       setFormError(apiMessage);
       setPopup({
         show: true,
@@ -200,6 +221,7 @@ export default function RoleList() {
                 <th>Description</th>
                 <th>Permissions Count</th>
                 <th>Permissions</th>
+                <th style={{ width: '100px' }}>Action</th>
               </tr>
             </thead>
             <tbody>
@@ -235,11 +257,20 @@ export default function RoleList() {
                       )}
                     </div>
                   </td>
+                  <td>
+                    <button
+                      type="button"
+                      className="btn btn-info btn-xs"
+                      onClick={() => handleEditClick(item)}
+                    >
+                      <i className="fa fa-edit mr-1"></i> Edit
+                    </button>
+                  </td>
                 </tr>
               ))}
               {filteredRoles.length === 0 && (
                 <tr>
-                  <td colSpan={6} className="text-center p-3 text-muted">
+                  <td colSpan={7} className="text-center p-3 text-muted">
                     No roles match the search query.
                   </td>
                 </tr>
@@ -249,15 +280,15 @@ export default function RoleList() {
         )}
       </div>
 
-      {/* Add Role Modal */}
+      {/* Add/Edit Role Modal */}
       {showModal && (
         <>
           <div className="modal fade show d-block" tabIndex={-1} role="dialog" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
             <div className="modal-dialog modal-lg modal-dialog-centered" role="document">
               <div className="modal-content">
                 <div className="modal-header">
-                  <h5 className="modal-title">Add New Role</h5>
-                  <button type="button" className="close" onClick={() => { setShowModal(false); setSelectedPermissions([]); }}>
+                  <h5 className="modal-title">{editRoleItem ? 'Edit Role' : 'Add New Role'}</h5>
+                  <button type="button" className="close" onClick={handleCloseModal}>
                     <span>&times;</span>
                   </button>
                 </div>
@@ -277,6 +308,7 @@ export default function RoleList() {
                         value={formName}
                         onChange={(e) => setFormName(e.target.value)}
                         required
+                        disabled={!!editRoleItem}
                       />
                     </div>
                     <div className="form-group mb-3">
@@ -338,11 +370,11 @@ export default function RoleList() {
                     </div>
                   </div>
                   <div className="modal-footer">
-                    <button type="button" className="btn btn-secondary" onClick={() => { setShowModal(false); setSelectedPermissions([]); }}>
+                    <button type="button" className="btn btn-secondary" onClick={handleCloseModal}>
                       Cancel
                     </button>
                     <button type="submit" className="btn btn-primary" disabled={submitting}>
-                      {submitting ? 'Submitting...' : 'Save Role'}
+                      {submitting ? 'Submitting...' : (editRoleItem ? 'Update Role' : 'Save Role')}
                     </button>
                   </div>
                 </form>
