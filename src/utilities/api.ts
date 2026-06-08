@@ -330,4 +330,118 @@ export const editAdminUser = async (payload: {
   }
 };
 
+export const uploadAdminProfilePicture = async (
+  adminUuid: string,
+  avatarFile: File
+): Promise<{ profile_picture: string }> => {
+  const token = localStorage.getItem('authToken');
+  const { platform, language_code } = getLoginDefaults();
+
+  const formData = new FormData();
+  formData.append('admin_uuid', adminUuid);
+  formData.append('platform', platform);
+  formData.append('language_code', language_code);
+  formData.append('action_when', 'admin_profile_photo_upload');
+  formData.append('avatar', avatarFile);
+
+  const response = await axios.post(
+    `${BASE_URL}/v1/admin/admin-profile-picture-upload`,
+    formData,
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'multipart/form-data',
+      },
+    }
+  );
+
+  if (!response.data || !response.data.status) {
+    throw new Error(response.data?.message || 'Failed to upload profile picture');
+  }
+
+  return response.data.data;
+};
+
+export interface OtpMessageItem {
+  id: number;
+  uuid: string;
+  county_code_for_otp: string;
+  otp_code: string;
+  otp_message: string;
+  status: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export const fetchOtpMessagesList = async (): Promise<OtpMessageItem[]> => {
+  const token = localStorage.getItem('authToken');
+  const { language_code } = getLoginDefaults();
+  const response = await axios.get(
+    `${BASE_URL}/v1/otp/message/otp-messages-list?platform=web&language_code=${language_code}&action_when=otp_message_list`,
+    {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    }
+  );
+  if (response.data && response.data.status) {
+    return response.data.data;
+  }
+  throw new Error(response.data.message || 'Failed to fetch OTP messages list');
+};
+
+export const createUpdateOtpMessage = async (payload: {
+  county_code_for_otp: string;
+  otp_code: string;
+  otp_message: string;
+  status: string;
+  uuid?: string;
+}): Promise<void> => {
+  const token = localStorage.getItem('authToken');
+  const { platform, language_code } = getLoginDefaults();
+
+  const formData = new URLSearchParams();
+  formData.append('platform', platform);
+  formData.append('language_code', language_code);
+  formData.append('action_when', 'create_update_otp_message');
+  formData.append('county_code_for_otp', payload.county_code_for_otp);
+  formData.append('otp_code', payload.otp_code);
+  formData.append('otp_message', payload.otp_message);
+  formData.append('status', payload.status);
+  if (payload.uuid) {
+    formData.append('uuid', payload.uuid);
+  }
+
+  const response = await axios.post(
+    `${BASE_URL}/v1/otp/message/create-and-update-otp-message`,
+    formData.toString(),
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/x-www-form-urlencoded'
+      }
+    }
+  );
+
+  if (!response.data || !response.data.status) {
+    throw new Error(response.data?.message || 'Failed to save OTP message');
+  }
+};
+
+export const deleteOtpMessage = async (uuid: string): Promise<void> => {
+  const token = localStorage.getItem('authToken');
+  const { language_code } = getLoginDefaults();
+  const response = await axios.delete(
+    `${BASE_URL}/v1/otp/message/delete-otp-message?platform=web&language_code=${language_code}&action_when=otp_message_delete&uuid=${uuid}`,
+    {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    }
+  );
+  if (!response.data || !response.data.status) {
+    throw new Error(response.data?.message || 'Failed to delete OTP message');
+  }
+};
+
 

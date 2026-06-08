@@ -39,7 +39,8 @@ export default function Sidebar({ isOpen = true }: { isOpen?: boolean }) {
         { to: '/dashboard/setting/action-language', text: t('actionWithLanguage'), icon: 'fa-language' },
         { to: '/dashboard/setting/role-permission', text: t('rolePermission') },
         { to: '/dashboard/setting/driver-subscription', text: t('driverSubscription') },
-        { to: '/dashboard/setting/user-setting', text: t('userSetting') }
+        { to: '/dashboard/setting/user-setting', text: t('userSetting') },
+        { to: '/dashboard/setting/otp-setup', text: t('otpSetup') }
       ]
     }
   ].filter(item => hasAny(item.perms));

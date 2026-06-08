@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { fetchAdminUserList, createAdminUser, editAdminUser, fetchRoleList, newwork_image_url } from '../utilities/api';
+import { fetchAdminUserList, createAdminUser, editAdminUser, fetchRoleList, newwork_image_url, uploadAdminProfilePicture } from '../utilities/api';
 import { PopupMessage } from '../components/common/PopupMessage';
 import { useTranslation } from '../utilities/translation';
 import type { RoleItem } from '../store/action';
@@ -112,6 +112,31 @@ export default function AdminUserList() {
     setFormError(null);
   };
 
+  const handleProfilePictureChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files || e.target.files.length === 0 || !editItem) return;
+    const file = e.target.files[0];
+    try {
+      setSubmitting(true);
+      setFormError(null);
+      const res = await uploadAdminProfilePicture(editItem.uuid, file);
+      
+      const updatedProfilePic = res.profile_picture;
+      setEditItem(prev => prev ? { ...prev, profile_picture: updatedProfilePic } : null);
+      setUsers(prev => prev.map(u => u.uuid === editItem.uuid ? { ...u, profile_picture: updatedProfilePic } : u));
+      
+      setPopup({
+        show: true,
+        type: 'success',
+        message: 'Profile picture updated successfully'
+      });
+    } catch (err: any) {
+      console.error('Failed to upload profile picture:', err);
+      setFormError(err.response?.data?.message || err.response?.data?.detail || err.message || 'Failed to upload profile picture');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!firstName.trim() || !lastName.trim()) {
@@ -134,7 +159,7 @@ export default function AdminUserList() {
       setFormError('Please select a Role');
       return;
     }
-    if (!editItem && !password) {
+    if (!password) {
       setFormError(t('passwordRequired'));
       return;
     }
@@ -152,12 +177,9 @@ export default function AdminUserList() {
         email: email.trim(),
         role: selectedRole,
         is_active: isActive,
-        is_superuser: isSuperuser
+        is_superuser: isSuperuser,
+        password: password
       };
-
-      if (password) {
-        payload.password = password;
-      }
 
       if (editItem) {
         payload.uuid = editItem.uuid;
@@ -365,7 +387,29 @@ export default function AdminUserList() {
                       {formError}
                     </div>
                   )}
-
+                  {editItem && (
+                    <div className="text-center mb-4">
+                      <div className="position-relative d-inline-block">
+                        <img
+                          src={editItem.profile_picture ? (editItem.profile_picture.startsWith('http') ? editItem.profile_picture : `${newwork_image_url}${editItem.profile_picture}`) : noImage}
+                          alt="Profile"
+                          className="img-circle border shadow-sm"
+                          style={{ width: '90px', height: '90px', objectFit: 'cover' }}
+                        />
+                      </div>
+                      <div className="mt-2">
+                        <label className="btn btn-outline-secondary btn-sm rounded-pill px-3" style={{ cursor: 'pointer' }}>
+                          <i className="fa fa-camera mr-1"></i> Upload Photo
+                          <input
+                            type="file"
+                            accept="image/*"
+                            style={{ display: 'none' }}
+                            onChange={handleProfilePictureChange}
+                          />
+                        </label>
+                      </div>
+                    </div>
+                  )}
                   <div className="row">
                     {/* First Name */}
                     <div className="col-md-6 col-sm-12 form-group">
@@ -455,7 +499,7 @@ export default function AdminUserList() {
                     {/* Password */}
                     <div className="col-md-6 col-sm-12 form-group">
                       <label className="font-weight-bold text-dark">
-                        {t('password')} {editItem ? '(Leave empty to keep current)' : '*'}
+                        {t('password')} *
                       </label>
                       <input
                         type="password"
@@ -463,7 +507,7 @@ export default function AdminUserList() {
                         placeholder="******"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
-                        required={!editItem}
+                        required
                       />
                     </div>
 
