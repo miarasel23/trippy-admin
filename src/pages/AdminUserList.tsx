@@ -199,7 +199,7 @@ export default function AdminUserList() {
       {/* Page Header */}
       <div className="row mb-3 align-items-center">
         <div className="col-sm-6">
-          <h1 className="m-0 font-weight-bold text-dark">{t('adminUserList')}</h1>
+          <h3 className="m-0 font-weight-bold text-dark" style={{ fontSize: '22px' }}>{t('adminUserList')}</h3>
         </div>
       </div>
 
