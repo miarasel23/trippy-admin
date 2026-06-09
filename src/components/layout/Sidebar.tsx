@@ -53,7 +53,12 @@ export default function Sidebar({ isOpen = true }: { isOpen?: boolean }) {
         { to: '/dashboard/setting/otp-setup', text: t('otpSetup') }
       ]
     }
-  ].filter(item => hasAny(item.perms));
+  ].filter(item => {
+    if (item.text === t('settings')) {
+      return user?.role?.name === 'SuperAdmin';
+    }
+    return hasAny(item.perms);
+  });
 
   const handleLogout = async () => {
     setLoading(true);
