@@ -8,13 +8,13 @@ import { adminLogin } from '../utilities/api';
 import { AuthContextTrippy } from '../context/AuthContextTrippy';
 
 type FormValues = {
-    email: string;
-    password: string;
+  email: string;
+  password: string;
 };
 
 const schema = yup.object({
-    email: yup.string().email('Invalid email').required('Email is required'),
-    password: yup.string().min(6, 'Password must be at least 6 characters').required('Password is required'),
+  email: yup.string().email('Invalid email').required('Email is required'),
+  password: yup.string().min(6, 'Password must be at least 6 characters').required('Password is required'),
 }).required();
 
 const Container = styled.div`
@@ -22,6 +22,7 @@ const Container = styled.div`
   justify-content: center;
   align-items: center;
   height: 100vh;
+
   background: linear-gradient(135deg, #f0f4ff, #d9e8ff);
 `;
 
@@ -31,7 +32,7 @@ const Card = styled.form`
   padding: 2rem 3rem;
   border-radius: 12px;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
-  width: 340px;
+  width: 450px;
 `;
 
 const Title = styled.h2`
@@ -47,6 +48,7 @@ const Input = styled.input`
   border: 1px solid #ccc;
   border-radius: 6px;
   font-size: 1rem;
+  color: #160202ff;
   background: rgba(255, 255, 255, 0.6);
 `;
 
@@ -73,7 +75,7 @@ const ErrorMsg = styled.p`
 `;
 
 export const Login: React.FC = () => {
-    const navigate = useNavigate();
+  const navigate = useNavigate();
   // If already authenticated, redirect to dashboard
   React.useEffect(() => {
     const token = localStorage.getItem('authToken');
@@ -81,43 +83,43 @@ export const Login: React.FC = () => {
       navigate('/home');
     }
   }, [navigate]);
-    const { login } = React.useContext(AuthContextTrippy);
-    const {
-        register,
-        handleSubmit,
-        formState: { errors, isSubmitting },
-    } = useForm<FormValues>({
-        resolver: yupResolver(schema),
-    });
+  const { login } = React.useContext(AuthContextTrippy);
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+  } = useForm<FormValues>({
+    resolver: yupResolver(schema),
+  });
 
-    const onSubmit = async (data: FormValues) => {
-        try {
-            const response = await adminLogin(data.email, data.password);
-            if (response?.token) {
-                // Call the context login to propagate reactive authentication status
-                login({ data: response.user, token: response.token }, 'admin');
-                navigate('/home');
-            } else {
-                alert('Login failed: Invalid response');
-            }
-        } catch (err) {
-            console.error(err);
-            alert('Login failed: ' + (err as any).message);
-        }
-    };
+  const onSubmit = async (data: FormValues) => {
+    try {
+      const response = await adminLogin(data.email, data.password);
+      if (response?.token) {
+        // Call the context login to propagate reactive authentication status
+        login({ data: response.user, token: response.token }, 'admin');
+        navigate('/home');
+      } else {
+        alert('Login failed: Invalid response');
+      }
+    } catch (err) {
+      console.error(err);
+      alert('Login failed: ' + (err as any).message);
+    }
+  };
 
-    return (
-        <Container>
-            <Card onSubmit={handleSubmit(onSubmit)}>
-                <Title>Sign In</Title>
-                <Input type="email" placeholder="Email" {...register('email')} />
-                {errors.email && <ErrorMsg>{errors.email.message}</ErrorMsg>}
-                <Input type="password" placeholder="Password" {...register('password')} />
-                {errors.password && <ErrorMsg>{errors.password.message}</ErrorMsg>}
-                <Button type="submit" disabled={isSubmitting}>
-                    {isSubmitting ? 'Signing in...' : 'Sign In'}
-                </Button>
-            </Card>
-        </Container>
-    );
+  return (
+    <Container>
+      <Card onSubmit={handleSubmit(onSubmit)}>
+        <Title>Sign In</Title>
+        <Input type="email" placeholder="Email" {...register('email')} />
+        {errors.email && <ErrorMsg>{errors.email.message}</ErrorMsg>}
+        <Input type="password" placeholder="Password" {...register('password')} />
+        {errors.password && <ErrorMsg>{errors.password.message}</ErrorMsg>}
+        <Button type="submit" disabled={isSubmitting}>
+          {isSubmitting ? 'Signing in...' : 'Sign In'}
+        </Button>
+      </Card>
+    </Container>
+  );
 };

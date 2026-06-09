@@ -119,11 +119,11 @@ export default function AdminUserList() {
       setSubmitting(true);
       setFormError(null);
       const res = await uploadAdminProfilePicture(editItem.uuid, file);
-      
+
       const updatedProfilePic = res.profile_picture;
       setEditItem(prev => prev ? { ...prev, profile_picture: updatedProfilePic } : null);
       setUsers(prev => prev.map(u => u.uuid === editItem.uuid ? { ...u, profile_picture: updatedProfilePic } : u));
-      
+
       setPopup({
         show: true,
         type: 'success',
@@ -159,11 +159,6 @@ export default function AdminUserList() {
       setFormError('Please select a Role');
       return;
     }
-    if (!password) {
-      setFormError(t('passwordRequired'));
-      return;
-    }
-
     try {
       setSubmitting(true);
       setFormError(null);
@@ -180,9 +175,11 @@ export default function AdminUserList() {
         is_superuser: isSuperuser,
         password: password
       };
-
       if (editItem) {
         payload.uuid = editItem.uuid;
+        if (password === "") {
+          delete payload.password;
+        }
         await editAdminUser(payload);
       } else {
         await createAdminUser(payload);
@@ -507,7 +504,6 @@ export default function AdminUserList() {
                         placeholder="******"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
-                        required
                       />
                     </div>
 
