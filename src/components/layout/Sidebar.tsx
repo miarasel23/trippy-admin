@@ -44,7 +44,6 @@ export default function Sidebar({ isOpen = true }: { isOpen?: boolean }) {
             { to: '/dashboard/setting/cars/price-set-as-per-km', text: t('priceSetAsPerKm') }
           ]
         },
-        { to: '/dashboard/setting/car-setup', text: t('carSetup') },
         { to: '/dashboard/setting/action', text: t('action') },
         { to: '/dashboard/setting/action-language', text: t('actionWithLanguage'), icon: 'fa-language' },
         { to: '/dashboard/setting/role-permission', text: t('rolePermission') },
