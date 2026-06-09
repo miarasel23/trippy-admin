@@ -719,4 +719,116 @@ export const deleteCarCategory = async (uuid: string): Promise<string> => {
   return response.data.message || 'Deleted successfully';
 };
 
+export interface PriceSetAsPerKmItem {
+  id: number;
+  uuid: string;
+  price_per_km: number;
+  minimum_booking_price: number;
+  waiting_time: number;
+  waiting_price: number;
+  cancellation_fee: number;
+  busy_time_price_percentage: number;
+  busy_start_time: string;
+  busy_end_time: string;
+  country_code: string;
+  status: string;
+  created_at: string;
+  updated_at: string;
+  car_service_category?: CarServiceCategoryItem | null;
+}
+
+export const fetchPriceSetAsPerKmList = async (): Promise<PriceSetAsPerKmItem[]> => {
+  const token = localStorage.getItem('authToken');
+  const response = await axios.get(
+    `${BASE_URL}/v1/car/list-price-set-as-per-km?platform=web&language_code=en&action_when=price_set_as_per_km_list`,
+    {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    }
+  );
+  if (response.data && response.data.status) {
+    return response.data.data;
+  }
+  throw new Error(response.data.message || 'Failed to fetch price set as per km list');
+};
+
+export interface CreateOrUpdatePriceSetAsPerKmPayload {
+  uuid?: string;
+  price_per_km: number;
+  minimum_booking_price: number;
+  status: string;
+  waiting_time: number;
+  waiting_price: number;
+  cancellation_fee: number;
+  busy_start_time: string;
+  busy_end_time: string;
+  busy_time_price_percentage: number;
+  country_code: string;
+  car_service_category_uuid: string;
+}
+
+export const createOrUpdatePriceSetAsPerKm = async (
+  payload: CreateOrUpdatePriceSetAsPerKmPayload
+): Promise<string> => {
+  const token = localStorage.getItem('authToken');
+  const { platform, language_code } = getLoginDefaults();
+
+  const formData = new URLSearchParams();
+  formData.append('platform', platform);
+  formData.append('language_code', language_code);
+  formData.append('action_when', 'create_update_price_set_as_per_km');
+  formData.append('price_per_km', payload.price_per_km.toString());
+  formData.append('minimum_booking_price', payload.minimum_booking_price.toString());
+  formData.append('status', payload.status);
+  formData.append('waiting_time', payload.waiting_time.toString());
+  formData.append('waiting_price', payload.waiting_price.toString());
+  formData.append('cancellation_fee', payload.cancellation_fee.toString());
+  formData.append('busy_start_time', payload.busy_start_time);
+  formData.append('busy_end_time', payload.busy_end_time);
+  formData.append('busy_time_price_percentage', payload.busy_time_price_percentage.toString());
+  formData.append('country_code', payload.country_code);
+  formData.append('car_service_category_uuid', payload.car_service_category_uuid);
+
+  if (payload.uuid) {
+    formData.append('uuid', payload.uuid);
+  }
+
+  const response = await axios.post(
+    `${BASE_URL}/v1/car/create-and-update-set-price-as-per-km`,
+    formData.toString(),
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/x-www-form-urlencoded'
+      }
+    }
+  );
+
+  if (!response.data || !response.data.status) {
+    throw new Error(response.data?.message || 'Failed to save price set as per km');
+  }
+
+  return response.data.message || 'Saved successfully';
+};
+
+export const deletePriceSetAsPerKm = async (uuid: string): Promise<string> => {
+  const token = localStorage.getItem('authToken');
+  const { platform, language_code } = getLoginDefaults();
+  const response = await axios.delete(
+    `${BASE_URL}/v1/car/delete-price-set-as-per-km?platform=${platform}&language_code=${language_code}&action_when=price_set_as_per_km_delete&uuid=${uuid}`,
+    {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    }
+  );
+
+  if (!response.data || !response.data.status) {
+    throw new Error(response.data?.message || 'Failed to delete price set as per km');
+  }
+
+  return response.data.message || 'Deleted successfully';
+};
+
 
