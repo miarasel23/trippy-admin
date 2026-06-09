@@ -25,6 +25,10 @@ export const adminLogin = async (
     { headers: { 'Content-Type': 'application/x-www-form-urlencoded' } }
   );
 
+  if (!response.data || !response.data.status) {
+    throw new Error(response.data?.message || 'Login failed');
+  }
+
   // Store token and user information for later use
   const { access_token, user } = response.data.data;
   localStorage.setItem('authToken', access_token);

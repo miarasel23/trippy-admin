@@ -26,6 +26,7 @@ export const Login: React.FC = () => {
     }
   }, [navigate]);
 
+  const [errorMsg, setErrorMsg] = React.useState<string | null>(null);
   const auth = React.useContext(AuthContextTrippy);
   const login = auth?.login;
   const {
@@ -37,17 +38,19 @@ export const Login: React.FC = () => {
   });
 
   const onSubmit = async (data: FormValues) => {
+    setErrorMsg(null);
     try {
       const response = await adminLogin(data.email, data.password);
       if (response?.token && login) {
         login({ data: response.user, token: response.token }, 'admin');
         navigate('/home');
       } else {
-        alert('Login failed: Invalid response or context');
+        setErrorMsg('Login failed: Invalid response or context');
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
-      alert('Login failed: ' + (err as any).message);
+      const apiMsg = err.response?.data?.message || err.message || 'Login failed';
+      setErrorMsg(apiMsg);
     }
   };
 
@@ -61,6 +64,12 @@ export const Login: React.FC = () => {
           <h2 className="text-3xl font-extrabold text-gray-950 tracking-tight">Sign In</h2>
           <p className="text-sm text-gray-500 mt-2">Access Trippy Admin Panel</p>
         </div>
+
+        {errorMsg && (
+          <div className="p-3.5 bg-rose-50 border border-rose-200 text-rose-600 rounded-xl text-xs font-semibold text-center uppercase tracking-wide">
+            {errorMsg}
+          </div>
+        )}
 
         <div className="space-y-4">
           <div>
