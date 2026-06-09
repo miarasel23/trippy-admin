@@ -454,6 +454,8 @@ export interface DriverSubscriptionItem {
   created_at: string;
   updated_at: string;
   status: string;
+  flag_one?: number | string | null;
+  flag_two?: number | string | null;
 }
 
 export const fetchDriverSubscriptionList = async (): Promise<DriverSubscriptionItem[]> => {
@@ -552,6 +554,8 @@ export interface CreateUpdateSubscriptionPayload {
   validate_for: number;
   car_categories_uuid: string;
   status: string;
+  flag_one: number | string;
+  flag_two: number | string;
 }
 
 export const createOrUpdateDriverSubscription = async (
@@ -570,8 +574,8 @@ export const createOrUpdateDriverSubscription = async (
   formData.append('validate_for', payload.validate_for.toString());
   formData.append('car_categories_uuid', payload.car_categories_uuid);
   formData.append('status', payload.status);
-  formData.append('flag_one', '1');
-  formData.append('flag_two', '2');
+  formData.append('flag_one', payload.flag_one.toString());
+  formData.append('flag_two', payload.flag_two.toString());
   if (payload.uuid) {
     formData.append('uuid', payload.uuid);
   }

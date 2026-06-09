@@ -28,6 +28,8 @@ export default function DriverSubscriptionList() {
   const [validateFor, setValidateFor] = useState<string>('');
   const [selectedCategoryUuid, setSelectedCategoryUuid] = useState<string>('');
   const [status, setStatus] = useState<string>('ACTIVE');
+  const [flagOne, setFlagOne] = useState<string>('1');
+  const [flagTwo, setFlagTwo] = useState<string>('2');
   const [submitting, setSubmitting] = useState<boolean>(false);
   const [formError, setFormError] = useState<string | null>(null);
 
@@ -67,6 +69,8 @@ export default function DriverSubscriptionList() {
     setPreviousPrice(item.previous_price.toString());
     setValidateFor(item.validate_for.toString());
     setStatus(item.status);
+    setFlagOne(item.flag_one ? item.flag_one.toString() : '1');
+    setFlagTwo(item.flag_two ? item.flag_two.toString() : '2');
     // Since item response doesn't explicitly return car_categories_uuid, default to first category if not available
     setSelectedCategoryUuid((item as any).car_categories_uuid || (carCategories[0]?.uuid || ''));
     setFormError(null);
@@ -80,6 +84,8 @@ export default function DriverSubscriptionList() {
     setPreviousPrice('');
     setValidateFor('');
     setStatus('ACTIVE');
+    setFlagOne('1');
+    setFlagTwo('2');
     setSelectedCategoryUuid(carCategories[0]?.uuid || '');
     setFormError(null);
     setShowModal(true);
@@ -119,6 +125,8 @@ export default function DriverSubscriptionList() {
         validate_for: Number(validateFor),
         car_categories_uuid: selectedCategoryUuid,
         status: status,
+        flag_one: Number(flagOne),
+        flag_two: Number(flagTwo),
         ...(editItem ? { uuid: editItem.uuid } : {})
       };
 
@@ -214,6 +222,8 @@ export default function DriverSubscriptionList() {
                   <th>Price</th>
                   <th>Previous Price</th>
                   <th>Validate For (Days)</th>
+                  <th>Flag One</th>
+                  <th>Flag Two</th>
                   <th>Status</th>
                   <th>Created At</th>
                   <th>Updated At</th>
@@ -235,6 +245,8 @@ export default function DriverSubscriptionList() {
                       <del>৳{item.previous_price.toFixed(2)}</del>
                     </td>
                     <td>{item.validate_for}</td>
+                    <td>{item.flag_one ?? 'N/A'}</td>
+                    <td>{item.flag_two ?? 'N/A'}</td>
                     <td>
                       <span className={`badge ${item.status === 'ACTIVE' ? 'badge-success' : 'badge-danger'}`}>
                         {item.status}
@@ -254,7 +266,7 @@ export default function DriverSubscriptionList() {
                 ))}
                 {filteredSubscriptions.length === 0 && (
                   <tr>
-                    <td colSpan={10} className="text-center p-3 text-muted">
+                    <td colSpan={12} className="text-center p-3 text-muted">
                       No driver subscriptions match the search query.
                     </td>
                   </tr>
@@ -375,6 +387,40 @@ export default function DriverSubscriptionList() {
                         <option value="ACTIVE">ACTIVE</option>
                         <option value="INACTIVE">INACTIVE</option>
                       </select>
+                    </div>
+
+                    {/* Flag One & Flag Two */}
+                    <div className="row mt-3">
+                      <div className="col-md-6 form-group">
+                        <label className="font-weight-bold">Flag One *</label>
+                        <select
+                          className="form-control"
+                          value={flagOne}
+                          onChange={(e) => setFlagOne(e.target.value)}
+                          required
+                        >
+                          {Array.from({ length: 50 }, (_, i) => (
+                            <option key={i + 1} value={i + 1}>
+                              {i + 1}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                      <div className="col-md-6 form-group">
+                        <label className="font-weight-bold">Flag Two *</label>
+                        <select
+                          className="form-control"
+                          value={flagTwo}
+                          onChange={(e) => setFlagTwo(e.target.value)}
+                          required
+                        >
+                          {Array.from({ length: 50 }, (_, i) => (
+                            <option key={i + 1} value={i + 1}>
+                              {i + 1}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
                     </div>
                   </div>
                   <div className="modal-footer">
