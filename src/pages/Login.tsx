@@ -26,7 +26,8 @@ export const Login: React.FC = () => {
     }
   }, [navigate]);
 
-  const { login } = React.useContext(AuthContextTrippy);
+  const auth = React.useContext(AuthContextTrippy);
+  const login = auth?.login;
   const {
     register,
     handleSubmit,
@@ -38,11 +39,11 @@ export const Login: React.FC = () => {
   const onSubmit = async (data: FormValues) => {
     try {
       const response = await adminLogin(data.email, data.password);
-      if (response?.token) {
+      if (response?.token && login) {
         login({ data: response.user, token: response.token }, 'admin');
         navigate('/home');
       } else {
-        alert('Login failed: Invalid response');
+        alert('Login failed: Invalid response or context');
       }
     } catch (err) {
       console.error(err);

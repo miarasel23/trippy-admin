@@ -6,15 +6,17 @@ import { useTranslation } from '../../utilities/translation';
 
 export default function Sidebar({ isOpen = true }: { isOpen?: boolean }) {
   const [loading, setLoading] = useState(false);
-  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-  const [isCarsOpen, setIsCarsOpen] = useState(false);
-  const navigate = useNavigate();
   const location = useLocation();
-  const { logout, user } = useContext(AuthContextTrippy);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(() => location.pathname.includes('/setting'));
+  const [isCarsOpen, setIsCarsOpen] = useState(() => location.pathname.includes('/setting/cars'));
+  const navigate = useNavigate();
+  const auth = useContext(AuthContextTrippy);
+  const user = auth?.user;
+  const logout = auth?.logout;
 
   const permissionCodes = useMemo(() => {
     if (!user?.permissions) return [];
-    return user.permissions.map((p) => p.code);
+    return user.permissions.map((p: any) => p.code);
   }, [user]);
 
   const hasAny = (required: string[] = []) => {
@@ -48,7 +50,6 @@ export default function Sidebar({ isOpen = true }: { isOpen?: boolean }) {
         { to: '/dashboard/setting/action-language', text: t('actionWithLanguage'), icon: 'fa-language' },
         { to: '/dashboard/setting/role-permission', text: t('rolePermission') },
         { to: '/dashboard/setting/driver-subscription', text: t('driverSubscription') },
-        { to: '/dashboard/setting/user-setting', text: t('userSetting') },
         { to: '/dashboard/setting/otp-setup', text: t('otpSetup') }
       ]
     }
@@ -57,7 +58,9 @@ export default function Sidebar({ isOpen = true }: { isOpen?: boolean }) {
   const handleLogout = async () => {
     setLoading(true);
     try {
-      await logout();
+      if (logout) {
+        await logout();
+      }
       navigate('/');
     } catch (error) {
       console.error('Error during logout:', error);
