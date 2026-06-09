@@ -2,7 +2,6 @@ import React from 'react';
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
-import styled from 'styled-components';
 import { useNavigate } from 'react-router-dom';
 import { adminLogin } from '../utilities/api';
 import { AuthContextTrippy } from '../context/AuthContextTrippy';
@@ -17,72 +16,16 @@ const schema = yup.object({
   password: yup.string().min(6, 'Password must be at least 6 characters').required('Password is required'),
 }).required();
 
-const Container = styled.div`
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100vh;
-
-  background: linear-gradient(135deg, #f0f4ff, #d9e8ff);
-`;
-
-const Card = styled.form`
-  background: rgba(255, 255, 255, 0.8);
-  backdrop-filter: blur(8px);
-  padding: 2rem 3rem;
-  border-radius: 12px;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
-  width: 450px;
-`;
-
-const Title = styled.h2`
-  margin-bottom: 1.5rem;
-  text-align: center;
-  color: #333;
-`;
-
-const Input = styled.input`
-  width: 100%;
-  padding: 0.75rem;
-  margin-bottom: 1rem;
-  border: 1px solid #ccc;
-  border-radius: 6px;
-  font-size: 1rem;
-  color: #160202ff;
-  background: rgba(255, 255, 255, 0.6);
-`;
-
-const Button = styled.button`
-  width: 100%;
-  padding: 0.75rem;
-  background: #0077ff;
-  color: #fff;
-  border: none;
-  border-radius: 6px;
-  font-size: 1rem;
-  cursor: pointer;
-  transition: background 0.2s;
-  &:hover {
-    background: #0055cc;
-  }
-`;
-
-const ErrorMsg = styled.p`
-  color: #e74c3c;
-  margin: -0.5rem 0 0.5rem 0;
-  font-size: 0.875rem;
-  text-align: left;
-`;
-
 export const Login: React.FC = () => {
   const navigate = useNavigate();
-  // If already authenticated, redirect to dashboard
+  
   React.useEffect(() => {
     const token = localStorage.getItem('authToken');
     if (token) {
       navigate('/home');
     }
   }, [navigate]);
+
   const { login } = React.useContext(AuthContextTrippy);
   const {
     register,
@@ -96,7 +39,6 @@ export const Login: React.FC = () => {
     try {
       const response = await adminLogin(data.email, data.password);
       if (response?.token) {
-        // Call the context login to propagate reactive authentication status
         login({ data: response.user, token: response.token }, 'admin');
         navigate('/home');
       } else {
@@ -109,17 +51,48 @@ export const Login: React.FC = () => {
   };
 
   return (
-    <Container>
-      <Card onSubmit={handleSubmit(onSubmit)}>
-        <Title>Sign In</Title>
-        <Input type="email" placeholder="Email" {...register('email')} />
-        {errors.email && <ErrorMsg>{errors.email.message}</ErrorMsg>}
-        <Input type="password" placeholder="Password" {...register('password')} />
-        {errors.password && <ErrorMsg>{errors.password.message}</ErrorMsg>}
-        <Button type="submit" disabled={isSubmitting}>
+    <div className="flex justify-center items-center min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
+      <form 
+        onSubmit={handleSubmit(onSubmit)} 
+        className="bg-white/80 backdrop-blur-md p-8 sm:p-10 rounded-2xl shadow-xl w-full max-w-md border border-white/60 space-y-6"
+      >
+        <div className="text-center">
+          <h2 className="text-3xl font-extrabold text-gray-950 tracking-tight">Sign In</h2>
+          <p className="text-sm text-gray-500 mt-2">Access Trippy Admin Panel</p>
+        </div>
+
+        <div className="space-y-4">
+          <div>
+            <label className="block text-xs font-semibold text-gray-600 uppercase tracking-wider mb-1.5">Email Address</label>
+            <input 
+              type="email" 
+              placeholder="name@example.com" 
+              {...register('email')} 
+              className="w-full px-4 py-2.5 rounded-xl border border-gray-200 bg-white/50 text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+            />
+            {errors.email && <p className="text-red-500 text-xs mt-1 text-left">{errors.email.message}</p>}
+          </div>
+
+          <div>
+            <label className="block text-xs font-semibold text-gray-600 uppercase tracking-wider mb-1.5">Password</label>
+            <input 
+              type="password" 
+              placeholder="••••••••" 
+              {...register('password')} 
+              className="w-full px-4 py-2.5 rounded-xl border border-gray-200 bg-white/50 text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+            />
+            {errors.password && <p className="text-red-500 text-xs mt-1 text-left">{errors.password.message}</p>}
+          </div>
+        </div>
+
+        <button 
+          type="submit" 
+          disabled={isSubmitting}
+          className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-xl shadow-lg shadow-blue-500/20 hover:shadow-blue-500/30 transition duration-200 focus:outline-none disabled:opacity-70 disabled:cursor-not-allowed"
+        >
           {isSubmitting ? 'Signing in...' : 'Sign In'}
-        </Button>
-      </Card>
-    </Container>
+        </button>
+      </form>
+    </div>
   );
 };

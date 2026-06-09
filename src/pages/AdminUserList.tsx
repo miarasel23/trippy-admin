@@ -6,22 +6,15 @@ import type { RoleItem } from '../store/action';
 import noImage from '../assets/no-image.png';
 
 interface AdminUserItem {
-  uuid: string;
-  first_name: string;
-  last_name: string;
-  phone_number: string;
-  country_code: string;
-  username: string;
-  email: string;
-  is_active: boolean | number;
-  is_superuser: boolean | number;
+  uuid: string; first_name: string; last_name: string; phone_number: string; country_code: string;
+  username: string; email: string; is_active: boolean | number; is_superuser: boolean | number;
   profile_picture?: string | null;
-  role?: {
-    uuid: string;
-    name: string;
-    description: string;
-  } | null;
+  role?: { uuid: string; name: string; description: string; } | null;
 }
+
+const inputCls = "w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-slate-200 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-colors text-sm";
+const labelCls = "block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1";
+const selectCls = "w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-colors text-sm";
 
 export default function AdminUserList() {
   const t = useTranslation();
@@ -29,14 +22,9 @@ export default function AdminUserList() {
   const [roles, setRoles] = useState<RoleItem[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-
-  // Search state
   const [searchQuery, setSearchQuery] = useState<string>('');
-
-  // Modal / Form states
   const [showModal, setShowModal] = useState<boolean>(false);
   const [editItem, setEditItem] = useState<AdminUserItem | null>(null);
-
   const [firstName, setFirstName] = useState<string>('');
   const [lastName, setLastName] = useState<string>('');
   const [username, setUsername] = useState<string>('');
@@ -47,535 +35,216 @@ export default function AdminUserList() {
   const [selectedRole, setSelectedRole] = useState<string>('');
   const [isActive, setIsActive] = useState<number>(1);
   const [isSuperuser, setIsSuperuser] = useState<number>(0);
-
   const [submitting, setSubmitting] = useState<boolean>(false);
   const [formError, setFormError] = useState<string | null>(null);
-
-  // Common popup
-  const [popup, setPopup] = useState<{ show: boolean; type: 'success' | 'error'; message: string }>({
-    show: false,
-    type: 'error',
-    message: ''
-  });
+  const [popup, setPopup] = useState<{ show: boolean; type: 'success' | 'error'; message: string }>({ show: false, type: 'error', message: '' });
 
   const loadData = async () => {
     try {
-      setLoading(true);
-      setError(null);
-      const [usersData, rolesData] = await Promise.all([
-        fetchAdminUserList(),
-        fetchRoleList()
-      ]);
-      setUsers(usersData);
-      setRoles(rolesData);
-    } catch (err: any) {
-      console.error('Error fetching admin users or roles:', err);
-      setError(err.message || 'An error occurred while loading data');
-    } finally {
-      setLoading(false);
-    }
+      setLoading(true); setError(null);
+      const [usersData, rolesData] = await Promise.all([fetchAdminUserList(), fetchRoleList()]);
+      setUsers(usersData); setRoles(rolesData);
+    } catch (err: any) { setError(err.message || 'Error loading data'); }
+    finally { setLoading(false); }
   };
 
-  useEffect(() => {
-    loadData();
-  }, []);
+  useEffect(() => { loadData(); }, []);
 
   const handleEditClick = (item: AdminUserItem) => {
-    setEditItem(item);
-    setFirstName(item.first_name);
-    setLastName(item.last_name);
-    setUsername(item.username);
-    setEmail(item.email);
-    setPhoneNumber(item.phone_number);
-    setCountryCode(item.country_code || '+880');
-    setSelectedRole(item.role?.name || '');
-    setIsActive(item.is_active ? 1 : 0);
-    setIsSuperuser(item.is_superuser ? 1 : 0);
-    setPassword('');
-    setFormError(null);
-    setShowModal(true);
+    setEditItem(item); setFirstName(item.first_name); setLastName(item.last_name);
+    setUsername(item.username); setEmail(item.email); setPhoneNumber(item.phone_number);
+    setCountryCode(item.country_code || '+880'); setSelectedRole(item.role?.name || '');
+    setIsActive(item.is_active ? 1 : 0); setIsSuperuser(item.is_superuser ? 1 : 0);
+    setPassword(''); setFormError(null); setShowModal(true);
   };
 
   const handleCloseModal = () => {
-    setShowModal(false);
-    setEditItem(null);
-    setFirstName('');
-    setLastName('');
-    setUsername('');
-    setEmail('');
-    setPhoneNumber('');
-    setCountryCode('+880');
-    setPassword('');
-    setSelectedRole('');
-    setIsActive(1);
-    setIsSuperuser(0);
-    setFormError(null);
+    setShowModal(false); setEditItem(null); setFirstName(''); setLastName(''); setUsername('');
+    setEmail(''); setPhoneNumber(''); setCountryCode('+880'); setPassword('');
+    setSelectedRole(''); setIsActive(1); setIsSuperuser(0); setFormError(null);
   };
 
   const handleProfilePictureChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files || e.target.files.length === 0 || !editItem) return;
-    const file = e.target.files[0];
     try {
-      setSubmitting(true);
-      setFormError(null);
-      const res = await uploadAdminProfilePicture(editItem.uuid, file);
-
+      setSubmitting(true); setFormError(null);
+      const res = await uploadAdminProfilePicture(editItem.uuid, e.target.files[0]);
       const updatedProfilePic = res.profile_picture;
       setEditItem(prev => prev ? { ...prev, profile_picture: updatedProfilePic } : null);
       setUsers(prev => prev.map(u => u.uuid === editItem.uuid ? { ...u, profile_picture: updatedProfilePic } : u));
-
-      setPopup({
-        show: true,
-        type: 'success',
-        message: 'Profile picture updated successfully'
-      });
-    } catch (err: any) {
-      console.error('Failed to upload profile picture:', err);
-      setFormError(err.response?.data?.message || err.response?.data?.detail || err.message || 'Failed to upload profile picture');
-    } finally {
-      setSubmitting(false);
-    }
+      setPopup({ show: true, type: 'success', message: 'Profile picture updated successfully' });
+    } catch (err: any) { setFormError(err.response?.data?.message || err.message || 'Failed to upload'); }
+    finally { setSubmitting(false); }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!firstName.trim() || !lastName.trim()) {
-      setFormError('First and Last names are required');
-      return;
-    }
-    if (!username.trim()) {
-      setFormError(t('usernameRequired'));
-      return;
-    }
-    if (!email.trim()) {
-      setFormError(t('emailRequired'));
-      return;
-    }
-    if (!phoneNumber.trim()) {
-      setFormError(t('phoneRequired'));
-      return;
-    }
-    if (!selectedRole) {
-      setFormError('Please select a Role');
-      return;
-    }
+    if (!firstName.trim() || !lastName.trim()) { setFormError('First and Last names are required'); return; }
+    if (!username.trim()) { setFormError(t('usernameRequired')); return; }
+    if (!email.trim()) { setFormError(t('emailRequired')); return; }
+    if (!phoneNumber.trim()) { setFormError(t('phoneRequired')); return; }
+    if (!selectedRole) { setFormError('Please select a Role'); return; }
     try {
-      setSubmitting(true);
-      setFormError(null);
-
-      const payload: any = {
-        first_name: firstName.trim(),
-        last_name: lastName.trim(),
-        phone_number: phoneNumber.trim(),
-        country_code: countryCode.trim(),
-        username: username.trim(),
-        email: email.trim(),
-        role: selectedRole,
-        is_active: isActive,
-        is_superuser: isSuperuser,
-        password: password
-      };
-      if (editItem) {
-        payload.uuid = editItem.uuid;
-        if (password === "") {
-          delete payload.password;
-        }
-        await editAdminUser(payload);
-      } else {
-        await createAdminUser(payload);
-      }
-
-      handleCloseModal();
-      await loadData();
-
-      setPopup({
-        show: true,
-        type: 'success',
-        message: editItem ? t('adminUpdatedSuccess') : t('adminCreatedSuccess')
-      });
-    } catch (err: any) {
-      console.error('Error saving admin user:', err);
-      setFormError(err.response?.data?.detail || err.message || 'An error occurred while saving.');
-    } finally {
-      setSubmitting(false);
-    }
+      setSubmitting(true); setFormError(null);
+      const payload: any = { first_name: firstName.trim(), last_name: lastName.trim(), phone_number: phoneNumber.trim(), country_code: countryCode.trim(), username: username.trim(), email: email.trim(), role: selectedRole, is_active: isActive, is_superuser: isSuperuser, password };
+      if (editItem) { payload.uuid = editItem.uuid; if (password === '') delete payload.password; await editAdminUser(payload); }
+      else { await createAdminUser(payload); }
+      handleCloseModal(); await loadData();
+      setPopup({ show: true, type: 'success', message: editItem ? t('adminUpdatedSuccess') : t('adminCreatedSuccess') });
+    } catch (err: any) { setFormError(err.response?.data?.detail || err.message || 'Error saving.'); }
+    finally { setSubmitting(false); }
   };
 
-  // Search filter
   const filteredUsers = users.filter((u) => {
     const q = searchQuery.toLowerCase();
-    const fullName = `${u.first_name} ${u.last_name}`.toLowerCase();
-    return (
-      fullName.includes(q) ||
-      u.username.toLowerCase().includes(q) ||
-      u.email.toLowerCase().includes(q) ||
-      (u.role?.name || '').toLowerCase().includes(q)
-    );
+    return `${u.first_name} ${u.last_name}`.toLowerCase().includes(q) || u.username.toLowerCase().includes(q) || u.email.toLowerCase().includes(q) || (u.role?.name || '').toLowerCase().includes(q);
   });
 
   return (
-    <div className="container-fluid px-0">
-      {/* Page Header */}
-      <div className="row mb-3 align-items-center">
-        <div className="col-sm-6">
-          <h3 className="m-0 font-weight-bold text-dark" style={{ fontSize: '22px' }}>{t('adminUserList')}</h3>
-        </div>
-      </div>
-
-      {/* Main Content Card */}
-      <div className="card shadow-sm border-0">
-        <div className="card-header bg-white py-3">
-          <div className="row align-items-center">
-            <div className="col-md-6 col-sm-12 mb-2 mb-md-0">
-              <div className="input-group" style={{ maxWidth: '350px' }}>
-                <input
-                  type="text"
-                  className="form-control"
-                  placeholder={t('searchRoles')}
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                />
-                <div className="input-group-append">
-                  <span className="input-group-text bg-light border-left-0">
-                    <i className="fa fa-search text-muted"></i>
-                  </span>
-                </div>
-              </div>
-            </div>
-            <div className="col-md-6 col-sm-12 text-md-right">
-              <button
-                type="button"
-                className="btn btn-primary btn-sm rounded-pill px-3 py-2"
-                onClick={() => {
-                  setFormError(null);
-                  setShowModal(true);
-                }}
-              >
-                <i className="fa fa-plus mr-1"></i> {t('createAdminUser')}
-              </button>
-            </div>
+    <div className="bg-slate-900 rounded-2xl shadow-2xl border border-slate-800 overflow-hidden">
+      {/* Header */}
+      <div className="flex flex-wrap items-center justify-between gap-4 px-6 py-4 border-b border-slate-800">
+        <div className="flex items-center gap-4 flex-wrap">
+          <h2 className="text-lg font-bold text-white">{t('adminUserList')}</h2>
+          <div className="relative">
+            <input type="text" className="pl-9 pr-4 py-2 bg-slate-800 border border-slate-700 rounded-lg text-slate-300 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm w-56 transition-colors"
+              placeholder="Search users..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
+            <svg className="absolute left-3 top-2.5 w-4 h-4 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
           </div>
         </div>
-
-        <div className="card-body p-0">
-          {loading && (
-            <div className="p-5 text-center">
-              <div className="spinner-border text-primary" role="status">
-                <span className="sr-only">{t('loadingLabel')}</span>
-              </div>
-            </div>
-          )}
-
-          {error && (
-            <div className="alert alert-danger m-3" role="alert">
-              {error}
-            </div>
-          )}
-
-          {!loading && !error && (
-            <div className="table-responsive">
-              <table className="table table-striped table-hover w-100 m-0 align-middle">
-                <thead className="bg-light">
-                  <tr>
-                    <th style={{ width: '70px' }} className="text-center">{t('slNo')}</th>
-                    <th>Image</th>
-                    <th>Name</th>
-                    <th>{t('username')}</th>
-                    <th>{t('email')}</th>
-                    <th>{t('phoneNumber')}</th>
-                    <th>{t('role')}</th>
-                    <th className="text-center">{t('status')}</th>
-                    <th className="text-center">Superuser</th>
-                    <th style={{ width: '100px' }} className="text-center">{t('actionLabel')}</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredUsers.length === 0 ? (
-                    <tr>
-                      <td colSpan={10} className="text-center text-muted p-4">
-                        No admin users match the search query.
-                      </td>
-                    </tr>
-                  ) : (
-                    filteredUsers.map((item, index) => {
-                      const avatarUrl = item.profile_picture
-                        ? (item.profile_picture.startsWith('http') ? item.profile_picture : `${newwork_image_url}${item.profile_picture}`)
-                        : noImage;
-
-                      return (
-                        <tr key={item.uuid}>
-                          <td className="text-center font-weight-bold text-muted">{index + 1}</td>
-                          <td>
-                            <img
-                              src={avatarUrl}
-                              alt={item.username}
-                              className="img-circle elevation-1 border"
-                              style={{ width: '36px', height: '36px', objectFit: 'cover' }}
-                              onError={(e) => {
-                                e.currentTarget.onerror = null;
-                                e.currentTarget.src = noImage;
-                              }}
-                            />
-                          </td>
-                          <td className="font-weight-bold text-dark">{item.first_name} {item.last_name}</td>
-                          <td><code>{item.username}</code></td>
-                          <td>{item.email}</td>
-                          <td>
-                            <span className="text-muted">{item.country_code} {item.phone_number}</span>
-                          </td>
-                          <td>
-                            <span className="badge badge-primary px-2 py-1">
-                              {item.role?.name || 'No Role'}
-                            </span>
-                          </td>
-                          <td className="text-center">
-                            {item.is_active ? (
-                              <span className="badge badge-success px-2 py-1">{t('active')}</span>
-                            ) : (
-                              <span className="badge badge-secondary px-2 py-1">{t('inactive')}</span>
-                            )}
-                          </td>
-                          <td className="text-center">
-                            {item.is_superuser ? (
-                              <span className="badge badge-warning text-dark font-weight-bold px-2 py-1">{t('yes')}</span>
-                            ) : (
-                              <span className="badge badge-light px-2 py-1">{t('no')}</span>
-                            )}
-                          </td>
-                          <td className="text-center">
-                            <button
-                              type="button"
-                              className="btn btn-outline-primary btn-xs px-2 py-1"
-                              onClick={() => handleEditClick(item)}
-                            >
-                              <i className="fa fa-edit mr-1"></i> {t('edit')}
-                            </button>
-                          </td>
-                        </tr>
-                      );
-                    })
-                  )}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </div>
+        <button onClick={() => { setFormError(null); setShowModal(true); }} className="flex items-center gap-1.5 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium rounded-lg transition-colors cursor-pointer shadow-lg shadow-indigo-900/40">
+          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
+          {t('createAdminUser')}
+        </button>
       </div>
 
-      {/* Add / Edit Admin User Modal */}
+      <div className="overflow-x-auto">
+        {loading && (<div className="flex justify-center items-center py-20"><div className="animate-spin rounded-full h-10 w-10 border-4 border-indigo-500 border-t-transparent"></div></div>)}
+        {error && <div className="m-4 px-4 py-3 bg-rose-900/40 border border-rose-700 text-rose-300 rounded-lg text-sm">{error}</div>}
+        {!loading && !error && (
+          <table className="w-full text-sm text-left">
+            <thead>
+              <tr className="bg-slate-800/60 text-xs text-slate-400 uppercase tracking-wider">
+                <th className="px-4 py-3 w-14 text-center">SL</th>
+                <th className="px-4 py-3">Image</th>
+                <th className="px-4 py-3">Name</th>
+                <th className="px-4 py-3">{t('username')}</th>
+                <th className="px-4 py-3">{t('email')}</th>
+                <th className="px-4 py-3">{t('phoneNumber')}</th>
+                <th className="px-4 py-3">{t('role')}</th>
+                <th className="px-4 py-3 text-center">{t('status')}</th>
+                <th className="px-4 py-3 text-center">Superuser</th>
+                <th className="px-4 py-3 text-center">{t('actionLabel')}</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-800/60">
+              {filteredUsers.length === 0 ? (
+                <tr><td colSpan={10} className="px-4 py-12 text-center text-slate-500">No admin users match the search query.</td></tr>
+              ) : filteredUsers.map((item, index) => {
+                const avatarUrl = item.profile_picture ? (item.profile_picture.startsWith('http') ? item.profile_picture : `${newwork_image_url}${item.profile_picture}`) : noImage;
+                return (
+                  <tr key={item.uuid} className="hover:bg-slate-800/40 transition-colors">
+                    <td className="px-4 py-3 text-center text-slate-400 font-mono">{index + 1}</td>
+                    <td className="px-4 py-3">
+                      <img src={avatarUrl} alt={item.username} className="w-9 h-9 rounded-full object-cover ring-2 ring-slate-700" onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = noImage; }} />
+                    </td>
+                    <td className="px-4 py-3 font-semibold text-slate-200">{item.first_name} {item.last_name}</td>
+                    <td className="px-4 py-3 font-mono text-slate-400 text-xs">{item.username}</td>
+                    <td className="px-4 py-3 text-slate-300">{item.email}</td>
+                    <td className="px-4 py-3 text-slate-400">{item.country_code} {item.phone_number}</td>
+                    <td className="px-4 py-3">
+                      <span className="px-2.5 py-1 bg-indigo-900/50 text-indigo-300 rounded-md text-xs font-semibold border border-indigo-700/50">{item.role?.name || 'No Role'}</span>
+                    </td>
+                    <td className="px-4 py-3 text-center">
+                      {item.is_active ? <span className="px-2.5 py-1 bg-emerald-900/50 text-emerald-300 rounded-full text-xs font-semibold border border-emerald-700/50">{t('active')}</span>
+                        : <span className="px-2.5 py-1 bg-slate-800 text-slate-400 rounded-full text-xs font-semibold border border-slate-700">{t('inactive')}</span>}
+                    </td>
+                    <td className="px-4 py-3 text-center">
+                      {item.is_superuser ? <span className="px-2.5 py-1 bg-amber-900/50 text-amber-300 rounded-full text-xs font-semibold border border-amber-700/50">{t('yes')}</span>
+                        : <span className="px-2.5 py-1 bg-slate-800 text-slate-400 rounded-full text-xs font-semibold border border-slate-700">{t('no')}</span>}
+                    </td>
+                    <td className="px-4 py-3 text-center">
+                      <button onClick={() => handleEditClick(item)} className="flex items-center gap-1 px-3 py-1.5 bg-slate-700 hover:bg-indigo-600 text-slate-300 hover:text-white text-xs font-medium rounded-lg transition-colors cursor-pointer mx-auto">
+                        <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
+                        {t('edit')}
+                      </button>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        )}
+      </div>
+
+      {/* Add/Edit Modal */}
       {showModal && (
-        <div className="modal fade show d-block" tabIndex={-1} role="dialog" style={{ backgroundColor: 'rgba(0,0,0,0.5)', overflowY: 'auto' }}>
-          <div className="modal-dialog modal-dialog-centered modal-lg" role="document">
-            <div className="modal-content border-0 shadow-lg" style={{ borderRadius: '15px' }}>
-              <div className="modal-header bg-primary text-white border-0" style={{ borderTopLeftRadius: '15px', borderTopRightRadius: '15px' }}>
-                <h5 className="modal-title font-weight-bold">
-                  {editItem ? t('editAdminUser') : t('createAdminUser')}
-                </h5>
-                <button type="button" className="close text-white" onClick={handleCloseModal}>
-                  <span aria-hidden="true">&times;</span>
+        <>
+          <div className="fixed inset-0 z-50 flex items-start justify-center p-4 overflow-y-auto">
+            <div className="w-full max-w-2xl bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl my-8">
+              <div className="flex items-center justify-between p-5 bg-gradient-to-r from-indigo-600 to-violet-600 rounded-t-2xl">
+                <h3 className="text-lg font-semibold text-white">{editItem ? t('editAdminUser') : t('createAdminUser')}</h3>
+                <button onClick={handleCloseModal} className="text-white/80 hover:text-white p-1 rounded-lg hover:bg-white/10 transition-colors cursor-pointer">
+                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
                 </button>
               </div>
-
-              <form onSubmit={handleSubmit}>
-                <div className="modal-body p-4">
-                  {formError && (
-                    <div className="alert alert-danger" role="alert">
-                      <i className="fa fa-exclamation-triangle mr-2"></i>
-                      {formError}
-                    </div>
-                  )}
-                  {editItem && (
-                    <div className="text-center mb-4">
-                      <div className="position-relative d-inline-block">
-                        <img
-                          src={editItem.profile_picture ? (editItem.profile_picture.startsWith('http') ? editItem.profile_picture : `${newwork_image_url}${editItem.profile_picture}`) : noImage}
-                          alt="Profile"
-                          className="img-circle border shadow-sm"
-                          style={{ width: '90px', height: '90px', objectFit: 'cover' }}
-                        />
-                      </div>
-                      <div className="mt-2">
-                        <label className="btn btn-outline-secondary btn-sm rounded-pill px-3" style={{ cursor: 'pointer' }}>
-                          <i className="fa fa-camera mr-1"></i> Upload Photo
-                          <input
-                            type="file"
-                            accept="image/*"
-                            style={{ display: 'none' }}
-                            onChange={handleProfilePictureChange}
-                          />
-                        </label>
-                      </div>
-                    </div>
-                  )}
-                  <div className="row">
-                    {/* First Name */}
-                    <div className="col-md-6 col-sm-12 form-group">
-                      <label className="font-weight-bold text-dark">{t('firstName')} *</label>
-                      <input
-                        type="text"
-                        className="form-control"
-                        placeholder="John"
-                        value={firstName}
-                        onChange={(e) => setFirstName(e.target.value)}
-                        required
-                      />
-                    </div>
-
-                    {/* Last Name */}
-                    <div className="col-md-6 col-sm-12 form-group">
-                      <label className="font-weight-bold text-dark">{t('lastName')} *</label>
-                      <input
-                        type="text"
-                        className="form-control"
-                        placeholder="Doe"
-                        value={lastName}
-                        onChange={(e) => setLastName(e.target.value)}
-                        required
-                      />
-                    </div>
+              <form onSubmit={handleSubmit} className="p-5 space-y-4">
+                {formError && <div className="px-3 py-2 bg-rose-900/40 border border-rose-700 text-rose-300 rounded-lg text-sm">{formError}</div>}
+                {editItem && (
+                  <div className="flex flex-col items-center gap-3 py-2">
+                    <img src={editItem.profile_picture ? (editItem.profile_picture.startsWith('http') ? editItem.profile_picture : `${newwork_image_url}${editItem.profile_picture}`) : noImage}
+                      alt="Profile" className="w-20 h-20 rounded-full object-cover ring-4 ring-slate-700" />
+                    <label className="flex items-center gap-2 px-4 py-2 bg-slate-700 hover:bg-slate-600 text-slate-300 text-sm rounded-lg cursor-pointer transition-colors">
+                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                      Upload Photo
+                      <input type="file" accept="image/*" className="hidden" onChange={handleProfilePictureChange} />
+                    </label>
                   </div>
-
-                  <div className="row">
-                    {/* Username */}
-                    <div className="col-md-6 col-sm-12 form-group">
-                      <label className="font-weight-bold text-dark">{t('username')} *</label>
-                      <input
-                        type="text"
-                        className="form-control"
-                        placeholder="johndoe"
-                        value={username}
-                        onChange={(e) => setUsername(e.target.value)}
-                        disabled={!!editItem}
-                        required
-                      />
-                    </div>
-
-                    {/* Email */}
-                    <div className="col-md-6 col-sm-12 form-group">
-                      <label className="font-weight-bold text-dark">{t('email')} *</label>
-                      <input
-                        type="email"
-                        className="form-control"
-                        placeholder="john.doe@example.com"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        required
-                      />
-                    </div>
+                )}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div><label className={labelCls}>{t('firstName')} *</label><input type="text" className={inputCls} placeholder="John" value={firstName} onChange={(e) => setFirstName(e.target.value)} required /></div>
+                  <div><label className={labelCls}>{t('lastName')} *</label><input type="text" className={inputCls} placeholder="Doe" value={lastName} onChange={(e) => setLastName(e.target.value)} required /></div>
+                  <div><label className={labelCls}>{t('username')} *</label><input type="text" className={inputCls} placeholder="johndoe" value={username} onChange={(e) => setUsername(e.target.value)} disabled={!!editItem} required /></div>
+                  <div><label className={labelCls}>{t('email')} *</label><input type="email" className={inputCls} placeholder="john@example.com" value={email} onChange={(e) => setEmail(e.target.value)} required /></div>
+                  <div><label className={labelCls}>{t('countryCode')} *</label><input type="text" className={inputCls} placeholder="+880" value={countryCode} onChange={(e) => setCountryCode(e.target.value)} required /></div>
+                  <div><label className={labelCls}>{t('phoneNumber')} *</label><input type="text" className={inputCls} placeholder="1XXXXXXXXX" value={phoneNumber} onChange={(e) => setPhoneNumber(e.target.value)} required /></div>
+                  <div><label className={labelCls}>{t('password')} {!editItem && '*'}</label><input type="password" className={inputCls} placeholder="******" value={password} onChange={(e) => setPassword(e.target.value)} /></div>
+                  <div>
+                    <label className={labelCls}>{t('role')} *</label>
+                    <select className={selectCls} value={selectedRole} onChange={(e) => setSelectedRole(e.target.value)} required>
+                      <option value="">-- Select Role --</option>
+                      {roles.map(r => <option key={r.uuid} value={r.name}>{r.name}</option>)}
+                    </select>
                   </div>
-
-                  <div className="row">
-                    {/* Country Code */}
-                    <div className="col-md-3 col-sm-4 form-group">
-                      <label className="font-weight-bold text-dark">{t('countryCode')} *</label>
-                      <input
-                        type="text"
-                        className="form-control"
-                        placeholder="+880"
-                        value={countryCode}
-                        onChange={(e) => setCountryCode(e.target.value)}
-                        required
-                      />
-                    </div>
-
-                    {/* Phone Number */}
-                    <div className="col-md-9 col-sm-8 form-group">
-                      <label className="font-weight-bold text-dark">{t('phoneNumber')} *</label>
-                      <input
-                        type="text"
-                        className="form-control"
-                        placeholder="1XXXXXXXXX"
-                        value={phoneNumber}
-                        onChange={(e) => setPhoneNumber(e.target.value)}
-                        required
-                      />
-                    </div>
+                  <div>
+                    <label className={labelCls}>{t('status')}</label>
+                    <select className={selectCls} value={isActive} onChange={(e) => setIsActive(Number(e.target.value))}>
+                      <option value={1}>{t('active')}</option>
+                      <option value={0}>{t('inactive')}</option>
+                    </select>
                   </div>
-
-                  <div className="row">
-                    {/* Password */}
-                    <div className="col-md-6 col-sm-12 form-group">
-                      <label className="font-weight-bold text-dark">
-                        {t('password')} *
-                      </label>
-                      <input
-                        type="password"
-                        className="form-control"
-                        placeholder="******"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                      />
-                    </div>
-
-                    {/* Role Select */}
-                    <div className="col-md-6 col-sm-12 form-group">
-                      <label className="font-weight-bold text-dark">{t('role')} *</label>
-                      <select
-                        className="form-control"
-                        value={selectedRole}
-                        onChange={(e) => setSelectedRole(e.target.value)}
-                        required
-                      >
-                        <option value="">-- Select Role --</option>
-                        {roles.map((r) => (
-                          <option key={r.uuid} value={r.name}>
-                            {r.name}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                  </div>
-
-                  <div className="row align-items-center mt-2">
-                    {/* Is Active */}
-                    <div className="col-md-6 col-sm-12 form-group">
-                      <label className="font-weight-bold text-dark mr-3">{t('status')}</label>
-                      <select
-                        className="form-control"
-                        value={isActive}
-                        onChange={(e) => setIsActive(Number(e.target.value))}
-                      >
-                        <option value={1}>{t('active')}</option>
-                        <option value={0}>{t('inactive')}</option>
-                      </select>
-                    </div>
-
-                    {/* Is Superuser */}
-                    <div className="col-md-6 col-sm-12 form-group">
-                      <label className="font-weight-bold text-dark mr-3">Superuser Access</label>
-                      <select
-                        className="form-control"
-                        value={isSuperuser}
-                        onChange={(e) => setIsSuperuser(Number(e.target.value))}
-                      >
-                        <option value={0}>{t('no')}</option>
-                        <option value={1}>{t('yes')}</option>
-                      </select>
-                    </div>
+                  <div>
+                    <label className={labelCls}>Superuser Access</label>
+                    <select className={selectCls} value={isSuperuser} onChange={(e) => setIsSuperuser(Number(e.target.value))}>
+                      <option value={0}>{t('no')}</option>
+                      <option value={1}>{t('yes')}</option>
+                    </select>
                   </div>
                 </div>
-
-                <div className="modal-footer bg-light border-0" style={{ borderBottomLeftRadius: '15px', borderBottomRightRadius: '15px' }}>
-                  <button type="button" className="btn btn-secondary rounded-pill px-4" onClick={handleCloseModal} disabled={submitting}>
-                    {t('cancel')}
-                  </button>
-                  <button type="submit" className="btn btn-primary rounded-pill px-4" disabled={submitting}>
+                <div className="flex justify-end gap-3 pt-2 border-t border-slate-800">
+                  <button type="button" onClick={handleCloseModal} disabled={submitting} className="px-4 py-2 text-sm text-slate-300 bg-slate-800 hover:bg-slate-700 rounded-lg transition-colors cursor-pointer">{t('cancel')}</button>
+                  <button type="submit" disabled={submitting} className="px-5 py-2 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-500 disabled:opacity-60 rounded-lg transition-colors cursor-pointer">
                     {submitting ? t('submitting') : (editItem ? 'Save Changes' : 'Create User')}
                   </button>
                 </div>
               </form>
             </div>
           </div>
-        </div>
+          <div className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm"></div>
+        </>
       )}
 
-      {/* Popup alerts */}
-      <PopupMessage
-        show={popup.show}
-        type={popup.type}
-        message={popup.message}
-        onClose={() => setPopup(prev => ({ ...prev, show: false }))}
-      />
+      <PopupMessage show={popup.show} type={popup.type} message={popup.message} onClose={() => setPopup(prev => ({ ...prev, show: false }))} />
     </div>
   );
 }

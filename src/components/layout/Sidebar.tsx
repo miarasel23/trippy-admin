@@ -1,4 +1,4 @@
-import React, { useState, useContext, useMemo } from 'react';
+import { useState, useContext, useMemo } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import Spinner from '../../ui-share/Spinner';
 import { AuthContextTrippy } from '../../context/AuthContextTrippy';
@@ -67,109 +67,134 @@ export default function Sidebar({ isOpen = true }: { isOpen?: boolean }) {
   };
 
   return (
-    <aside className="main-sidebar sidebar-dark-primary elevation-4">
+    <aside className={`fixed top-0 bottom-0 left-0 z-50 bg-slate-900 text-slate-300 w-64 border-r border-slate-800 flex flex-col transition-transform duration-300 ${
+      isOpen ? 'translate-x-0' : '-translate-x-full'
+    }`}>
       {/* Brand Logo */}
-      <a href="#" className="brand-link">
-        <span className="brand-text font-weight-light pl-3 font-weight-bold">TRIPPY SERVICE LTD</span>
-      </a>
+      <div className="h-16 flex items-center px-6 border-b border-slate-800 bg-slate-950">
+        <span className="text-white font-bold tracking-wider text-sm">TRIPPY SERVICE LTD</span>
+      </div>
 
-      {/* Sidebar */}
-      <div className="sidebar">
-        {/* Sidebar Menu */}
-        <nav className="mt-2">
-          <ul className="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
-            {links.map((link, index) => {
-              const hasSubItems = !!link.subItems;
-              const isActive = location.pathname === link.to;
+      {/* Sidebar Links */}
+      <div className="flex-1 overflow-y-auto px-4 py-4 space-y-1">
+        <nav className="space-y-1">
+          {links.map((link, index) => {
+            const hasSubItems = !!link.subItems;
+            const isActive = location.pathname === link.to;
 
-              if (hasSubItems) {
-                return (
-                  <li key={index} className={`nav-item has-treeview ${isSettingsOpen ? 'menu-open' : ''}`}>
-                    <a
-                      href="#"
-                      className={`nav-link ${location.pathname.includes('/setting') ? 'active' : ''}`}
-                      onClick={(e) => { e.preventDefault(); setIsSettingsOpen(!isSettingsOpen); }}
-                    >
-                      <i className={`nav-icon fa ${link.icon}`}></i>
-                      <p>
-                        {link.text}
-                        <i className="right fa fa-angle-left"></i>
-                      </p>
-                    </a>
-                    <ul className="nav nav-treeview" style={{ display: isSettingsOpen ? 'block' : 'none' }}>
+            if (hasSubItems) {
+              const isAnySubActive = location.pathname.includes('/setting');
+              return (
+                <div key={index} className="space-y-1">
+                  <button
+                    className={`w-full flex items-center justify-between px-4 py-2.5 rounded-lg text-sm font-medium transition-colors ${
+                      isAnySubActive ? 'bg-slate-800 text-white' : 'hover:bg-slate-800 hover:text-white'
+                    }`}
+                    onClick={() => setIsSettingsOpen(!isSettingsOpen)}
+                  >
+                    <div className="flex items-center gap-3">
+                      <i className={`fa ${link.icon} w-5 text-center`}></i>
+                      <span>{link.text}</span>
+                    </div>
+                    <i className={`fa fa-angle-left transition-transform duration-200 ${isSettingsOpen ? 'rotate-90' : ''}`}></i>
+                  </button>
+                  {isSettingsOpen && (
+                    <div className="pl-4 py-1 space-y-1">
                       {link.subItems.map((sub, sIdx) => {
                         const hasNestedSubItems = !!(sub as any).subItems;
                         if (hasNestedSubItems) {
                           const nestedSub = sub as any;
                           const isNestedActive = location.pathname.includes('/setting/cars');
                           return (
-                            <li key={sIdx} className={`nav-item has-treeview ${isCarsOpen ? 'menu-open' : ''}`} style={{ paddingLeft: '10px' }}>
-                              <a
-                                href="#"
-                                className={`nav-link ${isNestedActive ? 'active' : ''}`}
-                                onClick={(e) => { e.preventDefault(); setIsCarsOpen(!isCarsOpen); }}
+                            <div key={sIdx} className="space-y-1">
+                              <button
+                                className={`w-full flex items-center justify-between px-4 py-2 rounded-lg text-xs font-medium transition-colors ${
+                                  isNestedActive ? 'bg-slate-800/60 text-white' : 'hover:bg-slate-800/60 hover:text-white'
+                                }`}
+                                onClick={() => setIsCarsOpen(!isCarsOpen)}
                               >
-                                <i className={`nav-icon fa ${nestedSub.icon || 'fa-car'}`}></i>
-                                <p>
-                                  {nestedSub.text}
-                                  <i className="right fa fa-angle-left"></i>
-                                </p>
-                              </a>
-                              <ul className="nav nav-treeview" style={{ display: isCarsOpen ? 'block' : 'none' }}>
-                                {nestedSub.subItems.map((child: any, cIdx: number) => {
-                                  const isChildActive = location.pathname === child.to;
-                                  const childIcon = child.icon || 'fa-bookmark-o';
-                                  return (
-                                    <li key={cIdx} className="nav-item" style={{ paddingLeft: '15px' }}>
-                                      <Link to={child.to} className={`nav-link ${isChildActive ? 'active' : ''}`}>
-                                        <i className={`fa ${childIcon} nav-icon`}></i>
-                                        <p>{child.text}</p>
+                                <div className="flex items-center gap-3">
+                                  <i className={`fa ${nestedSub.icon || 'fa-car'} w-4 text-center`}></i>
+                                  <span>{nestedSub.text}</span>
+                                </div>
+                                <i className={`fa fa-angle-left transition-transform duration-200 ${isCarsOpen ? 'rotate-90' : ''}`}></i>
+                              </button>
+                              {isCarsOpen && (
+                                <div className="pl-4 py-1 space-y-1">
+                                  {nestedSub.subItems.map((child: any, cIdx: number) => {
+                                    const isChildActive = location.pathname === child.to;
+                                    const childIcon = child.icon || 'fa-bookmark-o';
+                                    return (
+                                      <Link
+                                        key={cIdx}
+                                        to={child.to}
+                                        className={`flex items-center gap-3 px-4 py-1.5 rounded-md text-xs transition-colors ${
+                                          isChildActive
+                                            ? 'bg-blue-600 text-white font-medium'
+                                            : 'hover:bg-slate-800/40 hover:text-white text-slate-400'
+                                        }`}
+                                      >
+                                        <i className={`fa ${childIcon} w-4 text-center`}></i>
+                                        <span>{child.text}</span>
                                       </Link>
-                                    </li>
-                                  );
-                                })}
-                              </ul>
-                            </li>
+                                    );
+                                  })}
+                                </div>
+                              )}
+                            </div>
                           );
                         }
                         const isSubActive = location.pathname === sub.to;
                         const subIcon = (sub as any).icon || 'fa-bookmark-o';
                         return (
-                          <li key={sIdx} className="nav-item">
-                            <Link to={sub.to} className={`nav-link ${isSubActive ? 'active' : ''}`}>
-                              <i className={`fa ${subIcon} nav-icon`}></i>
-                              <p>{sub.text}</p>
-                            </Link>
-                          </li>
+                          <Link
+                            key={sIdx}
+                            to={sub.to}
+                            className={`flex items-center gap-3 px-4 py-2 rounded-lg text-xs transition-colors ${
+                              isSubActive
+                                ? 'bg-blue-600 text-white font-medium'
+                                : 'hover:bg-slate-800/60 hover:text-white text-slate-400'
+                            }`}
+                          >
+                            <i className={`fa ${subIcon} w-4 text-center`}></i>
+                            <span>{sub.text}</span>
+                          </Link>
                         );
                       })}
-                    </ul>
-                  </li>
-                );
-              }
-
-              return (
-                <li key={index} className="nav-item">
-                  <Link to={link.to} className={`nav-link ${isActive ? 'active' : ''}`}>
-                    <i className={`nav-icon fa ${link.icon}`}></i>
-                    <p>{link.text}</p>
-                  </Link>
-                </li>
+                    </div>
+                  )}
+                </div>
               );
-            })}
+            }
 
-            <li className="nav-header">{t('actionsHeader')}</li>
-            <li className="nav-item">
-              <a href="#" className="nav-link text-danger" onClick={(e) => { e.preventDefault(); handleLogout(); }}>
-                <i className="nav-icon fa fa-sign-out"></i>
-                <span>
-                  {t('signOut')}
-                  {loading && <span className="ml-2"><Spinner /></span>}
-                </span>
-              </a>
-            </li>
-          </ul>
+            return (
+              <Link
+                key={index}
+                to={link.to}
+                className={`flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition-colors ${
+                  isActive
+                    ? 'bg-blue-600 text-white'
+                    : 'hover:bg-slate-800 hover:text-white text-slate-400'
+                }`}
+              >
+                <i className={`fa ${link.icon} w-5 text-center`}></i>
+                <span>{link.text}</span>
+              </Link>
+            );
+          })}
         </nav>
+      </div>
+
+      {/* Logout/Bottom Actions */}
+      <div className="p-4 border-t border-slate-800 bg-slate-950">
+        <button
+          onClick={handleLogout}
+          className="w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium text-red-400 hover:bg-red-500/10 transition-colors focus:outline-none"
+        >
+          <i className="fa fa-sign-out w-5 text-center"></i>
+          <span>{t('signOut')}</span>
+          {loading && <span className="ml-2"><Spinner /></span>}
+        </button>
       </div>
     </aside>
   );

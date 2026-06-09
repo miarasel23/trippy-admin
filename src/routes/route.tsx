@@ -1,4 +1,3 @@
-
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import React, { useContext } from 'react';
 import { AuthContextTrippy } from '../context/AuthContextTrippy';
@@ -23,8 +22,8 @@ export const AppRoutes = () => {
 
   if (loading) {
     return (
-      <div className="d-flex justify-content-center align-items-center" style={{ height: '100vh' }}>
-        <div className="spinner-border text-primary" role="status">
+      <div className="flex justify-center items-center h-screen bg-gray-50">
+        <div className="animate-spin rounded-full h-10 w-10 border-4 border-blue-600 border-t-transparent" role="status">
           <span className="sr-only">Loading...</span>
         </div>
       </div>
@@ -33,37 +32,34 @@ export const AppRoutes = () => {
 
   const toggleSidebar = () => {
     setSidebarCollapsed((prev) => !prev);
-    // AdminLTE collapses the sidebar by toggling 'sidebar-collapse' on the body element
-    if (document.body.classList.contains('sidebar-collapse')) {
-      document.body.classList.remove('sidebar-collapse');
-    } else {
-      document.body.classList.add('sidebar-collapse');
-    }
   };
 
   return (
     <Router>
-      <div className={`wrapper ${sidebarCollapsed ? 'sidebar-collapse' : ''}`}>
+      <div className="min-h-screen bg-gray-50 text-gray-800 flex">
         {isAuthenticated && <Sidebar isOpen={!sidebarCollapsed} />}
-        {isAuthenticated && <Header onToggleSidebar={toggleSidebar} />}
-        <div className={isAuthenticated ? "content-wrapper" : ""} style={{ minHeight: '100vh', marginLeft: isAuthenticated ? undefined : 0 }}>
-          <section className={isAuthenticated ? "content mt-3" : "mt-0"}>
-            <div className={isAuthenticated ? "container-fluid" : ""}>
-              <Routes>
-                <Route path="/" element={isAuthenticated ? <Navigate to="/home" replace /> : <Login />} />
-                <Route path="/home" element={isAuthenticated ? <Home /> : <Navigate to="/" replace />} />
-                <Route path="/dashboard/setting/action" element={isAuthenticated ? <ActionList /> : <Navigate to="/" replace />} />
-                <Route path="/dashboard/setting/action-language" element={isAuthenticated ? <ActionLanguageList /> : <Navigate to="/" replace />} />
-                <Route path="/dashboard/setting/role-permission" element={isAuthenticated ? <RoleList /> : <Navigate to="/" replace />} />
-                <Route path="/dashboard/setting/otp-setup" element={isAuthenticated ? <OtpSetup /> : <Navigate to="/" replace />} />
-                <Route path="/dashboard/setting/driver-subscription" element={isAuthenticated ? <DriverSubscriptionList /> : <Navigate to="/" replace />} />
-                <Route path="/dashboard/setting/cars/car-category" element={isAuthenticated ? <CarCategoryList /> : <Navigate to="/" replace />} />
-                <Route path="/dashboard/setting/cars/car-service-category" element={isAuthenticated ? <CarServiceCategoryList /> : <Navigate to="/" replace />} />
-                <Route path="/dashboard/setting/cars/price-set-as-per-km" element={isAuthenticated ? <PriceSetAsPerKm /> : <Navigate to="/" replace />} />
-                <Route path="/dashboard/admin-user" element={isAuthenticated ? <AdminUserList /> : <Navigate to="/" replace />} />
-              </Routes>
-            </div>
-          </section>
+        
+        <div className={`flex-1 flex flex-col min-h-screen transition-all duration-300 ${
+          isAuthenticated ? (sidebarCollapsed ? 'pl-0' : 'pl-64') : ''
+        }`}>
+          {isAuthenticated && <Header onToggleSidebar={toggleSidebar} />}
+          
+          <main className={`flex-1 ${isAuthenticated ? 'p-6' : 'p-0'}`}>
+            <Routes>
+              <Route path="/" element={isAuthenticated ? <Navigate to="/home" replace /> : <Login />} />
+              <Route path="/home" element={isAuthenticated ? <Home /> : <Navigate to="/" replace />} />
+              <Route path="/dashboard/setting/action" element={isAuthenticated ? <ActionList /> : <Navigate to="/" replace />} />
+              <Route path="/dashboard/setting/action-language" element={isAuthenticated ? <ActionLanguageList /> : <Navigate to="/" replace />} />
+              <Route path="/dashboard/setting/role-permission" element={isAuthenticated ? <RoleList /> : <Navigate to="/" replace />} />
+              <Route path="/dashboard/setting/otp-setup" element={isAuthenticated ? <OtpSetup /> : <Navigate to="/" replace />} />
+              <Route path="/dashboard/setting/driver-subscription" element={isAuthenticated ? <DriverSubscriptionList /> : <Navigate to="/" replace />} />
+              <Route path="/dashboard/setting/cars/car-category" element={isAuthenticated ? <CarCategoryList /> : <Navigate to="/" replace />} />
+              <Route path="/dashboard/setting/cars/car-service-category" element={isAuthenticated ? <CarServiceCategoryList /> : <Navigate to="/" replace />} />
+              <Route path="/dashboard/setting/cars/price-set-as-per-km" element={isAuthenticated ? <PriceSetAsPerKm /> : <Navigate to="/" replace />} />
+              <Route path="/dashboard/admin-user" element={isAuthenticated ? <AdminUserList /> : <Navigate to="/" replace />} />
+            </Routes>
+          </main>
+
           {isAuthenticated && <Footer />}
         </div>
       </div>

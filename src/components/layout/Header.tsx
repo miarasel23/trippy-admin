@@ -32,116 +32,73 @@ export const Header: React.FC<{ onToggleSidebar?: () => void }> = ({ onToggleSid
   }
 
   return (
-    <nav className="main-header navbar navbar-expand navbar-white navbar-light d-flex justify-content-between px-3">
+    <nav className="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-6 sticky top-0 z-40 shadow-sm">
       {/* Left navbar links */}
-      <ul className="navbar-nav">
-        <li className="nav-item">
-          <a
-            className="nav-link"
-            data-widget="pushmenu"
-            href="#"
-            role="button"
-            onClick={(e) => {
-              e.preventDefault();
-              if (onToggleSidebar) onToggleSidebar();
-            }}
-          >
-            <i className="fa fa-bars"></i>
-          </a>
-        </li>
-      </ul>
+      <div className="flex items-center">
+        <button
+          className="text-gray-500 hover:text-gray-700 hover:bg-gray-100 p-2 rounded-lg transition-colors focus:outline-none"
+          onClick={(e) => {
+            e.preventDefault();
+            if (onToggleSidebar) onToggleSidebar();
+          }}
+        >
+          <i className="fa fa-bars text-lg"></i>
+        </button>
+      </div>
 
       {/* Right navbar links */}
-      <ul className="navbar-nav ml-auto">
+      <div className="flex items-center gap-6">
         {/* Language Slider Toggle */}
-        <li className="nav-item d-flex align-items-center" style={{ marginRight: '20px' }}>
+        <div 
+          className="relative flex w-36 h-8 bg-gray-100 rounded-full p-1 cursor-pointer select-none shadow-inner"
+          onClick={() => {
+            if (setLanguage) {
+              setLanguage(language === 'en' ? 'bn' : 'en');
+            }
+          }}
+        >
+          {/* Sliding Indicator */}
           <div 
-            style={{
-              position: 'relative',
-              display: 'flex',
-              width: '140px',
-              height: '30px',
-              backgroundColor: '#e9ecef',
-              borderRadius: '15px',
-              padding: '2px',
-              cursor: 'pointer',
-              userSelect: 'none',
-              boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.1)'
-            }}
-            onClick={() => {
-              if (setLanguage) {
-                setLanguage(language === 'en' ? 'bn' : 'en');
-              }
-            }}
+            className={`absolute top-1 bottom-1 w-[calc(50%-4px)] bg-blue-600 rounded-full shadow transition-all duration-200 ease-out ${
+              language === 'en' ? 'left-[calc(50%+2px)]' : 'left-1'
+            }`}
+          />
+          
+          {/* Bangla Label */}
+          <span 
+            className={`flex-1 z-10 text-center text-xs font-bold leading-6 transition-colors duration-200 ${
+              language === 'bn' ? 'text-white' : 'text-gray-600'
+            }`}
           >
-            {/* Sliding Indicator */}
-            <div 
-              style={{
-                position: 'absolute',
-                left: language === 'en' ? 'calc(50% - 2px)' : '2px',
-                top: '2px',
-                width: 'calc(50% - 2px)',
-                height: '26px',
-                backgroundColor: '#007bff',
-                borderRadius: '13px',
-                transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
-                boxShadow: '0 1px 3px rgba(0,123,255,0.3)'
-              }}
-            />
-            
-            {/* Bangla Label */}
-            <span 
-              style={{
-                flex: 1,
-                zIndex: 1,
-                textAlign: 'center',
-                lineHeight: '26px',
-                fontSize: '11px',
-                fontWeight: 'bold',
-                color: language === 'bn' ? '#fff' : '#495057',
-                transition: 'color 0.2s ease'
-              }}
-            >
-              বাংলা
-            </span>
+            বাংলা
+          </span>
 
-            {/* English Label */}
-            <span 
-              style={{
-                flex: 1,
-                zIndex: 1,
-                textAlign: 'center',
-                lineHeight: '26px',
-                fontSize: '11px',
-                fontWeight: 'bold',
-                color: language === 'en' ? '#fff' : '#495057',
-                transition: 'color 0.2s ease'
-              }}
-            >
-              English
-            </span>
-          </div>
-        </li>
+          {/* English Label */}
+          <span 
+            className={`flex-1 z-10 text-center text-xs font-bold leading-6 transition-colors duration-200 ${
+              language === 'en' ? 'text-white' : 'text-gray-600'
+            }`}
+          >
+            English
+          </span>
+        </div>
 
-        <li className="nav-item dropdown user-menu d-flex align-items-center">
-          <div className="d-flex align-items-center" style={{ gap: '10px' }}>
-            <div className="text-right d-flex flex-column">
-              <span className="d-block font-weight-bold text-dark">{userName}</span>
-              <small className="text-muted text-capitalize">{userRole}</small>
-            </div>
-            <img
-              src={avatarUrl}
-              className="user-image img-circle elevation-2"
-              alt={userName}
-              style={{ width: '40px', height: '40px', objectFit: 'cover' }}
-              onError={(e) => {
-                e.currentTarget.onerror = null;
-                e.currentTarget.src = noImage;
-              }}
-            />
+        <div className="flex items-center gap-3">
+          <div className="text-right flex flex-col">
+            <span className="text-sm font-semibold text-gray-800">{userName}</span>
+            <span className="text-xs text-gray-500 capitalize">{userRole}</span>
           </div>
-        </li>
-      </ul>
+          <img
+            src={avatarUrl}
+            className="w-10 h-10 rounded-full object-cover border border-gray-200 shadow-sm"
+            alt={userName}
+            onError={(e) => {
+              e.currentTarget.onerror = null;
+              e.currentTarget.src = noImage;
+            }}
+          />
+        </div>
+      </div>
     </nav>
   );
 };

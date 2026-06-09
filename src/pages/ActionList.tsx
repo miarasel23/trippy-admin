@@ -3,268 +3,152 @@ import { fetchActionList, createAction, editAction } from '../utilities/api';
 import { PopupMessage } from '../components/common/PopupMessage';
 import type { ActionItem } from '../store/action';
 
+const inputCls = "w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-slate-200 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-colors text-sm";
+const labelCls = "block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1";
+
 export default function ActionList() {
   const [actions, setActions] = useState<ActionItem[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-
-  // Global error for create action duplicate
-  const [globalError, setGlobalError] = useState<string | null>(null);
-
-  // Search and Sort states
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [sortField, setSortField] = useState<'id' | 'action_when'>('id');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
-
-  // Modal / Add Form states
   const [showModal, setShowModal] = useState<boolean>(false);
   const [formActionWhen, setFormActionWhen] = useState<string>('');
   const [editUuid, setEditUuid] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState<boolean>(false);
   const [formError, setFormError] = useState<string | null>(null);
-  // Common popup for API success/error messages
   const [popup, setPopup] = useState<{ show: boolean; type: 'success' | 'error'; message: string }>({ show: false, type: 'error', message: '' });
 
   const loadActions = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      const data = await fetchActionList();
-      setActions(data);
-    } catch (err: any) {
-      console.error('Error fetching action list:', err);
-      setError(err.message || 'An error occurred while fetching actions');
-    } finally {
-      setLoading(false);
-    }
+    try { setLoading(true); setError(null); setActions(await fetchActionList()); }
+    catch (err: any) { setError(err.message || 'Error fetching actions'); }
+    finally { setLoading(false); }
   };
 
-  useEffect(() => {
-    loadActions();
-  }, []);
+  useEffect(() => { loadActions(); }, []);
 
   const handleSort = (field: 'id' | 'action_when') => {
-    if (sortField === field) {
-      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
-    } else {
-      setSortField(field);
-      setSortDirection('asc');
-    }
+    if (sortField === field) setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+    else { setSortField(field); setSortDirection('asc'); }
   };
 
   const handleSubmitAction = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formActionWhen.trim()) {
-      setFormError('Action When is required');
-      return;
-    }
-
+    if (!formActionWhen.trim()) { setFormError('Action When is required'); return; }
     try {
-      setSubmitting(true);
-      setFormError(null);
-      if (editUuid) {
-        // Editing existing action
-        await editAction({ uuid: editUuid, action_when: formActionWhen.trim() });
-      } else {
-        // Creating new action
-        await createAction({ action_when: formActionWhen.trim() });
-      }
-      // Reset form and close modal
-      setFormActionWhen('');
-      setEditUuid(null);
-      setShowModal(false);
-      // Refresh list
+      setSubmitting(true); setFormError(null);
+      if (editUuid) await editAction({ uuid: editUuid, action_when: formActionWhen.trim() });
+      else await createAction({ action_when: formActionWhen.trim() });
+      setFormActionWhen(''); setEditUuid(null); setShowModal(false);
       await loadActions();
-      // Clear any previous global error
-      setGlobalError(null);
-      // Show success popup
       setPopup({ show: true, type: 'success', message: editUuid ? 'Action updated successfully' : 'Action added successfully' });
     } catch (err: any) {
-      console.error('Error processing action:', err);
-      const apiMessage = err?.response?.data?.message || err.message || 'Failed to process action';
-      setGlobalError(apiMessage);
-      setFormError(apiMessage);
-      // Show error popup
-      setPopup({ show: true, type: 'error', message: apiMessage });
-    } finally {
-      setSubmitting(false);
-    }
+      const msg = err?.response?.data?.message || err.message || 'Failed to process action';
+      setFormError(msg); setPopup({ show: true, type: 'error', message: msg });
+    } finally { setSubmitting(false); }
   };
 
-  const handleEditClick = (item: ActionItem) => {
-    setEditUuid(item.uuid);
-    setFormActionWhen(item.action_when);
-    setFormError(null);
-    setShowModal(true);
-  };
+  const handleEditClick = (item: ActionItem) => { setEditUuid(item.uuid); setFormActionWhen(item.action_when); setFormError(null); setShowModal(true); };
 
-  // Filter actions based on search query
-  const filteredActions = actions.filter((item) =>
-    item.action_when.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    item.uuid.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    item.id.toString().includes(searchQuery)
-  );
-
-  // Sort filtered actions
+  const filteredActions = actions.filter(item => item.action_when.toLowerCase().includes(searchQuery.toLowerCase()) || item.uuid.toLowerCase().includes(searchQuery.toLowerCase()) || item.id.toString().includes(searchQuery));
   const sortedActions = [...filteredActions].sort((a, b) => {
-    let comparison = 0;
-    if (sortField === 'id') {
-      comparison = a.id - b.id;
-    } else if (sortField === 'action_when') {
-      comparison = a.action_when.localeCompare(b.action_when);
-    }
-    return sortDirection === 'asc' ? comparison : -comparison;
+    let cmp = sortField === 'id' ? a.id - b.id : a.action_when.localeCompare(b.action_when);
+    return sortDirection === 'asc' ? cmp : -cmp;
   });
 
   return (
-    <div className="card w-100">
-      <div className="card-header">
-        <div className="d-flex align-items-center justify-content-between flex-wrap w-100" style={{ gap: '15px' }}>
-          <div className="d-flex align-items-center flex-wrap" style={{ gap: '15px' }}>
-            <h3 className="card-title m-0">Action List</h3>
-            <div className="input-group input-group-sm" style={{ width: '250px' }}>
-              <input
-                type="text"
-                name="table_search"
-                className="form-control"
-                placeholder="Search actions..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
-              <div className="input-group-append">
-                <button type="submit" className="btn btn-default">
-                  <i className="fa fa-search"></i>
-                </button>
-              </div>
-            </div>
-          </div>
-          <div className="card-tools">
-            <button
-              type="button"
-              className="btn btn-primary btn-sm"
-              onClick={() => {
-                setFormError(null);
-                setShowModal(true);
-              }}
-            >
-              <i className="fa fa-plus mr-1"></i> Add Action
-            </button>
+    <div className="bg-slate-900 rounded-2xl shadow-2xl border border-slate-800 overflow-hidden">
+      {/* Header */}
+      <div className="flex flex-wrap items-center justify-between gap-4 px-6 py-4 border-b border-slate-800">
+        <div className="flex items-center gap-4 flex-wrap">
+          <h2 className="text-lg font-bold text-white">Action List</h2>
+          <div className="relative">
+            <input type="text" className="pl-9 pr-4 py-2 bg-slate-800 border border-slate-700 rounded-lg text-slate-300 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm w-56 transition-colors"
+              placeholder="Search actions..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
+            <svg className="absolute left-3 top-2.5 w-4 h-4 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
           </div>
         </div>
+        <button onClick={() => { setFormError(null); setShowModal(true); }} className="flex items-center gap-1.5 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium rounded-lg transition-colors cursor-pointer shadow-lg shadow-indigo-900/40">
+          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
+          Add Action
+        </button>
       </div>
-      <div className="card-body p-0">
-        {loading && (
-          <div className="p-4 text-center">
-            <div className="spinner-border text-primary" role="status">
-              <span className="sr-only">Loading...</span>
-            </div>
-          </div>
-        )}
-        {error && (
-          <div className="alert alert-danger m-3" role="alert">
-            {error}
-          </div>
-        )}
+
+      <div className="overflow-x-auto">
+        {loading && (<div className="flex justify-center items-center py-20"><div className="animate-spin rounded-full h-10 w-10 border-4 border-indigo-500 border-t-transparent"></div></div>)}
+        {error && <div className="m-4 px-4 py-3 bg-rose-900/40 border border-rose-700 text-rose-300 rounded-lg text-sm">{error}</div>}
         {!loading && !error && (
-          <table className="table table-striped table-hover w-100 m-0">
+          <table className="w-full text-sm text-left">
             <thead>
-              <tr>
-                <th style={{ width: '70px' }}>SL No</th>
-                <th>UUID</th>
-                <th
-                  onClick={() => handleSort('action_when')}
-                  style={{ cursor: 'pointer' }}
-                  className="unselectable"
-                >
-                  Action When {sortField === 'action_when' && (sortDirection === 'asc' ? '▲' : '▼')}
+              <tr className="bg-slate-800/60 text-xs text-slate-400 uppercase tracking-wider">
+                <th className="px-4 py-3 w-14">SL</th>
+                <th className="px-4 py-3">UUID</th>
+                <th className="px-4 py-3 cursor-pointer select-none hover:text-slate-200 transition-colors" onClick={() => handleSort('action_when')}>
+                  <div className="flex items-center gap-1">
+                    Action When
+                    {sortField === 'action_when' ? (
+                      sortDirection === 'asc' ? <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M14.707 12.707a1 1 0 01-1.414 0L10 9.414l-3.293 3.293a1 1 0 01-1.414-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 010 1.414z" clipRule="evenodd" /></svg>
+                      : <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" /></svg>
+                    ) : <svg className="w-3 h-3 opacity-30" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 3a1 1 0 01.707.293l3 3a1 1 0 01-1.414 1.414L10 5.414 7.707 7.707a1 1 0 01-1.414-1.414l3-3A1 1 0 0110 3zm-3.707 9.293a1 1 0 011.414 0L10 14.586l2.293-2.293a1 1 0 011.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clipRule="evenodd" /></svg>}
+                  </div>
                 </th>
-                <th>Action</th>
+                <th className="px-4 py-3">Action</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody className="divide-y divide-slate-800/60">
               {sortedActions.map((item, index) => (
-                <tr key={item.uuid}>
-                  <td>{index + 1}</td>
-                  <td><code>{item.uuid}</code></td>
-                  <td>
-                    <span className="badge badge-info text-capitalize">
-                      {item.action_when.replace(/_/g, ' ')}
-                    </span>
+                <tr key={item.uuid} className="hover:bg-slate-800/40 transition-colors">
+                  <td className="px-4 py-3 text-slate-400 font-mono">{index + 1}</td>
+                  <td className="px-4 py-3 text-xs font-mono text-slate-500 max-w-xs truncate">{item.uuid}</td>
+                  <td className="px-4 py-3">
+                    <span className="px-2.5 py-1 bg-sky-900/50 text-sky-300 rounded-md text-xs font-semibold border border-sky-700/50 capitalize">{item.action_when.replace(/_/g, ' ')}</span>
                   </td>
-                  <td>
-                    <button
-                      className="btn btn-sm btn-outline-primary mr-2"
-                      onClick={() => handleEditClick(item)}
-                    >
+                  <td className="px-4 py-3">
+                    <button onClick={() => handleEditClick(item)} className="flex items-center gap-1 px-3 py-1.5 bg-slate-700 hover:bg-indigo-600 text-slate-300 hover:text-white text-xs font-medium rounded-lg transition-colors cursor-pointer">
+                      <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
                       Edit
                     </button>
                   </td>
                 </tr>
               ))}
-              {sortedActions.length === 0 && (
-                <tr>
-                  <td colSpan={4} className="text-center p-3 text-muted">
-                    No actions match the search query.
-                  </td>
-                </tr>
-              )}
+              {sortedActions.length === 0 && (<tr><td colSpan={4} className="px-4 py-12 text-center text-slate-500">No actions match the search query.</td></tr>)}
             </tbody>
           </table>
         )}
       </div>
 
-      {/* Bootstrap Modal Backed Dialog */}
+      {/* Add/Edit Modal */}
       {showModal && (
         <>
-          <div className="modal fade show d-block" tabIndex={-1} role="dialog" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
-            <div className="modal-dialog modal-dialog-centered" role="document">
-              <div className="modal-content">
-                <div className="modal-header">
-                  <h5 className="modal-title">{editUuid ? 'Edit Action' : 'Add New Action'}</h5>
-                  <button type="button" className="close" onClick={() => setShowModal(false)}>
-                    <span>&times;</span>
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <div className="w-full max-w-md bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl">
+              <div className="flex items-center justify-between p-5 bg-gradient-to-r from-indigo-600 to-violet-600 rounded-t-2xl">
+                <h3 className="text-lg font-semibold text-white">{editUuid ? 'Edit Action' : 'Add New Action'}</h3>
+                <button onClick={() => setShowModal(false)} className="text-white/80 hover:text-white p-1 rounded-lg hover:bg-white/10 transition-colors cursor-pointer">
+                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                </button>
+              </div>
+              <form onSubmit={handleSubmitAction} className="p-5 space-y-4">
+                {formError && <div className="px-3 py-2 bg-rose-900/40 border border-rose-700 text-rose-300 rounded-lg text-sm">{formError}</div>}
+                <div>
+                  <label className={labelCls}>Action When</label>
+                  <input type="text" className={inputCls} placeholder="e.g. otp_create" value={formActionWhen} onChange={(e) => setFormActionWhen(e.target.value)} required />
+                </div>
+                <div className="flex justify-end gap-3 pt-2 border-t border-slate-800">
+                  <button type="button" onClick={() => { setShowModal(false); setEditUuid(null); }} className="px-4 py-2 text-sm text-slate-300 bg-slate-800 hover:bg-slate-700 rounded-lg transition-colors cursor-pointer">Cancel</button>
+                  <button type="submit" disabled={submitting} className="px-5 py-2 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-500 disabled:opacity-60 rounded-lg transition-colors cursor-pointer">
+                    {submitting ? 'Submitting...' : (editUuid ? 'Update Action' : 'Save Action')}
                   </button>
                 </div>
-                <form onSubmit={handleSubmitAction}>
-                  <div className="modal-body">
-                    {formError && (
-                      <div className="alert alert-danger mb-3" role="alert">
-                        {formError}
-                      </div>
-                    )}
-                    <div className="form-group">
-                      <label>Action When</label>
-                      <input
-                        type="text"
-                        className="form-control"
-                        placeholder="e.g. otp_create"
-                        value={formActionWhen}
-                        onChange={(e) => setFormActionWhen(e.target.value)}
-                        required
-                      />
-                    </div>
-                  </div>
-                  <div className="modal-footer">
-                    <button type="button" className="btn btn-secondary" onClick={() => { setShowModal(false); setEditUuid(null); }}>
-                      Cancel
-                    </button>
-                    <button type="submit" className="btn btn-primary" disabled={submitting}>
-                      {submitting ? 'Submitting...' : (editUuid ? 'Update Action' : 'Save Action')}
-                    </button>
-                  </div>
-                </form>
-              </div>
+              </form>
             </div>
           </div>
-          <div className="modal-backdrop fade show"></div>
+          <div className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm"></div>
         </>
       )}
-      <PopupMessage
-        show={popup.show}
-        type={popup.type}
-        message={popup.message}
-        onClose={() => setPopup(prev => ({ ...prev, show: false }))}
-      />
+
+      <PopupMessage show={popup.show} type={popup.type} message={popup.message} onClose={() => setPopup(prev => ({ ...prev, show: false }))} />
     </div>
   );
 }

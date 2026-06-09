@@ -1,22 +1,10 @@
 import React from 'react';
-import styled from 'styled-components';
-
-const Container = styled.div`
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100vh;
-  background: linear-gradient(135deg, #e0f7fa, #b2ebf2);
-`;
-
-const Title = styled.h1`
-  color: #006064;
-`;
 
 const Home: React.FC = () => (
-  <Container>
-    <Title>Welcome to the Dashboard</Title>
-  </Container>
+  <div className="flex flex-col justify-center items-center h-[calc(100vh-120px)] bg-gradient-to-br from-cyan-50 to-blue-100 rounded-3xl border border-cyan-100 p-8 shadow-sm">
+    <h1 className="text-4xl font-extrabold text-cyan-900 tracking-tight mb-2">Welcome to the Dashboard</h1>
+    <p className="text-gray-500 text-sm">Manage car category and configuration parameters from settings.</p>
+  </div>
 );
 
 export default Home;
