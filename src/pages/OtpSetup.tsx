@@ -288,6 +288,11 @@ export default function OtpSetup() {
                         <option value="LOGIN">LOGIN</option>
                         <option value="FORGET_PASSWORD">FORGET_PASSWORD</option>
                         <option value="WITHDRAW">WITHDRAW</option>
+                        <option value="RIDE_START_OTP">RIDE_START_OTP</option>
+                        <option value="BOOK_CONFIRM_OTP">BOOK_CONFIRM_OTP</option>
+                        <option value="BOOK_CANCEL_OTP">BOOK_CANCEL_OTP</option>
+                        <option value="BOOK_START_OTP">BOOK_START_OTP</option>
+                        <option value="BOOK_END_OTP">BOOK_END_OTP</option>
                       </select>
                     </div>
                   </div>
@@ -367,16 +372,16 @@ export default function OtpSetup() {
                   <p className="text-muted small">This action cannot be undone.</p>
                 </div>
                 <div className="modal-footer bg-light border-0 justify-content-center pb-3" style={{ borderBottomLeftRadius: '15px', borderBottomRightRadius: '15px' }}>
-                  <button 
-                    type="button" 
-                    className="btn btn-secondary rounded-pill px-4 mr-2" 
+                  <button
+                    type="button"
+                    className="btn btn-secondary rounded-pill px-4 mr-2"
                     onClick={() => { setShowDeleteConfirm(false); setDeleteTargetUuid(null); }}
                   >
                     Cancel
                   </button>
-                  <button 
-                    type="button" 
-                    className="btn btn-danger rounded-pill px-4" 
+                  <button
+                    type="button"
+                    className="btn btn-danger rounded-pill px-4"
                     onClick={confirmDelete}
                   >
                     Delete

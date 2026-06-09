@@ -444,4 +444,104 @@ export const deleteOtpMessage = async (uuid: string): Promise<void> => {
   }
 };
 
+export interface DriverSubscriptionItem {
+  id: number;
+  uuid: string;
+  subscription_type: string;
+  price: number;
+  previous_price: number;
+  validate_for: number;
+  created_at: string;
+  updated_at: string;
+  status: string;
+}
+
+export const fetchDriverSubscriptionList = async (): Promise<DriverSubscriptionItem[]> => {
+  const token = localStorage.getItem('authToken');
+  const response = await axios.get(
+    `${BASE_URL}/v1/subscription/list-car-subscription?platform=web&language_code=bn&action_when=driver_subscription_list`,
+    {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    }
+  );
+  if (response.data && response.data.status) {
+    return response.data.data;
+  }
+  throw new Error(response.data.message || 'Failed to fetch driver subscription list');
+};
+
+export interface CarCategoryItem {
+  id: number;
+  uuid: string;
+  car_type: string;
+}
+
+export const fetchCarCategoryList = async (): Promise<CarCategoryItem[]> => {
+  const token = localStorage.getItem('authToken');
+  const response = await axios.get(
+    `${BASE_URL}/v1/car/list-car-category?platform=web&language_code=en&action_when=car_category_list`,
+    {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    }
+  );
+  if (response.data && response.data.status) {
+    return response.data.data;
+  }
+  throw new Error(response.data.message || 'Failed to fetch car category list');
+};
+
+export interface CreateUpdateSubscriptionPayload {
+  uuid?: string;
+  subscription_type: string;
+  price: number;
+  previous_price: number;
+  validate_for: number;
+  car_categories_uuid: string;
+  status: string;
+}
+
+export const createOrUpdateDriverSubscription = async (
+  payload: CreateUpdateSubscriptionPayload
+): Promise<string> => {
+  const token = localStorage.getItem('authToken');
+  const { platform, language_code } = getLoginDefaults();
+
+  const formData = new URLSearchParams();
+  formData.append('platform', platform);
+  formData.append('language_code', language_code);
+  formData.append('action_when', 'create_update_driver_subscription');
+  formData.append('subscription_type', payload.subscription_type);
+  formData.append('price', payload.price.toString());
+  formData.append('previous_price', payload.previous_price.toString());
+  formData.append('validate_for', payload.validate_for.toString());
+  formData.append('car_categories_uuid', payload.car_categories_uuid);
+  formData.append('status', payload.status);
+  formData.append('flag_one', '1');
+  formData.append('flag_two', '2');
+  if (payload.uuid) {
+    formData.append('uuid', payload.uuid);
+  }
+
+  const response = await axios.post(
+    `${BASE_URL}/v1/subscription/create-and-update-driver-subscription`,
+    formData.toString(),
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/x-www-form-urlencoded'
+      }
+    }
+  );
+
+  if (!response.data || !response.data.status) {
+    throw new Error(response.data?.message || 'Failed to save driver subscription');
+  }
+
+  return response.data.message || 'Saved successfully';
+};
+
 
