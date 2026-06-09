@@ -598,4 +598,134 @@ export const createOrUpdateDriverSubscription = async (
   return response.data.message || 'Saved successfully';
 };
 
+export interface CarServiceCategoryItem {
+  id: number;
+  uuid: string;
+  service_name: string;
+  avatar?: string | null;
+  status: string;
+  created_at: string;
+  updated_at: string;
+  car_category?: CarCategoryItem | null;
+}
+
+export const fetchCarServiceCategoryList = async (): Promise<CarServiceCategoryItem[]> => {
+  const token = localStorage.getItem('authToken');
+  const response = await axios.get(
+    `${BASE_URL}/v1/car/car-service-category-list?platform=web&language_code=en&action_when=car_service_category_list`,
+    {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    }
+  );
+  if (response.data && response.data.status) {
+    return response.data.data;
+  }
+  throw new Error(response.data.message || 'Failed to fetch car service category list');
+};
+
+export interface CreateOrUpdateCarServiceCategoryPayload {
+  uuid?: string;
+  service_name: string;
+  status: string;
+  car_category_uuid: string;
+  service_avatar?: File | null;
+}
+
+export const createOrUpdateCarServiceCategory = async (
+  payload: CreateOrUpdateCarServiceCategoryPayload
+): Promise<string> => {
+  const token = localStorage.getItem('authToken');
+  const { platform, language_code } = getLoginDefaults();
+
+  const formData = new FormData();
+  formData.append('platform', platform);
+  formData.append('language_code', language_code);
+  formData.append('action_when', payload.uuid ? 'create_update_car_service_category' : 'create_update_car_service_category');
+  formData.append('service_name', payload.service_name);
+  formData.append('status', payload.status);
+  formData.append('car_category_uuid', payload.car_category_uuid);
+
+  if (payload.uuid) {
+    formData.append('uuid', payload.uuid);
+  }
+  if (payload.service_avatar) {
+    formData.append('service_avatar', payload.service_avatar);
+  }
+
+  const response = await axios.post(
+    `${BASE_URL}/v1/car/car-service-category-create-and-update`,
+    formData,
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'multipart/form-data',
+      },
+    }
+  );
+
+  if (!response.data || !response.data.status) {
+    throw new Error(response.data?.message || 'Failed to save car service category');
+  }
+
+  return response.data.message || 'Saved successfully';
+};
+
+export const deleteCarServiceCategory = async (uuid: string): Promise<string> => {
+  const token = localStorage.getItem('authToken');
+  const { platform, language_code } = getLoginDefaults();
+
+  const formData = new URLSearchParams();
+  formData.append('platform', platform);
+  formData.append('language_code', language_code);
+  formData.append('action_when', 'car_service_category_delete');
+  formData.append('uuid', uuid);
+
+  const response = await axios.delete(
+    `${BASE_URL}/v1/car/delete-car-service-category`,
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/x-www-form-urlencoded'
+      },
+      data: formData.toString()
+    }
+  );
+
+  if (!response.data || !response.data.status) {
+    throw new Error(response.data?.message || 'Failed to delete car service category');
+  }
+
+  return response.data.message || 'Deleted successfully';
+};
+
+export const deleteCarCategory = async (uuid: string): Promise<string> => {
+  const token = localStorage.getItem('authToken');
+  const { platform, language_code } = getLoginDefaults();
+
+  const formData = new URLSearchParams();
+  formData.append('platform', platform);
+  formData.append('language_code', language_code);
+  formData.append('action_when', 'car_category_delete');
+  formData.append('car_category_uuid', uuid);
+
+  const response = await axios.delete(
+    `${BASE_URL}/v1/car/delete-car-category`,
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/x-www-form-urlencoded'
+      },
+      data: formData.toString()
+    }
+  );
+
+  if (!response.data || !response.data.status) {
+    throw new Error(response.data?.message || 'Failed to delete car category');
+  }
+
+  return response.data.message || 'Deleted successfully';
+};
+
 

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { fetchCarCategoryList, newwork_image_url, createOrUpdateCarCategory } from '../utilities/api';
+import { fetchCarCategoryList, newwork_image_url, createOrUpdateCarCategory, deleteCarCategory } from '../utilities/api';
 import type { CarCategoryItem } from '../utilities/api';
 import { useTranslation } from '../utilities/translation';
 import noImage from '../assets/no-image.png';
@@ -29,6 +29,10 @@ export default function CarCategoryList() {
     type: 'error',
     message: ''
   });
+
+  // Delete confirmation states
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState<boolean>(false);
+  const [deleteTargetUuid, setDeleteTargetUuid] = useState<string | null>(null);
 
   const loadData = async () => {
     try {
@@ -66,6 +70,36 @@ export default function CarCategoryList() {
     setCarAvatar(null);
     setFormError(null);
     setShowModal(true);
+  };
+
+  const handleDeleteClick = (uuid: string) => {
+    setDeleteTargetUuid(uuid);
+    setShowDeleteConfirm(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!deleteTargetUuid) return;
+    try {
+      setLoading(true);
+      setShowDeleteConfirm(false);
+      const msg = await deleteCarCategory(deleteTargetUuid);
+      setDeleteTargetUuid(null);
+      await loadData();
+      setPopup({
+        show: true,
+        type: 'success',
+        message: msg || 'Deleted successfully'
+      });
+    } catch (err: any) {
+      console.error('Error deleting car category:', err);
+      setDeleteTargetUuid(null);
+      setPopup({
+        show: true,
+        type: 'error',
+        message: err.response?.data?.message || err.message || 'Failed to delete car category'
+      });
+      setLoading(false);
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -219,12 +253,20 @@ export default function CarCategoryList() {
                         </span>
                       </td>
                       <td>
-                        <button
-                          className="btn btn-sm btn-outline-primary"
-                          onClick={() => handleEditClick(item)}
-                        >
-                          <i className="fa fa-edit mr-1"></i> Edit
-                        </button>
+                        <div className="d-flex" style={{ gap: '5px' }}>
+                          <button
+                            className="btn btn-sm btn-outline-primary"
+                            onClick={() => handleEditClick(item)}
+                          >
+                            <i className="fa fa-edit mr-1"></i> Edit
+                          </button>
+                          <button
+                            className="btn btn-sm btn-outline-danger"
+                            onClick={() => handleDeleteClick(item.uuid)}
+                          >
+                            <i className="fa fa-trash mr-1"></i> Delete
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   );
@@ -410,6 +452,46 @@ export default function CarCategoryList() {
         message={popup.message}
         onClose={() => setPopup(prev => ({ ...prev, show: false }))}
       />
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteConfirm && (
+        <>
+          <div className="modal fade show d-block" tabIndex={-1} role="dialog" style={{ backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 1040 }}>
+            <div className="modal-dialog modal-dialog-centered" role="document">
+              <div className="modal-content border-0 shadow-lg" style={{ borderRadius: '15px' }}>
+                <div className="modal-header bg-danger text-white border-0" style={{ borderTopLeftRadius: '15px', borderTopRightRadius: '15px' }}>
+                  <h5 className="modal-title font-weight-bold">Confirm Delete</h5>
+                  <button type="button" className="close text-white" onClick={() => { setShowDeleteConfirm(false); setDeleteTargetUuid(null); }}>
+                    <span>&times;</span>
+                  </button>
+                </div>
+                <div className="modal-body p-4 text-center">
+                  <i className="fa fa-exclamation-triangle text-danger mb-3" style={{ fontSize: '48px' }}></i>
+                  <p className="lead font-weight-normal text-dark mb-0">Are you sure you want to delete this category?</p>
+                  <p className="text-muted small mt-2">This action cannot be undone.</p>
+                </div>
+                <div className="modal-footer bg-light border-0" style={{ borderBottomLeftRadius: '15px', borderBottomRightRadius: '15px' }}>
+                  <button
+                    type="button"
+                    className="btn btn-secondary rounded-pill px-4"
+                    onClick={() => { setShowDeleteConfirm(false); setDeleteTargetUuid(null); }}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    className="btn btn-danger rounded-pill px-4"
+                    onClick={confirmDelete}
+                  >
+                    Yes, Delete
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div className="modal-backdrop fade show" style={{ zIndex: 1030 }}></div>
+        </>
+      )}
     </div>
   );
 }
