@@ -675,21 +675,12 @@ export const createOrUpdateCarServiceCategory = async (
 export const deleteCarServiceCategory = async (uuid: string): Promise<string> => {
   const token = localStorage.getItem('authToken');
   const { platform, language_code } = getLoginDefaults();
-
-  const formData = new URLSearchParams();
-  formData.append('platform', platform);
-  formData.append('language_code', language_code);
-  formData.append('action_when', 'car_service_category_delete');
-  formData.append('uuid', uuid);
-
   const response = await axios.delete(
-    `${BASE_URL}/v1/car/delete-car-service-category`,
+    `${BASE_URL}/v1/car/delete-car-service-category?platform=${platform}&language_code=${language_code}&action_when=car_service_category_delete&uuid=${uuid}`,
     {
       headers: {
-        Authorization: `Bearer ${token}`,
-        'Content-Type': 'application/x-www-form-urlencoded'
-      },
-      data: formData.toString()
+        Authorization: `Bearer ${token}`
+      }
     }
   );
 

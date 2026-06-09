@@ -40,6 +40,10 @@ export default function CarServiceCategoryList() {
     message: ''
   });
 
+  // Delete confirmation states
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState<boolean>(false);
+  const [deleteTargetUuid, setDeleteTargetUuid] = useState<string | null>(null);
+
   const loadData = async () => {
     try {
       setLoading(true);
@@ -82,14 +86,18 @@ export default function CarServiceCategoryList() {
     setShowModal(true);
   };
 
-  const handleDeleteClick = async (uuid: string) => {
-    if (!window.confirm('Are you sure you want to delete this service category?')) {
-      return;
-    }
+  const handleDeleteClick = (uuid: string) => {
+    setDeleteTargetUuid(uuid);
+    setShowDeleteConfirm(true);
+  };
 
+  const confirmDelete = async () => {
+    if (!deleteTargetUuid) return;
     try {
       setLoading(true);
-      const msg = await deleteCarServiceCategory(uuid);
+      setShowDeleteConfirm(false);
+      const msg = await deleteCarServiceCategory(deleteTargetUuid);
+      setDeleteTargetUuid(null);
       await loadData();
       setPopup({
         show: true,
@@ -98,6 +106,7 @@ export default function CarServiceCategoryList() {
       });
     } catch (err: any) {
       console.error('Error deleting service category:', err);
+      setDeleteTargetUuid(null);
       setPopup({
         show: true,
         type: 'error',
@@ -462,6 +471,46 @@ export default function CarServiceCategoryList() {
         message={popup.message}
         onClose={() => setPopup(prev => ({ ...prev, show: false }))}
       />
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteConfirm && (
+        <>
+          <div className="modal fade show d-block" tabIndex={-1} role="dialog" style={{ backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 1040 }}>
+            <div className="modal-dialog modal-dialog-centered" role="document">
+              <div className="modal-content border-0 shadow-lg" style={{ borderRadius: '15px' }}>
+                <div className="modal-header bg-danger text-white border-0" style={{ borderTopLeftRadius: '15px', borderTopRightRadius: '15px' }}>
+                  <h5 className="modal-title font-weight-bold">Confirm Delete</h5>
+                  <button type="button" className="close text-white" onClick={() => { setShowDeleteConfirm(false); setDeleteTargetUuid(null); }}>
+                    <span>&times;</span>
+                  </button>
+                </div>
+                <div className="modal-body p-4 text-center">
+                  <i className="fa fa-exclamation-triangle text-danger mb-3" style={{ fontSize: '48px' }}></i>
+                  <p className="lead font-weight-normal text-dark mb-0">Are you sure you want to delete this category?</p>
+                  <p className="text-muted small mt-2">This action cannot be undone.</p>
+                </div>
+                <div className="modal-footer bg-light border-0" style={{ borderBottomLeftRadius: '15px', borderBottomRightRadius: '15px' }}>
+                  <button
+                    type="button"
+                    className="btn btn-secondary rounded-pill px-4"
+                    onClick={() => { setShowDeleteConfirm(false); setDeleteTargetUuid(null); }}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    className="btn btn-danger rounded-pill px-4"
+                    onClick={confirmDelete}
+                  >
+                    Yes, Delete
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div className="modal-backdrop fade show" style={{ zIndex: 1030 }}></div>
+        </>
+      )}
     </div>
   );
 }
