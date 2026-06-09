@@ -19,6 +19,10 @@ export const translations = {
     adminUser: 'Admin User',
     actionsHeader: 'ACTIONS',
     signOut: 'Sign Out',
+    cars: 'Cars',
+    carCategory: 'Car Category',
+    carServiceCategory: 'Car Service Category',
+    priceSetAsPerKm: 'Price Set As Per Km',
 
     // AdminUser List Page
     adminUserList: 'Admin User List',
@@ -100,6 +104,10 @@ export const translations = {
     adminUser: 'এডমিন ব্যবহারকারী',
     actionsHeader: 'অ্যাকশনসমূহ',
     signOut: 'লগ আউট',
+    cars: 'কারসমূহ',
+    carCategory: 'কার ক্যাটাগরি',
+    carServiceCategory: 'কার সার্ভিস ক্যাটাগরি',
+    priceSetAsPerKm: 'প্রতি কিমি মূল্য নির্ধারণ',
 
     // AdminUser List Page
     adminUserList: 'এডমিন ব্যবহারকারী তালিকা',

@@ -476,6 +476,9 @@ export interface CarCategoryItem {
   id: number;
   uuid: string;
   car_type: string;
+  car_avatar?: string | null;
+  set_capacity?: number | string | null;
+  status?: string | null;
 }
 
 export const fetchCarCategoryList = async (): Promise<CarCategoryItem[]> => {
@@ -492,6 +495,53 @@ export const fetchCarCategoryList = async (): Promise<CarCategoryItem[]> => {
     return response.data.data;
   }
   throw new Error(response.data.message || 'Failed to fetch car category list');
+};
+
+export interface CreateOrUpdateCarCategoryPayload {
+  uuid?: string;
+  car_type: string;
+  set_capacity: string | number;
+  status: string;
+  car_avatar?: File | null;
+}
+
+export const createOrUpdateCarCategory = async (
+  payload: CreateOrUpdateCarCategoryPayload
+): Promise<string> => {
+  const token = localStorage.getItem('authToken');
+  const { platform, language_code } = getLoginDefaults();
+
+  const formData = new FormData();
+  formData.append('platform', platform);
+  formData.append('language_code', language_code);
+  formData.append('action_when', payload.uuid ? 'car_category_create' : 'car_category_create');
+  formData.append('car_type', payload.car_type);
+  formData.append('set_capacity', payload.set_capacity.toString());
+  formData.append('status', payload.status);
+
+  if (payload.uuid) {
+    formData.append('uuid', payload.uuid);
+  }
+  if (payload.car_avatar) {
+    formData.append('car_avatar', payload.car_avatar);
+  }
+
+  const response = await axios.post(
+    `${BASE_URL}/v1/car/create-category-and-update`,
+    formData,
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'multipart/form-data',
+      },
+    }
+  );
+
+  if (!response.data || !response.data.status) {
+    throw new Error(response.data?.message || 'Failed to save car category');
+  }
+
+  return response.data.message || 'Saved successfully';
 };
 
 export interface CreateUpdateSubscriptionPayload {

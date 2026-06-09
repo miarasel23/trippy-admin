@@ -13,6 +13,9 @@ import OtpSetup from '../pages/OtpSetup';
 import DriverSubscriptionList from '../pages/DriverSubscriptionList';
 import Sidebar from '../components/layout/Sidebar';
 import Header from '../components/layout/Header';
+import CarCategoryList from '../pages/CarCategoryList';
+import CarServiceCategoryList from '../pages/CarServiceCategoryList';
+import PriceSetAsPerKm from '../pages/PriceSetAsPerKm';
 
 export const AppRoutes = () => {
   const { isAuthenticated, loading } = useContext(AuthContextTrippy);
@@ -54,6 +57,9 @@ export const AppRoutes = () => {
                 <Route path="/dashboard/setting/role-permission" element={isAuthenticated ? <RoleList /> : <Navigate to="/" replace />} />
                 <Route path="/dashboard/setting/otp-setup" element={isAuthenticated ? <OtpSetup /> : <Navigate to="/" replace />} />
                 <Route path="/dashboard/setting/driver-subscription" element={isAuthenticated ? <DriverSubscriptionList /> : <Navigate to="/" replace />} />
+                <Route path="/dashboard/setting/cars/car-category" element={isAuthenticated ? <CarCategoryList /> : <Navigate to="/" replace />} />
+                <Route path="/dashboard/setting/cars/car-service-category" element={isAuthenticated ? <CarServiceCategoryList /> : <Navigate to="/" replace />} />
+                <Route path="/dashboard/setting/cars/price-set-as-per-km" element={isAuthenticated ? <PriceSetAsPerKm /> : <Navigate to="/" replace />} />
                 <Route path="/dashboard/admin-user" element={isAuthenticated ? <AdminUserList /> : <Navigate to="/" replace />} />
               </Routes>
             </div>

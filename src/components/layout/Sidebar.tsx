@@ -7,6 +7,7 @@ import { useTranslation } from '../../utilities/translation';
 export default function Sidebar({ isOpen = true }: { isOpen?: boolean }) {
   const [loading, setLoading] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [isCarsOpen, setIsCarsOpen] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
   const { logout, user } = useContext(AuthContextTrippy);
@@ -34,6 +35,15 @@ export default function Sidebar({ isOpen = true }: { isOpen?: boolean }) {
       icon: 'fa-cog',
       perms: [],
       subItems: [
+        {
+          text: t('cars'),
+          icon: 'fa-car',
+          subItems: [
+            { to: '/dashboard/setting/cars/car-category', text: t('carCategory') },
+            { to: '/dashboard/setting/cars/car-service-category', text: t('carServiceCategory') },
+            { to: '/dashboard/setting/cars/price-set-as-per-km', text: t('priceSetAsPerKm') }
+          ]
+        },
         { to: '/dashboard/setting/car-setup', text: t('carSetup') },
         { to: '/dashboard/setting/action', text: t('action') },
         { to: '/dashboard/setting/action-language', text: t('actionWithLanguage'), icon: 'fa-language' },
@@ -89,6 +99,40 @@ export default function Sidebar({ isOpen = true }: { isOpen?: boolean }) {
                     </a>
                     <ul className="nav nav-treeview" style={{ display: isSettingsOpen ? 'block' : 'none' }}>
                       {link.subItems.map((sub, sIdx) => {
+                        const hasNestedSubItems = !!(sub as any).subItems;
+                        if (hasNestedSubItems) {
+                          const nestedSub = sub as any;
+                          const isNestedActive = location.pathname.includes('/setting/cars');
+                          return (
+                            <li key={sIdx} className={`nav-item has-treeview ${isCarsOpen ? 'menu-open' : ''}`} style={{ paddingLeft: '10px' }}>
+                              <a
+                                href="#"
+                                className={`nav-link ${isNestedActive ? 'active' : ''}`}
+                                onClick={(e) => { e.preventDefault(); setIsCarsOpen(!isCarsOpen); }}
+                              >
+                                <i className={`nav-icon fa ${nestedSub.icon || 'fa-car'}`}></i>
+                                <p>
+                                  {nestedSub.text}
+                                  <i className="right fa fa-angle-left"></i>
+                                </p>
+                              </a>
+                              <ul className="nav nav-treeview" style={{ display: isCarsOpen ? 'block' : 'none' }}>
+                                {nestedSub.subItems.map((child: any, cIdx: number) => {
+                                  const isChildActive = location.pathname === child.to;
+                                  const childIcon = child.icon || 'fa-bookmark-o';
+                                  return (
+                                    <li key={cIdx} className="nav-item" style={{ paddingLeft: '15px' }}>
+                                      <Link to={child.to} className={`nav-link ${isChildActive ? 'active' : ''}`}>
+                                        <i className={`fa ${childIcon} nav-icon`}></i>
+                                        <p>{child.text}</p>
+                                      </Link>
+                                    </li>
+                                  );
+                                })}
+                              </ul>
+                            </li>
+                          );
+                        }
                         const isSubActive = location.pathname === sub.to;
                         const subIcon = (sub as any).icon || 'fa-bookmark-o';
                         return (
