@@ -182,11 +182,10 @@ export default function CustomerTripHistory() {
                 <button
                   key={tab.value}
                   onClick={() => setSelectedStatus(tab.value)}
-                  className={`px-5 py-2.5 text-sm font-semibold border-b-2 transition-all cursor-pointer ${
-                    isActive
-                      ? `${tab.colorClass} border-current`
-                      : 'border-transparent text-slate-400 hover:text-slate-200 hover:bg-slate-800/30'
-                  }`}
+                  className={`px-5 py-2.5 text-sm font-semibold border-b-2 transition-all cursor-pointer ${isActive
+                    ? `${tab.colorClass} border-current`
+                    : 'border-transparent text-slate-400 hover:text-slate-200 hover:bg-slate-800/30'
+                    }`}
                 >
                   {tab.label}
                 </button>
@@ -350,13 +349,12 @@ export default function CustomerTripHistory() {
                                 )}
                               </td>
                               <td className="px-4 py-4 text-center">
-                                <span className={`px-2.5 py-1 rounded-full text-xs font-semibold border ${
-                                  trip.trip_status === 'ACCEPTED'
-                                    ? 'bg-emerald-900/50 text-emerald-300 border-emerald-700/50'
-                                    : trip.trip_status === 'REQUESTED'
+                                <span className={`px-2.5 py-1 rounded-full text-xs font-semibold border ${trip.trip_status === 'ACCEPTED'
+                                  ? 'bg-emerald-900/50 text-emerald-300 border-emerald-700/50'
+                                  : trip.trip_status === 'REQUESTED'
                                     ? 'bg-amber-900/50 text-amber-300 border-amber-700/50'
                                     : 'bg-rose-900/50 text-rose-300 border-rose-700/50'
-                                }`}>
+                                  }`}>
                                   {trip.trip_status}
                                 </span>
                               </td>
@@ -418,7 +416,7 @@ export default function CustomerTripHistory() {
                                               Bid Fare: <span className="text-white font-bold">{driver.bid_amount} ৳</span>
                                             </div>
                                             <div className="text-slate-400">
-                                              Total Paid: <span className="text-emerald-400 font-bold">{driver.total_amount} ৳</span>
+                                              Total Payable Amount: <span className="text-emerald-400 font-bold">{driver.total_amount} ৳</span>
                                             </div>
                                             <div className="text-[10px] text-slate-500">
                                               Insurance: {driver.insurance_charge_amount} ৳
