@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react';
-import { fetchCustomerList, newwork_image_url, updateCustomerProfile } from '../utilities/api';
+import React, { useEffect, useState, useRef } from 'react';
+import { fetchCustomerList, newwork_image_url, updateCustomerProfile, uploadCustomerProfilePicture } from '../utilities/api';
 import type { CustomerUserItem } from '../utilities/api';
 import { useTranslation } from '../utilities/translation';
 import { PopupMessage } from '../components/common/PopupMessage';
@@ -12,7 +12,7 @@ export default function CustomerList() {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState<string>('');
-  
+
   // Details Modal State
   const [selectedCustomer, setSelectedCustomer] = useState<CustomerUserItem | null>(null);
   const [showDetailsModal, setShowDetailsModal] = useState<boolean>(false);
@@ -30,9 +30,12 @@ export default function CustomerList() {
     device_token_for_notification: '',
     is_active: true
   });
+  const [editAvatarUrl, setEditAvatarUrl] = useState<string>('');
   const [submitting, setSubmitting] = useState<boolean>(false);
   const [formError, setFormError] = useState<string | null>(null);
   const [popup, setPopup] = useState<{ show: boolean; type: 'success' | 'error'; message: string }>({ show: false, type: 'success', message: '' });
+
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   const handleEditCustomer = (customer: CustomerUserItem) => {
     setEditForm({
@@ -45,8 +48,37 @@ export default function CustomerList() {
       device_token_for_notification: customer.device_token_for_notification || '',
       is_active: customer.is_active || false
     });
+    const avatarUrl = customer.profile_picture
+      ? customer.profile_picture.startsWith('http')
+        ? customer.profile_picture
+        : `${newwork_image_url}${customer.profile_picture}`
+      : noImage;
+    setEditAvatarUrl(avatarUrl);
     setFormError(null);
     setShowEditModal(true);
+  };
+
+  const handleAvatarFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      try {
+        setSubmitting(true);
+        setFormError(null);
+        const res = await uploadCustomerProfilePicture(editForm.uuid, file);
+        const newUrl = res.profile_picture.startsWith('http')
+          ? res.profile_picture
+          : `${newwork_image_url}${res.profile_picture}`;
+        setEditAvatarUrl(newUrl);
+        setPopup({ show: true, type: 'success', message: 'Profile picture uploaded successfully' });
+        await loadData();
+      } catch (err: any) {
+        const msg = err?.response?.data?.message || err.message || 'Failed to upload profile picture';
+        setFormError(msg);
+        setPopup({ show: true, type: 'error', message: msg });
+      } finally {
+        setSubmitting(false);
+      }
+    }
   };
 
   const handleEditSubmit = async (e: React.FormEvent) => {
@@ -499,6 +531,31 @@ export default function CustomerList() {
                       {formError}
                     </div>
                   )}
+
+                  {/* Profile Picture interactive preview */}
+                  <div className="flex flex-col items-center gap-2 border-b border-slate-800 pb-6">
+                    <div className="relative cursor-pointer group" onClick={() => fileInputRef.current?.click()}>
+                      <img
+                        src={editAvatarUrl}
+                        alt="Customer Avatar"
+                        className="w-24 h-24 rounded-full object-cover ring-4 ring-slate-700 group-hover:ring-indigo-500 transition-all"
+                      />
+                      <div className="absolute inset-0 bg-black/50 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                        <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                        </svg>
+                      </div>
+                    </div>
+                    <span className="text-xs text-slate-500">Click image to upload new avatar</span>
+                    <input
+                      type="file"
+                      ref={fileInputRef}
+                      accept="image/*"
+                      className="hidden"
+                      onChange={handleAvatarFileChange}
+                    />
+                  </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>

@@ -921,5 +921,37 @@ export const updateCustomerProfile = async (
   }
 };
 
+export const uploadCustomerProfilePicture = async (
+  customerUuid: string,
+  avatarFile: File
+): Promise<{ profile_picture: string }> => {
+  const token = localStorage.getItem('authToken');
+  const { platform, language_code } = getLoginDefaults();
+
+  const formData = new FormData();
+  formData.append('customer_uuid', customerUuid);
+  formData.append('platform', platform);
+  formData.append('language_code', language_code);
+  formData.append('action_when', 'customer_profile_picture_upload');
+  formData.append('avatar', avatarFile);
+
+  const response = await axios.post(
+    `${BASE_URL}/v1/customer/customer-profile-picture-update`,
+    formData,
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'multipart/form-data',
+      },
+    }
+  );
+
+  if (!response.data || !response.data.status) {
+    throw new Error(response.data?.message || 'Failed to upload customer profile picture');
+  }
+
+  return response.data.data;
+};
+
 
 
