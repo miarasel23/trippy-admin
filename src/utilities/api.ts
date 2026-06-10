@@ -1026,6 +1026,23 @@ export const fetchCustomerTripHistory = async (
   throw new Error(response.data.message || 'Failed to fetch customer trip history');
 };
 
+export const fetchCurrentCustomerUser = async (): Promise<any> => {
+  const token = localStorage.getItem('authToken');
+  const response = await axios.get(
+    `${BASE_URL}/v1/customer/get-current-customer-user?platform=web&language_code=bn&action_when=admin_login`,
+    {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    }
+  );
+  if (response.data && response.data.status) {
+    return response.data.data;
+  }
+  throw new Error(response.data.message || 'Failed to fetch current customer user');
+};
+
+
 
 
 

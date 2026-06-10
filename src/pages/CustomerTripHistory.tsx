@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
-import { fetchCustomerTripHistory, fetchCustomerList, newwork_image_url } from '../utilities/api';
+import { fetchCustomerTripHistory, fetchCustomerList, newwork_image_url, fetchCurrentCustomerUser } from '../utilities/api';
 import type { RentalTripCustomerItem, CustomerUserItem } from '../utilities/api';
 import noImage from '../assets/no-image.png';
 
@@ -18,9 +18,23 @@ export default function CustomerTripHistory() {
   const [mapZoom, setMapZoom] = useState<number>(11);
   const [expandedTrips, setExpandedTrips] = useState<Record<string, boolean>>({});
   const [previewImage, setPreviewImage] = useState<{ url: string; title: string } | null>(null);
+  const [currentUser, setCurrentUser] = useState<any>(null);
+  const [currentUserLoading, setCurrentUserLoading] = useState<boolean>(false);
 
-  const toggleTripExpand = (uuid: string) => {
-    setExpandedTrips(prev => ({ ...prev, [uuid]: !prev[uuid] }));
+  const toggleTripExpand = async (uuid: string) => {
+    const isExpanding = !expandedTrips[uuid];
+    setExpandedTrips(prev => ({ ...prev, [uuid]: isExpanding }));
+    if (isExpanding && !currentUser && !currentUserLoading) {
+      try {
+        setCurrentUserLoading(true);
+        const userData = await fetchCurrentCustomerUser();
+        setCurrentUser(userData);
+      } catch (err) {
+        console.error("Failed to fetch current customer user", err);
+      } finally {
+        setCurrentUserLoading(false);
+      }
+    }
   };
 
   const handleOpenMap = (trip: RentalTripCustomerItem) => {
@@ -351,9 +365,29 @@ export default function CustomerTripHistory() {
                               <tr className="bg-slate-900/65 border-b border-slate-800">
                                 <td colSpan={8} className="px-6 py-4">
                                   <div className="space-y-3">
-                                    <h4 className="text-xs font-bold text-indigo-400 uppercase tracking-wider">
-                                      Placed Bids ({trip.drivers.length})
-                                    </h4>
+                                    <div className="flex items-center justify-between">
+                                      <h4 className="text-xs font-bold text-indigo-400 uppercase tracking-wider">
+                                        Placed Bids ({trip.drivers.length})
+                                      </h4>
+                                      {currentUserLoading && (
+                                        <span className="text-[10px] text-slate-500 animate-pulse">Loading current user...</span>
+                                      )}
+                                    </div>
+
+                                    {currentUser && (
+                                      <div className="bg-slate-950/60 p-2.5 rounded-lg border border-slate-800 text-[11px] text-slate-400 flex items-center justify-between gap-4">
+                                        <div className="flex items-center gap-2">
+                                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                                          <div>
+                                            Authorized Admin User: <span className="font-semibold text-slate-200">{currentUser.full_name || 'N/A'}</span>
+                                            {currentUser.email && <span className="text-slate-500 ml-1.5">({currentUser.email})</span>}
+                                          </div>
+                                        </div>
+                                        <span className="text-[9px] text-slate-500 font-mono bg-slate-900 px-2 py-0.5 rounded border border-slate-800">
+                                          action_when: admin_login (bypassed permission check)
+                                        </span>
+                                      </div>
+                                    )}
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                       {trip.drivers.map((driver: any, idx: number) => (
                                         <div
