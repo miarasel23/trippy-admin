@@ -14,6 +14,7 @@ export default function CustomerList() {
   // Details Modal State
   const [selectedCustomer, setSelectedCustomer] = useState<CustomerUserItem | null>(null);
   const [showDetailsModal, setShowDetailsModal] = useState<boolean>(false);
+  const [previewImage, setPreviewImage] = useState<{ url: string; title: string } | null>(null);
 
   const loadData = async () => {
     try {
@@ -164,7 +165,8 @@ export default function CustomerList() {
                         <img
                           src={avatarUrl}
                           alt={item.full_name || 'Customer'}
-                          className="w-9 h-9 rounded-full object-cover ring-2 ring-slate-700"
+                          className="w-9 h-9 rounded-full object-cover ring-2 ring-slate-700 cursor-pointer hover:ring-indigo-500 transition-all"
+                          onClick={() => setPreviewImage({ url: avatarUrl, title: item.full_name || 'Customer' })}
                           onError={(e) => {
                             e.currentTarget.onerror = null;
                             e.currentTarget.src = noImage;
@@ -285,7 +287,15 @@ export default function CustomerList() {
                         : noImage
                     }
                     alt={selectedCustomer.full_name || 'Customer'}
-                    className="w-24 h-24 rounded-full object-cover ring-4 ring-slate-700"
+                    className="w-24 h-24 rounded-full object-cover ring-4 ring-slate-700 cursor-pointer hover:ring-indigo-500 transition-all"
+                    onClick={() => {
+                      const url = selectedCustomer.profile_picture
+                        ? selectedCustomer.profile_picture.startsWith('http')
+                          ? selectedCustomer.profile_picture
+                          : `${newwork_image_url}${selectedCustomer.profile_picture}`
+                        : noImage;
+                      setPreviewImage({ url, title: selectedCustomer.full_name || 'Customer' });
+                    }}
                     onError={(e) => {
                       e.currentTarget.onerror = null;
                       e.currentTarget.src = noImage;
@@ -367,6 +377,26 @@ export default function CustomerList() {
                 >
                   Close
                 </button>
+              </div>
+            </div>
+          </div>
+          <div className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm"></div>
+        </>
+      )}
+
+      {/* Preview Image Modal */}
+      {previewImage && (
+        <>
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={() => setPreviewImage(null)}>
+            <div className="bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl overflow-hidden max-w-md w-full" onClick={(e) => e.stopPropagation()}>
+              <div className="flex items-center justify-between p-4 bg-slate-800 border-b border-slate-700">
+                <h3 className="text-white font-semibold">{previewImage.title}</h3>
+                <button onClick={() => setPreviewImage(null)} className="text-slate-400 hover:text-white p-1 rounded-lg cursor-pointer">
+                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                </button>
+              </div>
+              <div className="p-4 flex justify-center bg-slate-950">
+                <img src={previewImage.url} alt={previewImage.title} className="max-w-full max-h-96 object-contain" />
               </div>
             </div>
           </div>
