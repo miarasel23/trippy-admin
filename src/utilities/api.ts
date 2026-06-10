@@ -875,4 +875,51 @@ export const deletePriceSetAsPerKm = async (uuid: string): Promise<string> => {
   return response.data.message || 'Deleted successfully';
 };
 
+export interface UpdateCustomerProfilePayload {
+  uuid: string;
+  full_name: string;
+  email: string;
+  phone_number: string;
+  country_code: string;
+  is_notification_enabled: boolean;
+  device_token_for_notification: string;
+  is_active: boolean;
+}
+
+export const updateCustomerProfile = async (
+  payload: UpdateCustomerProfilePayload
+): Promise<void> => {
+  const token = localStorage.getItem('authToken');
+  const { platform, language_code } = getLoginDefaults();
+
+  const formData = new URLSearchParams();
+  formData.append('platform', platform);
+  formData.append('language_code', language_code);
+  formData.append('action_when', 'customer_profile_edit');
+  formData.append('uuid', payload.uuid);
+  formData.append('full_name', payload.full_name);
+  formData.append('email', payload.email);
+  formData.append('phone_number', payload.phone_number);
+  formData.append('country_code', payload.country_code);
+  formData.append('is_notification_enabled', payload.is_notification_enabled ? 'true' : 'false');
+  formData.append('device_token_for_notification', payload.device_token_for_notification);
+  formData.append('is_active', payload.is_active ? 'true' : 'false');
+
+  const response = await axios.post(
+    `${BASE_URL}/v1/customer/profile-update`,
+    formData.toString(),
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+    }
+  );
+
+  if (!response.data || !response.data.status) {
+    throw new Error(response.data?.message || 'Failed to update customer profile');
+  }
+};
+
+
 
