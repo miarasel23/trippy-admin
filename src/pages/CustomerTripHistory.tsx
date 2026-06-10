@@ -20,6 +20,34 @@ export default function CustomerTripHistory() {
   const [previewImage, setPreviewImage] = useState<{ url: string; title: string } | null>(null);
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [currentUserLoading, setCurrentUserLoading] = useState<boolean>(false);
+  const [customerQuery, setCustomerQuery] = useState<string>('');
+  const [showSuggestions, setShowSuggestions] = useState<boolean>(false);
+
+  const currentCustomer = customers.find(c => c.uuid === customerUuid);
+
+  useEffect(() => {
+    if (currentCustomer && !showSuggestions) {
+      setCustomerQuery(currentCustomer.full_name ? `${currentCustomer.full_name} (${currentCustomer.phone_number})` : currentCustomer.phone_number);
+    } else if (!customerUuid) {
+      setCustomerQuery('');
+    }
+  }, [customerUuid, currentCustomer, showSuggestions]);
+
+  useEffect(() => {
+    const handleOutsideClick = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      if (!target.closest('.select-customer-container')) {
+        setShowSuggestions(false);
+        if (currentCustomer) {
+          setCustomerQuery(currentCustomer.full_name ? `${currentCustomer.full_name} (${currentCustomer.phone_number})` : currentCustomer.phone_number);
+        } else {
+          setCustomerQuery('');
+        }
+      }
+    };
+    document.addEventListener('mousedown', handleOutsideClick);
+    return () => document.removeEventListener('mousedown', handleOutsideClick);
+  }, [currentCustomer]);
 
   const toggleTripExpand = async (uuid: string) => {
     const isExpanding = !expandedTrips[uuid];
@@ -55,8 +83,6 @@ export default function CustomerTripHistory() {
     loadCustomers();
   }, []);
 
-  const currentCustomer = customers.find(c => c.uuid === customerUuid);
-
   // Load trip history
   const loadTripHistory = async () => {
     if (!customerUuid) return;
@@ -76,15 +102,6 @@ export default function CustomerTripHistory() {
   useEffect(() => {
     loadTripHistory();
   }, [customerUuid, selectedStatus]);
-
-  const handleCustomerChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const newUuid = e.target.value;
-    if (newUuid) {
-      setSearchParams({ customer_uuid: newUuid });
-    } else {
-      setSearchParams({});
-    }
-  };
 
   const statusTabs: { value: 'REQUESTED' | 'ACCEPTED' | 'CANCEL'; label: string; colorClass: string }[] = [
     { value: 'REQUESTED', label: 'Requested', colorClass: 'border-amber-500 text-amber-400 bg-amber-500/10' },
@@ -113,22 +130,81 @@ export default function CustomerTripHistory() {
             </div>
           </div>
 
-          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 w-full md:w-auto md:max-w-md">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 w-full md:w-auto md:max-w-md relative select-customer-container">
             <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider whitespace-nowrap">
               Select Customer:
             </label>
-            <select
-              value={customerUuid}
-              onChange={handleCustomerChange}
-              className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-colors text-sm"
-            >
-              <option value="">-- Choose a Customer --</option>
-              {customers.map(c => (
-                <option key={c.uuid} value={c.uuid}>
-                  {c.full_name || 'No Name'} ({c.phone_number})
-                </option>
-              ))}
-            </select>
+            <div className="relative w-full">
+              <input
+                type="text"
+                className="w-full pl-3 pr-8 py-2 bg-slate-800 border border-slate-700 rounded-lg text-slate-200 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-colors text-sm"
+                placeholder="Type name or phone number..."
+                value={customerQuery}
+                onFocus={() => setShowSuggestions(true)}
+                onChange={(e) => {
+                  setCustomerQuery(e.target.value);
+                  setShowSuggestions(true);
+                }}
+              />
+              {customerQuery && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setCustomerQuery('');
+                    setSearchParams({});
+                    setShowSuggestions(false);
+                  }}
+                  className="absolute right-2.5 top-2.5 text-slate-500 hover:text-slate-300 cursor-pointer"
+                >
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              )}
+
+              {showSuggestions && (
+                <div className="absolute left-0 mt-1 w-full bg-slate-900 border border-slate-800 rounded-lg shadow-2xl z-50 max-h-60 overflow-y-auto py-1">
+                  {customers.filter(c => {
+                    const q = customerQuery.toLowerCase();
+                    const fullName = (c.full_name || '').toLowerCase();
+                    const phone = (c.phone_number || '').toLowerCase();
+                    return fullName.includes(q) || phone.includes(q);
+                  }).length === 0 ? (
+                    <div className="px-4 py-2 text-xs text-slate-500 italic">No customers found</div>
+                  ) : (
+                    customers.filter(c => {
+                      const q = customerQuery.toLowerCase();
+                      const fullName = (c.full_name || '').toLowerCase();
+                      const phone = (c.phone_number || '').toLowerCase();
+                      return fullName.includes(q) || phone.includes(q);
+                    }).map((c) => (
+                      <button
+                        key={c.uuid}
+                        type="button"
+                        onClick={() => {
+                          setSearchParams({ customer_uuid: c.uuid });
+                          setCustomerQuery(c.full_name ? `${c.full_name} (${c.phone_number})` : c.phone_number);
+                          setShowSuggestions(false);
+                        }}
+                        className={`w-full flex items-center justify-between px-4 py-2.5 text-xs text-left hover:bg-slate-800 transition-colors cursor-pointer ${
+                          customerUuid === c.uuid ? 'bg-indigo-600/20 text-indigo-300' : 'text-slate-300'
+                        }`}
+                      >
+                        <div>
+                          <div className="font-semibold">{c.full_name || 'No Name'}</div>
+                          <div className="text-[10px] text-slate-500 font-mono mt-0.5">{c.phone_number}</div>
+                        </div>
+                        {customerUuid === c.uuid && (
+                          <svg className="w-4 h-4 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                          </svg>
+                        )}
+                      </button>
+                    ))
+                  )}
+                </div>
+              )}
+            </div>
           </div>
         </div>
 
