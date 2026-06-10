@@ -953,5 +953,79 @@ export const uploadCustomerProfilePicture = async (
   return response.data.data;
 };
 
+export interface RentalTripCustomerItem {
+  id: number;
+  uuid: string;
+  total_bids: number;
+  bid_summary: {
+    lowest_bid_amount: number | null;
+    highest_bid_amount: number | null;
+    total_bids: number;
+  };
+  platform: string;
+  service_name: string;
+  payment_method: string;
+  start_datetime: string;
+  end_datetime: string | null;
+  country_code: string;
+  hours_booked: number | null;
+  trip_status: string;
+  created_at: string;
+  car_category?: {
+    uuid: string;
+    car_type: string;
+    set_capacity: number;
+    car_avatar: string;
+  } | null;
+  car_service?: {
+    uuid: string;
+    service_name: string;
+    avatar: string;
+  } | null;
+  price_info?: {
+    uuid: string;
+    price_per_km: number;
+    minimum_booking_price: number;
+    waiting_price: number;
+    cancellation_fee: number;
+    busy_time_percentage: number;
+  } | null;
+  pickup_locations?: {
+    uuid: string;
+    place_id: string;
+    latitude: string;
+    longitude: string;
+    address: string;
+  }[];
+  dropoff_locations?: {
+    uuid: string;
+    place_id: string;
+    latitude: string;
+    longitude: string;
+    address: string;
+  }[];
+  drivers?: any[];
+}
+
+export const fetchCustomerTripHistory = async (
+  customerUuid: string,
+  tripStatus: string
+): Promise<RentalTripCustomerItem[]> => {
+  const token = localStorage.getItem('authToken');
+  const response = await axios.get(
+    `${BASE_URL}/v1/rental-trip/rental-bid-trip-list_for_customer?platform=web&language_code=bn&action_when=rental_bid_trip_list_for_customer&customer_uuid=${customerUuid}&trip_status=${tripStatus}`,
+    {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    }
+  );
+  if (response.data && response.data.status) {
+    return response.data.data;
+  }
+  throw new Error(response.data.message || 'Failed to fetch customer trip history');
+};
+
+
 
 

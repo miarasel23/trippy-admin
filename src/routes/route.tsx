@@ -16,6 +16,7 @@ import CarCategoryList from '../pages/CarCategoryList';
 import CarServiceCategoryList from '../pages/CarServiceCategoryList';
 import PriceSetAsPerKm from '../pages/PriceSetAsPerKm';
 import CustomerList from '../pages/CustomerList';
+import CustomerTripHistory from '../pages/CustomerTripHistory';
 
 export const AppRoutes = () => {
   const { isAuthenticated, loading } = useContext(AuthContextTrippy);
@@ -59,6 +60,7 @@ export const AppRoutes = () => {
               <Route path="/dashboard/setting/cars/price-set-as-per-km" element={isAuthenticated ? <PriceSetAsPerKm /> : <Navigate to="/" replace />} />
               <Route path="/dashboard/admin-user" element={isAuthenticated ? <AdminUserList /> : <Navigate to="/" replace />} />
               <Route path="/dashboard/customer" element={isAuthenticated ? <CustomerList /> : <Navigate to="/" replace />} />
+              <Route path="/dashboard/trip" element={isAuthenticated ? <CustomerTripHistory /> : <Navigate to="/" replace />} />
             </Routes>
           </main>
 

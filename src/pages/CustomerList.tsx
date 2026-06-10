@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { fetchCustomerList, newwork_image_url, updateCustomerProfile, uploadCustomerProfilePicture } from '../utilities/api';
 import type { CustomerUserItem } from '../utilities/api';
 import { useTranslation } from '../utilities/translation';
@@ -8,10 +9,12 @@ import noImage from '../assets/no-image.png';
 
 export default function CustomerList() {
   const t = useTranslation();
+  const navigate = useNavigate();
   const [customers, setCustomers] = useState<CustomerUserItem[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState<string>('');
+  const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
 
   // Details Modal State
   const [selectedCustomer, setSelectedCustomer] = useState<CustomerUserItem | null>(null);
@@ -36,6 +39,19 @@ export default function CustomerList() {
   const [popup, setPopup] = useState<{ show: boolean; type: 'success' | 'error'; message: string }>({ show: false, type: 'success', message: '' });
 
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as HTMLElement;
+      if (activeDropdown && !target.closest('.action-dropdown-container')) {
+        setActiveDropdown(null);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [activeDropdown]);
 
   const handleEditCustomer = (customer: CustomerUserItem) => {
     setEditForm({
@@ -305,14 +321,17 @@ export default function CustomerList() {
                           </span>
                         )}
                       </td>
-                      <td className="px-4 py-3 text-center">
-                        <div className="flex items-center justify-center gap-2">
+                      <td className="px-4 py-3 text-center relative">
+                        <div className="action-dropdown-container inline-block text-left">
                           <button
-                            onClick={() => handleViewDetails(item)}
-                            className="flex items-center gap-1 px-2.5 py-1.5 bg-slate-700 hover:bg-indigo-600 text-slate-300 hover:text-white text-xs font-medium rounded-lg transition-colors cursor-pointer"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setActiveDropdown(activeDropdown === item.uuid ? null : item.uuid);
+                            }}
+                            className="p-1.5 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition-colors cursor-pointer focus:outline-none"
                           >
                             <svg
-                              className="w-3.5 h-3.5"
+                              className="w-5 h-5"
                               fill="none"
                               viewBox="0 0 24 24"
                               stroke="currentColor"
@@ -321,36 +340,87 @@ export default function CustomerList() {
                                 strokeLinecap="round"
                                 strokeLinejoin="round"
                                 strokeWidth={2}
-                                d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                              />
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                                d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"
                               />
                             </svg>
-                            View
                           </button>
-                          <button
-                            onClick={() => handleEditCustomer(item)}
-                            className="flex items-center gap-1 px-2.5 py-1.5 bg-amber-600 hover:bg-amber-500 text-white text-xs font-medium rounded-lg transition-colors cursor-pointer"
-                          >
-                            <svg
-                              className="w-3 h-3"
-                              fill="none"
-                              viewBox="0 0 24 24"
-                              stroke="currentColor"
-                            >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-                              />
-                            </svg>
-                            Edit
-                          </button>
+
+                          {activeDropdown === item.uuid && (
+                            <div className="absolute right-0 mt-1 w-32 bg-slate-900 border border-slate-800 rounded-lg shadow-xl z-50 py-1 overflow-hidden animate-in fade-in slide-in-from-top-1 duration-100">
+                              <button
+                                onClick={() => {
+                                  setActiveDropdown(null);
+                                  handleViewDetails(item);
+                                }}
+                                className="w-full flex items-center gap-2 px-3 py-2 text-xs text-slate-300 hover:bg-slate-800 hover:text-white transition-colors cursor-pointer text-left font-medium"
+                              >
+                                <svg
+                                  className="w-3.5 h-3.5 text-indigo-400"
+                                  fill="none"
+                                  viewBox="0 0 24 24"
+                                  stroke="currentColor"
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                                  />
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                                  />
+                                </svg>
+                                View
+                              </button>
+                              <button
+                                onClick={() => {
+                                  setActiveDropdown(null);
+                                  handleEditCustomer(item);
+                                }}
+                                className="w-full flex items-center gap-2 px-3 py-2 text-xs text-slate-300 hover:bg-slate-800 hover:text-white transition-colors cursor-pointer text-left font-medium"
+                              >
+                                <svg
+                                  className="w-3.5 h-3.5 text-amber-400"
+                                  fill="none"
+                                  viewBox="0 0 24 24"
+                                  stroke="currentColor"
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                                  />
+                                </svg>
+                                Edit
+                              </button>
+                              <button
+                                onClick={() => {
+                                  setActiveDropdown(null);
+                                  navigate(`/dashboard/trip?customer_uuid=${item.uuid}`);
+                                }}
+                                className="w-full flex items-center gap-2 px-3 py-2 text-xs text-slate-300 hover:bg-slate-800 hover:text-white transition-colors cursor-pointer text-left border-t border-slate-800/60 font-medium"
+                              >
+                                <svg
+                                  className="w-3.5 h-3.5 text-emerald-400"
+                                  fill="none"
+                                  viewBox="0 0 24 24"
+                                  stroke="currentColor"
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L16 4m0 13V4m0 0L9 7"
+                                  />
+                                </svg>
+                                Trip
+                              </button>
+                            </div>
+                          )}
                         </div>
                       </td>
                     </tr>
