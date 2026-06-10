@@ -236,6 +236,46 @@ export const createRole = async (payload: {
   }
 };
 
+export interface CustomerUserItem {
+  uuid: string;
+  full_name: string | null;
+  email: string | null;
+  phone_number: string;
+  country_code: string;
+  profile_picture: string | null;
+  nid_number: string | null;
+  is_notification_enabled: boolean;
+  device_token_for_notification: string | null;
+  is_active: boolean;
+  role: {
+    uuid: string;
+    name: string;
+    description: string;
+  };
+  permissions: {
+    uuid: string;
+    name: string;
+    code: string;
+  }[];
+}
+
+export const fetchCustomerList = async (): Promise<CustomerUserItem[]> => {
+  const token = localStorage.getItem('authToken');
+  const { language_code } = getLoginDefaults();
+  const response = await axios.get(
+    `${BASE_URL}/v1/admin/customer-list?platform=web&language_code=${language_code}&action_when=customer_list`,
+    {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    }
+  );
+  if (response.data && response.data.status) {
+    return response.data.data;
+  }
+  throw new Error(response.data.message || 'Failed to fetch customer list');
+};
+
 export const fetchAdminUserList = async (): Promise<any[]> => {
   const token = localStorage.getItem('authToken');
   const { language_code } = getLoginDefaults();
