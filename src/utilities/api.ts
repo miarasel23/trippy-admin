@@ -1042,6 +1042,110 @@ export const fetchCurrentCustomerUser = async (): Promise<any> => {
   throw new Error(response.data.message || 'Failed to fetch current customer user');
 };
 
+export interface AllRentalTripItem {
+  trip_details: {
+    uuid: string;
+    platform: string;
+    service_name: string;
+    payment_method: string;
+    start_datetime: string;
+    end_datetime: string | null;
+    hours_booked: number | null;
+    trip_status: string;
+    country_code: string;
+    created_at: string;
+  };
+  location_details: {
+    pickup_locations: {
+      uuid: string;
+      place_id: string;
+      latitude: string;
+      longitude: string;
+      address: string;
+    }[];
+    dropoff_locations: {
+      uuid: string;
+      place_id: string;
+      latitude: string;
+      longitude: string;
+      address: string;
+    }[];
+  };
+  all_bidders: {
+    bid_uuid: string;
+    bid_amount: number;
+    commission_amount: number;
+    booking_charge_amount: number;
+    insurance_charge_amount: number;
+    customer_discount_amount: number | null;
+    total_amount: number;
+    status: string;
+    created_at: string;
+    driver_details: {
+      uuid: string;
+      full_name: string | null;
+      phone_number: string;
+      email: string | null;
+      profile_picture: string | null;
+    };
+  }[];
+  amount_details: {
+    accepted_bid_amount: number | null;
+    commission_amount: number | null;
+    booking_charge_amount: number | null;
+    insurance_charge_amount: number | null;
+    customer_discount_amount: number | null;
+    total_amount: number | null;
+    price_per_km: number;
+    minimum_booking_price: number;
+  };
+  customer_details: {
+    uuid: string;
+    full_name: string | null;
+    phone_number: string;
+    email: string | null;
+    profile_picture: string | null;
+  };
+  accepted_driver_details: any;
+}
+
+export const fetchAllRentalTripList = async (params: {
+  customer_uuid?: string;
+  trip_status?: string;
+  start_date?: string;
+  end_date?: string;
+  customer_phone?: string;
+  driver_phone?: string;
+  today?: boolean;
+}): Promise<AllRentalTripItem[]> => {
+  const token = localStorage.getItem('authToken');
+  const query = new URLSearchParams();
+  query.append('platform', 'web');
+  query.append('language_code', 'bn');
+  query.append('action_when', 'all_rental_trip_list');
+  if (params.customer_uuid) query.append('customer_uuid', params.customer_uuid);
+  if (params.trip_status) query.append('trip_status', params.trip_status);
+  if (params.start_date) query.append('start_date', params.start_date);
+  if (params.end_date) query.append('end_date', params.end_date);
+  if (params.customer_phone) query.append('customer_phone', params.customer_phone);
+  if (params.driver_phone) query.append('driver_phone', params.driver_phone);
+  if (params.today !== undefined) query.append('today', String(params.today));
+
+  const response = await axios.get(
+    `${BASE_URL}/v1/rental-trip/all-rental-trip-list?${query.toString()}`,
+    {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    }
+  );
+  if (response.data && response.data.status) {
+    return response.data.data;
+  }
+  throw new Error(response.data.message || 'Failed to fetch all rental trip list');
+};
+
+
 
 
 

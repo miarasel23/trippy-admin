@@ -1,4 +1,4 @@
-import React, { createContext, useState, useEffect, type ReactNode } from 'react';
+import { createContext, useState, useEffect, type ReactNode } from 'react';
 
 // Define the shape of the auth context
 interface AuthContextProps {

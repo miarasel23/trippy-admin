@@ -17,9 +17,12 @@ import CarServiceCategoryList from '../pages/CarServiceCategoryList';
 import PriceSetAsPerKm from '../pages/PriceSetAsPerKm';
 import CustomerList from '../pages/CustomerList';
 import CustomerTripHistory from '../pages/CustomerTripHistory';
+import TripTrack from '../pages/TripTrack';
 
 export const AppRoutes = () => {
-  const { isAuthenticated, loading } = useContext(AuthContextTrippy);
+  const auth = useContext(AuthContextTrippy);
+  const isAuthenticated = auth?.isAuthenticated ?? false;
+  const loading = auth?.loading ?? true;
   const [sidebarCollapsed, setSidebarCollapsed] = React.useState(false);
 
   if (loading) {
@@ -61,6 +64,7 @@ export const AppRoutes = () => {
               <Route path="/dashboard/admin-user" element={isAuthenticated ? <AdminUserList /> : <Navigate to="/" replace />} />
               <Route path="/dashboard/customer" element={isAuthenticated ? <CustomerList /> : <Navigate to="/" replace />} />
               <Route path="/dashboard/trip" element={isAuthenticated ? <CustomerTripHistory /> : <Navigate to="/" replace />} />
+              <Route path="/dashboard/trip-track" element={isAuthenticated ? <TripTrack /> : <Navigate to="/" replace />} />
             </Routes>
           </main>
 

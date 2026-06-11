@@ -6,6 +6,7 @@ export const translations = {
     // Sidebar
     dashboard: 'Dashboard',
     trip: 'Trip',
+    tripTrack: 'Trip Track',
     customer: 'Customer',
     customerList: 'Customer List',
     rider: 'Rider',
@@ -92,6 +93,7 @@ export const translations = {
     // Sidebar
     dashboard: 'ড্যাশবোর্ড',
     trip: 'ট্রিপ',
+    tripTrack: 'ট্রিপ ট্র্যাক',
     customer: 'গ্রাহক',
     customerList: 'গ্রাহক তালিকা',
     rider: 'রাইডার',

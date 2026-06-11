@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react';
-import { NavLink } from 'react-router-dom';
 import styled from 'styled-components';
 import Sidebar from './Sidebar';
 import { newwork_image_url } from '../../utilities/api';
@@ -28,25 +27,6 @@ const Brand = styled.h1`
   font-size: 1.2rem;
   font-weight: 600;
   color: #333;
-`;
-
-const NavItem = styled(NavLink)`
-  color: #333;
-  margin-right: 1.5rem;
-  text-decoration: none;
-  font-weight: 500;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-
-  &.active {
-    color: #0077ff;
-    border-bottom: 2px solid #0077ff;
-  }
-
-  &:hover {
-    color: #0055cc;
-  }
 `;
 
 const ProfileWrapper = styled.div`
@@ -139,7 +119,7 @@ export const Navbar: React.FC = () => {
         </ProfileWrapper>
       </Nav>
 
-      {showSidebar && <Sidebar isSidebarOpen={undefined} toggleSidebar={undefined} />}
+      {showSidebar && <Sidebar isOpen={showSidebar} />}
     </>
   );
 };
