@@ -527,7 +527,8 @@ export default function TripTrack() {
                                         <span className="px-2 py-0.5 bg-indigo-900/40 text-indigo-300 rounded text-[10px] font-semibold uppercase tracking-wider">
                                           {bid.status}
                                         </span>
-                                                                  <div className="grid grid-cols-2 gap-2 text-xs border-t border-slate-800/80 pt-2.5">
+                                      </div>
+                                      <div className="grid grid-cols-2 gap-2 text-xs border-t border-slate-800/80 pt-2.5">
                                         <div className="text-slate-400">
                                           Bid Amount: <span className="text-white font-bold">{bid.bid_amount} ৳</span>
                                         </div>
