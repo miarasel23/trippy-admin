@@ -670,7 +670,11 @@ export default function TripTrack() {
                                             )}
                                             {bid.status === 'REQUESTED' && (
                                               <button
-                                                onClick={() => handleAcceptBid(bid.bid_uuid, trip.customer_details?.uuid)}
+                                                onClick={() => {
+                                                  if (window.confirm('Are you sure you want to accept this bid?')) {
+                                                    handleAcceptBid(bid.bid_uuid, trip.customer_details?.uuid);
+                                                  }
+                                                }}
                                                 disabled={acceptingBid === bid.bid_uuid}
                                                 className="text-[10px] text-emerald-400 hover:text-emerald-300 cursor-pointer bg-emerald-900/30 px-2 py-1 rounded border border-emerald-800 transition-colors disabled:opacity-50"
                                               >

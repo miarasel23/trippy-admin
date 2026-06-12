@@ -631,7 +631,11 @@ export default function CustomerTripHistory() {
                                                 )}
                                                 {driver.bid_status === 'REQUESTED' && (
                                                   <button
-                                                    onClick={() => handleAcceptBid(driver.rent_bid_uuid)}
+                                                    onClick={() => {
+                                                      if (window.confirm('Are you sure you want to accept this bid?')) {
+                                                        handleAcceptBid(driver.rent_bid_uuid);
+                                                      }
+                                                    }}
                                                     disabled={acceptingBid === driver.rent_bid_uuid}
                                                     className="text-[10px] text-emerald-400 hover:text-emerald-300 cursor-pointer bg-emerald-900/30 px-2 py-1 rounded border border-emerald-800 transition-colors disabled:opacity-50"
                                                   >
