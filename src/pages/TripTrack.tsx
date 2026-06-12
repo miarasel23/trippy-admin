@@ -3,6 +3,7 @@ import { fetchAllRentalTripList, fetchCustomerList, newwork_image_url, cancelTri
 import type { AllRentalTripItem, CustomerUserItem } from '../utilities/api';
 import noImage from '../assets/no-image.png';
 import { useToast } from '../context/ToastContext';
+import { PopupMessage } from '../components/common/PopupMessage';
 
 const formatTripDateTime = (dateTimeStr: string) => {
   if (!dateTimeStr) return '';
@@ -49,6 +50,18 @@ export default function TripTrack() {
   }, [startDate, endDate]);
 
   // UI States
+  const [confirmPopup, setConfirmPopup] = useState<{
+    show: boolean;
+    title: string;
+    message: string;
+    onConfirm: () => void;
+  }>({
+    show: false,
+    title: '',
+    message: '',
+    onConfirm: () => {},
+  });
+
   const [expandedTrips, setExpandedTrips] = useState<Record<string, boolean>>({});
   const [selectedTripForMap, setSelectedTripForMap] = useState<AllRentalTripItem | null>(null);
   const [mapZoom, setMapZoom] = useState<number>(11);
@@ -671,9 +684,12 @@ export default function TripTrack() {
                                             {bid.status === 'REQUESTED' && (
                                               <button
                                                 onClick={() => {
-                                                  if (window.confirm('Are you sure you want to accept this bid?')) {
-                                                    handleAcceptBid(bid.bid_uuid, trip.customer_details?.uuid);
-                                                  }
+                                                  setConfirmPopup({
+                                                    show: true,
+                                                    title: 'Confirm Accept',
+                                                    message: 'Are you sure you want to accept this bid?',
+                                                    onConfirm: () => handleAcceptBid(bid.bid_uuid, trip.customer_details?.uuid),
+                                                  });
                                                 }}
                                                 disabled={acceptingBid === bid.bid_uuid}
                                                 className="text-[10px] text-emerald-400 hover:text-emerald-300 cursor-pointer bg-emerald-900/30 px-2 py-1 rounded border border-emerald-800 transition-colors disabled:opacity-50"
@@ -1043,6 +1059,18 @@ export default function TripTrack() {
           <div className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm"></div>
         </>
       )}
+      {/* Accept Bid Confirmation Popup */}
+      <PopupMessage
+        show={confirmPopup.show}
+        type="confirm"
+        title={confirmPopup.title}
+        message={confirmPopup.message}
+        onClose={() => setConfirmPopup(prev => ({ ...prev, show: false }))}
+        onConfirm={() => {
+          setConfirmPopup(prev => ({ ...prev, show: false }));
+          confirmPopup.onConfirm();
+        }}
+      />
     </div>
   );
 }

@@ -4,6 +4,7 @@ import { fetchCustomerTripHistory, fetchCustomerList, newwork_image_url, fetchCu
 import type { RentalTripCustomerItem, CustomerUserItem } from '../utilities/api';
 import noImage from '../assets/no-image.png';
 import { useToast } from '../context/ToastContext';
+import { PopupMessage } from '../components/common/PopupMessage';
 
 const formatTripDateTime = (dateTimeStr: string) => {
   if (!dateTimeStr) return '';
@@ -37,6 +38,18 @@ export default function CustomerTripHistory() {
   const [error, setError] = useState<string | null>(null);
   const [selectedTripForMap, setSelectedTripForMap] = useState<RentalTripCustomerItem | null>(null);
   const [mapZoom, setMapZoom] = useState<number>(11);
+  const [confirmPopup, setConfirmPopup] = useState<{
+    show: boolean;
+    title: string;
+    message: string;
+    onConfirm: () => void;
+  }>({
+    show: false,
+    title: '',
+    message: '',
+    onConfirm: () => {},
+  });
+
   const [expandedTrips, setExpandedTrips] = useState<Record<string, boolean>>({});
   const [previewImage, setPreviewImage] = useState<{ url: string; title: string } | null>(null);
   const [currentUser, setCurrentUser] = useState<any>(null);
@@ -632,9 +645,12 @@ export default function CustomerTripHistory() {
                                                 {driver.bid_status === 'REQUESTED' && (
                                                   <button
                                                     onClick={() => {
-                                                      if (window.confirm('Are you sure you want to accept this bid?')) {
-                                                        handleAcceptBid(driver.rent_bid_uuid);
-                                                      }
+                                                      setConfirmPopup({
+                                                        show: true,
+                                                        title: 'Confirm Accept',
+                                                        message: 'Are you sure you want to accept this bid?',
+                                                        onConfirm: () => handleAcceptBid(driver.rent_bid_uuid),
+                                                      });
                                                     }}
                                                     disabled={acceptingBid === driver.rent_bid_uuid}
                                                     className="text-[10px] text-emerald-400 hover:text-emerald-300 cursor-pointer bg-emerald-900/30 px-2 py-1 rounded border border-emerald-800 transition-colors disabled:opacity-50"
@@ -919,6 +935,18 @@ export default function CustomerTripHistory() {
           <div className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm"></div>
         </>
       )}
+      {/* Accept Bid Confirmation Popup */}
+      <PopupMessage
+        show={confirmPopup.show}
+        type="confirm"
+        title={confirmPopup.title}
+        message={confirmPopup.message}
+        onClose={() => setConfirmPopup(prev => ({ ...prev, show: false }))}
+        onConfirm={() => {
+          setConfirmPopup(prev => ({ ...prev, show: false }));
+          confirmPopup.onConfirm();
+        }}
+      />
     </div>
   );
 }
