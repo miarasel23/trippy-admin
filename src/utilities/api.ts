@@ -86,8 +86,40 @@ export const createAction = async (payload: {
   }
 };
 
+export interface UpdateTripBidPayload {
+  trip_uuid: string;
+  driver_uuid: string;
+  bid_amount: string;
+}
 
+export const updateTripBid = async (payload: UpdateTripBidPayload): Promise<string> => {
+  const token = localStorage.getItem('authToken');
+  const { platform, language_code } = getLoginDefaults();
 
+  const formData = new URLSearchParams();
+  formData.append('platform', platform);
+  formData.append('action_when', 'update_trip_bid');
+  formData.append('language_code', language_code);
+  formData.append('trip_uuid', payload.trip_uuid);
+  formData.append('driver_uuid', payload.driver_uuid);
+  formData.append('bid_amount', payload.bid_amount);
+
+  const response = await axios.post(
+    `${BASE_URL}/v1/rental-trip/update-trip-bid`,
+    formData.toString(),
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+    }
+  );
+
+  if (!response.data || !response.data.status) {
+    throw new Error(response.data?.message || 'Failed to update bid');
+  }
+  return response.data.message || 'Bid updated successfully.';
+};
 export const editAction = async (payload: {
   uuid: string;
   action_when: string;
@@ -1199,3 +1231,37 @@ export const cancelTripByAdmin = async (payload: CancelTripPayload): Promise<str
 };
 
 
+export interface AcceptTripPayload {
+  bid_uuid: string;
+  customer_uuid?: string;
+}
+
+export const acceptTripForCustomer = async (payload: AcceptTripPayload): Promise<string> => {
+  const token = localStorage.getItem('authToken');
+  const { platform, language_code } = getLoginDefaults();
+
+  const formData = new URLSearchParams();
+  formData.append('platform', platform);
+  formData.append('action_when', 'accept_trip_for_customer');
+  formData.append('language_code', language_code);
+  formData.append('bid_uuid', payload.bid_uuid);
+  if (payload.customer_uuid) {
+    formData.append('customer_uuid', payload.customer_uuid);
+  }
+
+  const response = await axios.post(
+    `${BASE_URL}/v1/rental-trip/accept_trip_for_customer`,
+    formData.toString(),
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+    }
+  );
+
+  if (!response.data || !response.data.status) {
+    throw new Error(response.data?.message || 'Failed to accept trip');
+  }
+  return response.data.message || 'Trip accepted successfully.';
+};

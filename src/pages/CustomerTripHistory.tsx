@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
-import { fetchCustomerTripHistory, fetchCustomerList, newwork_image_url, fetchCurrentCustomerUser, cancelTripByAdmin } from '../utilities/api';
+import { fetchCustomerTripHistory, fetchCustomerList, newwork_image_url, fetchCurrentCustomerUser, cancelTripByAdmin, updateTripBid, acceptTripForCustomer } from '../utilities/api';
 import type { RentalTripCustomerItem, CustomerUserItem } from '../utilities/api';
 import noImage from '../assets/no-image.png';
 import { useToast } from '../context/ToastContext';
@@ -30,6 +30,46 @@ export default function CustomerTripHistory() {
   const [cancelComment, setCancelComment] = useState<string>('');
   const [cancelling, setCancelling] = useState<boolean>(false);
   const [cancelError, setCancelError] = useState<string | null>(null);
+
+  const [editingBid, setEditingBid] = useState<{trip_uuid: string, driver_uuid: string, bid_amount: string} | null>(null);
+  const [updatingBid, setUpdatingBid] = useState<boolean>(false);
+  const [acceptingBid, setAcceptingBid] = useState<string | null>(null);
+
+  const handleAcceptBid = async (bid_uuid: string) => {
+    try {
+      setAcceptingBid(bid_uuid);
+      const message = await acceptTripForCustomer({
+        bid_uuid,
+        customer_uuid: customerUuid || undefined
+      });
+      showToast('success', 'Trip Accepted', message);
+      loadTripHistory();
+    } catch (err: any) {
+      showToast('error', 'Accept Failed', err.message || 'Failed to accept trip');
+    } finally {
+      setAcceptingBid(null);
+    }
+  };
+
+  const handleUpdateBid = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingBid || !editingBid.bid_amount) return;
+    try {
+      setUpdatingBid(true);
+      const message = await updateTripBid({
+        trip_uuid: editingBid.trip_uuid,
+        driver_uuid: editingBid.driver_uuid,
+        bid_amount: editingBid.bid_amount
+      });
+      showToast('success', 'Bid Updated', message);
+      setEditingBid(null);
+      loadTripHistory();
+    } catch (err: any) {
+      showToast('error', 'Update Failed', err.message || 'Failed to update bid');
+    } finally {
+      setUpdatingBid(false);
+    }
+  };
 
   const handleCancelTripSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -513,7 +553,11 @@ export default function CustomerTripHistory() {
                                       {trip.drivers.map((driver: any, idx: number) => (
                                         <div
                                           key={driver.rent_bid_uuid || idx}
-                                          className="bg-slate-950 p-4 rounded-xl border border-slate-800/80 space-y-3 hover:border-slate-700/80 transition-colors shadow-lg"
+                                          className={`p-4 rounded-xl space-y-3 transition-colors shadow-lg ${
+                                            driver.bid_status === 'CANCELLED'
+                                              ? 'bg-rose-950/20 border border-rose-900/50'
+                                              : 'bg-slate-950 border border-slate-800/80 hover:border-slate-700/80'
+                                          }`}
                                         >
                                           <div className="flex items-center justify-between">
                                             <div className="flex items-center gap-2">
@@ -535,8 +579,48 @@ export default function CustomerTripHistory() {
                                           </div>
 
                                           <div className="grid grid-cols-2 gap-2 text-xs border-t border-b border-slate-800/80 py-2.5">
-                                            <div className="text-slate-400">
-                                              Bid Fare: <span className="text-white font-bold">{driver.bid_amount} ৳</span>
+                                            <div className="col-span-2 flex items-center justify-between text-slate-400 bg-slate-900/50 p-2 rounded border border-slate-800">
+                                              <div className="flex items-center gap-2">
+                                                <span>Bid Fare:</span>
+                                                {editingBid?.trip_uuid === trip.trip_details.uuid && editingBid?.driver_uuid === driver.driver_uuid ? (
+                                                  <form onSubmit={handleUpdateBid} className="flex items-center gap-2">
+                                                    <input
+                                                      type="number"
+                                                      value={editingBid.bid_amount}
+                                                      onChange={(e) => setEditingBid({ ...editingBid, bid_amount: e.target.value })}
+                                                      className="w-20 px-2 py-1 text-xs bg-slate-800 border border-slate-600 rounded text-white focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                                                      required
+                                                    />
+                                                    <button type="submit" disabled={updatingBid} className="px-2 py-1 bg-indigo-600 text-white rounded text-xs hover:bg-indigo-500 transition-colors">
+                                                      {updatingBid ? '...' : 'Save'}
+                                                    </button>
+                                                    <button type="button" onClick={() => setEditingBid(null)} className="px-2 py-1 bg-slate-700 text-white rounded text-xs hover:bg-slate-600 transition-colors">
+                                                      Cancel
+                                                    </button>
+                                                  </form>
+                                                ) : (
+                                                  <span className="text-white font-bold">{driver.bid_amount} ৳</span>
+                                                )}
+                                              </div>
+                                              <div className="flex gap-2">
+                                                {(!editingBid || editingBid.trip_uuid !== trip.trip_details.uuid || editingBid.driver_uuid !== driver.driver_uuid) && driver.bid_status !== 'CANCELLED' && (
+                                                  <button 
+                                                    onClick={() => setEditingBid({ trip_uuid: trip.trip_details.uuid, driver_uuid: driver.driver_uuid || '', bid_amount: String(driver.bid_amount) })}
+                                                    className="text-[10px] text-indigo-400 hover:text-indigo-300 cursor-pointer bg-slate-800 px-2 py-1 rounded border border-slate-700 transition-colors"
+                                                  >
+                                                    Edit Bid
+                                                  </button>
+                                                )}
+                                                {driver.bid_status === 'REQUESTED' && (
+                                                  <button
+                                                    onClick={() => handleAcceptBid(driver.rent_bid_uuid)}
+                                                    disabled={acceptingBid === driver.rent_bid_uuid}
+                                                    className="text-[10px] text-emerald-400 hover:text-emerald-300 cursor-pointer bg-emerald-900/30 px-2 py-1 rounded border border-emerald-800 transition-colors disabled:opacity-50"
+                                                  >
+                                                    {acceptingBid === driver.rent_bid_uuid ? '...' : 'Accept'}
+                                                  </button>
+                                                )}
+                                              </div>
                                             </div>
                                             <div className="text-slate-400">
                                               Total Payable Amount: <span className="text-emerald-400 font-bold">{driver.total_amount} ৳</span>
