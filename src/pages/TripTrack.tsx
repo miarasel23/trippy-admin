@@ -18,7 +18,7 @@ export default function TripTrack() {
   
   const [startDate, setStartDate] = useState<string>('');
   const [endDate, setEndDate] = useState<string>('');
-  const [today, setToday] = useState<boolean>(true);
+  const [today, setToday] = useState<boolean>(false);
 
   // Automatically uncheck "Today Only" when a custom date range is set
   useEffect(() => {
@@ -278,7 +278,7 @@ export default function TripTrack() {
                 setDriverPhone('');
                 setStartDate('');
                 setEndDate('');
-                setToday(true);
+                setToday(false);
                 setTripStatus('');
               }}
               className="w-full px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 text-sm font-semibold rounded-lg transition-colors cursor-pointer border border-slate-700/60"
