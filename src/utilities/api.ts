@@ -1146,8 +1146,43 @@ export const fetchAllRentalTripList = async (params: {
   throw new Error(response.data.message || 'Failed to fetch all rental trip list');
 };
 
+export interface CancelTripPayload {
+  trip_uuid: string;
+  comment: string;
+  driver_uuid?: string;
+}
 
+export const cancelTripByAdmin = async (payload: CancelTripPayload): Promise<string> => {
+  const token = localStorage.getItem('authToken');
+  const { platform, language_code } = getLoginDefaults();
 
+  const formData = new URLSearchParams();
+  formData.append('platform', platform);
+  formData.append('action_when', 'cancel_trip_driver_or_customer_admin');
+  formData.append('language_code', language_code);
+  formData.append('trip_uuid', payload.trip_uuid);
+  formData.append('comment', payload.comment);
+  if (payload.driver_uuid) {
+    formData.append('driver_uuid', payload.driver_uuid);
+  }
 
+  console.log("push data", formData.toString())
+
+  const response = await axios.post(
+    `${BASE_URL}/v1/rental-trip/cancel-trip-driver-or-customer-admin`,
+    formData.toString(),
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+    }
+  );
+
+  if (!response.data || !response.data.status) {
+    throw new Error(response.data?.message || 'Failed to cancel trip');
+  }
+  return response.data.message || 'Trip cancelled successfully.';
+};
 
 
