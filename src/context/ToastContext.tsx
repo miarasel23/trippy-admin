@@ -22,7 +22,7 @@ export function useToast() {
 }
 
 // ─── Icons ────────────────────────────────────────────────────────────────────
-const icons: Record<ToastType, JSX.Element> = {
+const icons: Record<ToastType, React.ReactElement> = {
   success: (
     <svg viewBox="0 0 24 24" fill="none" className="w-5 h-5" stroke="currentColor" strokeWidth={2.2}>
       <circle cx="12" cy="12" r="10" />

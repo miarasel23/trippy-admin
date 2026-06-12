@@ -5,6 +5,25 @@ import type { RentalTripCustomerItem, CustomerUserItem } from '../utilities/api'
 import noImage from '../assets/no-image.png';
 import { useToast } from '../context/ToastContext';
 
+const formatTripDateTime = (dateTimeStr: string) => {
+  if (!dateTimeStr) return '';
+  const date = new Date(dateTimeStr);
+  if (isNaN(date.getTime())) return dateTimeStr;
+
+  const dayName = date.toLocaleDateString('en-US', { weekday: 'short' });
+  const day = date.getDate();
+  const month = date.toLocaleDateString('en-US', { month: 'short' });
+  const year = date.getFullYear();
+  
+  let hours = date.getHours();
+  const minutes = String(date.getMinutes()).padStart(2, '0');
+  const ampm = hours >= 12 ? 'PM' : 'AM';
+  hours = hours % 12;
+  hours = hours ? hours : 12;
+  
+  return `${day} ${month} ${year} (${dayName}) ${hours}:${minutes} ${ampm}`;
+};
+
 export default function CustomerTripHistory() {
   const navigate = useNavigate();
   const { showToast } = useToast();
@@ -489,9 +508,9 @@ export default function CustomerTripHistory() {
                                 )}
                               </td>
                               <td className="px-4 py-4 text-xs text-slate-300 space-y-1">
-                                <div>Start: <span className="font-mono text-slate-100">{new Date(trip.start_datetime).toLocaleString()}</span></div>
-                                {trip.end_datetime && (
-                                  <div>Return: <span className="font-mono text-slate-100">{new Date(trip.end_datetime).toLocaleString()}</span></div>
+                                <div>Start: <span className="font-mono text-slate-100">{formatTripDateTime(trip.start_datetime)}</span></div>
+                                {trip.service_name === 'RETURN' && trip.end_datetime && (
+                                  <div>Return: <span className="font-mono text-slate-100">{formatTripDateTime(trip.end_datetime)}</span></div>
                                 )}
                                 {trip.hours_booked && (
                                   <div className="text-indigo-400">Duration: {trip.hours_booked} hours</div>
@@ -550,7 +569,7 @@ export default function CustomerTripHistory() {
                                       </div>
                                     )}
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                      {trip.drivers.map((driver: any, idx: number) => (
+                                      {[...trip.drivers].sort((a, b) => b.bid_amount - a.bid_amount).map((driver: any, idx: number) => (
                                         <div
                                           key={driver.rent_bid_uuid || idx}
                                           className={`p-4 rounded-xl space-y-3 transition-colors shadow-lg ${driver.bid_status === 'CANCELLED'

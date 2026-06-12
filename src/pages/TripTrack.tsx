@@ -4,6 +4,25 @@ import type { AllRentalTripItem, CustomerUserItem } from '../utilities/api';
 import noImage from '../assets/no-image.png';
 import { useToast } from '../context/ToastContext';
 
+const formatTripDateTime = (dateTimeStr: string) => {
+  if (!dateTimeStr) return '';
+  const date = new Date(dateTimeStr);
+  if (isNaN(date.getTime())) return dateTimeStr;
+
+  const dayName = date.toLocaleDateString('en-US', { weekday: 'short' });
+  const day = date.getDate();
+  const month = date.toLocaleDateString('en-US', { month: 'short' });
+  const year = date.getFullYear();
+  
+  let hours = date.getHours();
+  const minutes = String(date.getMinutes()).padStart(2, '0');
+  const ampm = hours >= 12 ? 'PM' : 'AM';
+  hours = hours % 12;
+  hours = hours ? hours : 12;
+  
+  return `${day} ${month} ${year} (${dayName}) ${hours}:${minutes} ${ampm}`;
+};
+
 export default function TripTrack() {
   const [customers, setCustomers] = useState<CustomerUserItem[]>([]);
   const { showToast } = useToast();
@@ -17,7 +36,7 @@ export default function TripTrack() {
   const [showSuggestions, setShowSuggestions] = useState<boolean>(false);
   const [customerPhone, setCustomerPhone] = useState<string>('');
   const [driverPhone, setDriverPhone] = useState<string>('');
-  
+
   const [startDate, setStartDate] = useState<string>('');
   const [endDate, setEndDate] = useState<string>('');
   const [today, setToday] = useState<boolean>(false);
@@ -41,7 +60,7 @@ export default function TripTrack() {
   const [cancelling, setCancelling] = useState<boolean>(false);
   const [cancelError, setCancelError] = useState<string | null>(null);
 
-  const [editingBid, setEditingBid] = useState<{trip_uuid: string, driver_uuid: string, bid_uuid: string, bid_amount: string} | null>(null);
+  const [editingBid, setEditingBid] = useState<{ trip_uuid: string, driver_uuid: string, bid_uuid: string, bid_amount: string } | null>(null);
   const [updatingBid, setUpdatingBid] = useState<boolean>(false);
   const [acceptingBid, setAcceptingBid] = useState<string | null>(null);
 
@@ -240,9 +259,8 @@ export default function TripTrack() {
                           setCustomerQuery(c.full_name ? `${c.full_name} (${c.phone_number})` : c.phone_number);
                           setShowSuggestions(false);
                         }}
-                        className={`w-full flex items-center justify-between px-4 py-2.5 text-xs text-left hover:bg-slate-800 transition-colors cursor-pointer ${
-                          customerUuid === c.uuid ? 'bg-indigo-600/20 text-indigo-300' : 'text-slate-300'
-                        }`}
+                        className={`w-full flex items-center justify-between px-4 py-2.5 text-xs text-left hover:bg-slate-800 transition-colors cursor-pointer ${customerUuid === c.uuid ? 'bg-indigo-600/20 text-indigo-300' : 'text-slate-300'
+                          }`}
                       >
                         <div>
                           <div className="font-semibold">{c.full_name || 'No Name'}</div>
@@ -540,21 +558,20 @@ export default function TripTrack() {
                             )}
                           </td>
                           <td className="px-4 py-4 text-xs text-slate-300 space-y-1">
-                            <div>Start: <span className="font-mono text-slate-100">{new Date(trip.trip_details.start_datetime).toLocaleString()}</span></div>
-                            {trip.trip_details.end_datetime && (
-                              <div>End: <span className="font-mono text-slate-100">{new Date(trip.trip_details.end_datetime).toLocaleString()}</span></div>
+                            <div>Start: <span className="font-mono text-slate-100">{formatTripDateTime(trip.trip_details.start_datetime)}</span></div>
+                            {trip.trip_details.service_name === 'RETURN' && trip.trip_details.end_datetime && (
+                              <div>Return: <span className="font-mono text-slate-100">{formatTripDateTime(trip.trip_details.end_datetime)}</span></div>
                             )}
                           </td>
                           <td className="px-4 py-4 text-center">
-                            <span className={`px-2.5 py-1 rounded-full text-xs font-semibold border ${
-                              trip.trip_details.trip_status === 'ACCEPTED'
+                            <span className={`px-2.5 py-1 rounded-full text-xs font-semibold border ${trip.trip_details.trip_status === 'ACCEPTED'
                                 ? 'bg-emerald-900/50 text-emerald-300 border-emerald-700/50'
                                 : trip.trip_details.trip_status === 'REQUESTED'
-                                ? 'bg-amber-900/50 text-amber-300 border-amber-700/50'
-                                : trip.trip_details.trip_status === 'COMPLETED'
-                                ? 'bg-indigo-900/50 text-indigo-300 border-indigo-700/50'
-                                : 'bg-rose-900/50 text-rose-300 border-rose-700/50'
-                            }`}>
+                                  ? 'bg-amber-900/50 text-amber-300 border-amber-700/50'
+                                  : trip.trip_details.trip_status === 'COMPLETED'
+                                    ? 'bg-indigo-900/50 text-indigo-300 border-indigo-700/50'
+                                    : 'bg-rose-900/50 text-rose-300 border-rose-700/50'
+                              }`}>
                               {trip.trip_details.trip_status}
                             </span>
                             {(trip.trip_details.trip_status === 'REQUESTED' || trip.trip_details.trip_status === 'ACCEPTED') && (
@@ -582,14 +599,13 @@ export default function TripTrack() {
                                   Bidders list ({trip.all_bidders.length})
                                 </h4>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                  {trip.all_bidders.map((bid, idx) => (
+                                  {[...trip.all_bidders].sort((a, b) => b.bid_amount - a.bid_amount).map((bid, idx) => (
                                     <div
                                       key={bid.bid_uuid || idx}
-                                      className={`p-4 rounded-xl space-y-3 transition-colors shadow-lg ${
-                                        bid.status === 'CANCELLED'
+                                      className={`p-4 rounded-xl space-y-3 transition-colors shadow-lg ${bid.status === 'CANCELLED'
                                           ? 'bg-rose-950/20 border border-rose-900/50'
                                           : 'bg-slate-950 border border-slate-800/80 hover:border-slate-700/80'
-                                      }`}
+                                        }`}
                                     >
                                       <div className="flex items-center justify-between">
                                         <div className="flex items-center gap-2">
@@ -645,7 +661,7 @@ export default function TripTrack() {
                                           </div>
                                           <div className="flex gap-2">
                                             {(!editingBid || editingBid.trip_uuid !== trip.trip_details.uuid || editingBid.bid_uuid !== bid.bid_uuid) && bid.status === 'REQUESTED' && trip.trip_details.trip_status === 'REQUESTED' && (
-                                              <button 
+                                              <button
                                                 onClick={() => setEditingBid({ trip_uuid: trip.trip_details.uuid, driver_uuid: bid.driver_details?.uuid || '', bid_uuid: bid.bid_uuid, bid_amount: String(bid.bid_amount) })}
                                                 className="text-[10px] text-indigo-400 hover:text-indigo-300 cursor-pointer bg-slate-800 px-2 py-1 rounded border border-slate-700 transition-colors"
                                               >
@@ -767,13 +783,12 @@ export default function TripTrack() {
                                       {trip.cancellation_comments.map((c) => (
                                         <div key={c.uuid} className="space-y-1">
                                           <div className="flex items-center gap-2">
-                                            <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${
-                                              c.cancelled_by === 'ADMIN'
+                                            <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${c.cancelled_by === 'ADMIN'
                                                 ? 'bg-purple-900/50 text-purple-300'
                                                 : c.cancelled_by === 'DRIVER'
-                                                ? 'bg-blue-900/50 text-blue-300'
-                                                : 'bg-amber-900/50 text-amber-300'
-                                            }`}>
+                                                  ? 'bg-blue-900/50 text-blue-300'
+                                                  : 'bg-amber-900/50 text-amber-300'
+                                              }`}>
                                               {c.cancelled_by}
                                             </span>
                                             {c.created_at && (
@@ -972,7 +987,7 @@ export default function TripTrack() {
                   <p className="text-xs text-slate-300 leading-relaxed">
                     Are you sure you want to cancel this trip? This action cannot be undone. Please provide a reason or comment for the cancellation.
                   </p>
-                  
+
                   {cancelError && (
                     <div className="p-3 bg-rose-900/40 border border-rose-700/50 text-rose-300 rounded-lg text-xs">
                       {cancelError}
