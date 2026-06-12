@@ -92,7 +92,7 @@ function ToastItem({ toast, onRemove }: { toast: Toast; onRemove: (id: string) =
     const hideTimer = setTimeout(() => {
       setVisible(false);
       setTimeout(() => onRemove(toast.id), 400);
-    }, 4000);
+    }, 10000);
     return () => { clearTimeout(showTimer); clearTimeout(hideTimer); };
   }, [toast.id, onRemove]);
 
@@ -132,7 +132,7 @@ function ToastItem({ toast, onRemove }: { toast: Toast; onRemove: (id: string) =
       {/* progress bar */}
       <div
         className={`absolute bottom-0 left-0 h-0.5 ${s.bar} opacity-40`}
-        style={{ animation: 'toastProgress 4s linear forwards' }}
+        style={{ animation: 'toastProgress 10s linear forwards' }}
       />
 
       <style>{`
