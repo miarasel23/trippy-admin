@@ -4,8 +4,9 @@ interface PopupMessageProps {
   show: boolean;
   title?: string;
   message: string;
-  type?: 'success' | 'error';
+  type?: 'success' | 'error' | 'confirm';
   onClose: () => void;
+  onConfirm?: () => void;
 }
 
 export const PopupMessage: React.FC<PopupMessageProps> = ({
@@ -14,14 +15,24 @@ export const PopupMessage: React.FC<PopupMessageProps> = ({
   message,
   type = 'error',
   onClose,
+  onConfirm,
 }) => {
   if (!show) return null;
 
   const isSuccess = type === 'success';
-  const headerBg = isSuccess 
-    ? 'bg-gradient-to-r from-emerald-500 to-teal-600' 
-    : 'bg-gradient-to-r from-rose-500 to-red-600';
-  const icon = isSuccess ? (
+  const isConfirm = type === 'confirm';
+
+  const headerBg = isConfirm
+    ? 'bg-gradient-to-r from-indigo-500 to-blue-600'
+    : isSuccess 
+      ? 'bg-gradient-to-r from-emerald-500 to-teal-600' 
+      : 'bg-gradient-to-r from-rose-500 to-red-600';
+
+  const icon = isConfirm ? (
+    <svg className="w-6 h-6 text-indigo-100" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+    </svg>
+  ) : isSuccess ? (
     <svg className="w-6 h-6 text-emerald-100" fill="none" viewBox="0 0 24 24" stroke="currentColor">
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
     </svg>
@@ -43,7 +54,7 @@ export const PopupMessage: React.FC<PopupMessageProps> = ({
                   {icon}
                 </div>
                 <h3 className="text-lg font-semibold text-white">
-                  {title ?? (isSuccess ? 'Success' : 'Error')}
+                  {title ?? (isConfirm ? 'Confirm Action' : isSuccess ? 'Success' : 'Error')}
                 </h3>
               </div>
               <button 
@@ -64,14 +75,33 @@ export const PopupMessage: React.FC<PopupMessageProps> = ({
               </p>
             </div>
             {/* Footer */}
-            <div className="flex items-center justify-end p-4 border-t border-slate-800/80 bg-slate-950/50">
-              <button 
-                type="button" 
-                className="px-5 py-2 text-sm font-medium text-slate-300 hover:text-white bg-slate-800 hover:bg-slate-700 active:bg-slate-900 rounded-xl transition-all duration-200 cursor-pointer shadow-sm hover:shadow" 
-                onClick={onClose}
-              >
-                Close
-              </button>
+            <div className="flex items-center justify-end p-4 border-t border-slate-800/80 bg-slate-950/50 gap-3">
+              {isConfirm ? (
+                <>
+                  <button 
+                    type="button" 
+                    className="px-5 py-2 text-sm font-medium text-slate-300 hover:text-white bg-slate-800 hover:bg-slate-700 active:bg-slate-900 rounded-xl transition-all duration-200 cursor-pointer shadow-sm hover:shadow" 
+                    onClick={onClose}
+                  >
+                    Cancel
+                  </button>
+                  <button 
+                    type="button" 
+                    className="px-5 py-2 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-500 active:bg-indigo-700 rounded-xl transition-all duration-200 cursor-pointer shadow-sm hover:shadow" 
+                    onClick={onConfirm}
+                  >
+                    Confirm
+                  </button>
+                </>
+              ) : (
+                <button 
+                  type="button" 
+                  className="px-5 py-2 text-sm font-medium text-slate-300 hover:text-white bg-slate-800 hover:bg-slate-700 active:bg-slate-900 rounded-xl transition-all duration-200 cursor-pointer shadow-sm hover:shadow" 
+                  onClick={onClose}
+                >
+                  Close
+                </button>
+              )}
             </div>
           </div>
         </div>

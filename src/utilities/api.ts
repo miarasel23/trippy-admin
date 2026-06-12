@@ -2,10 +2,66 @@ import axios from 'axios';
 import { getLoginDefaults } from './common';
 import type { User, LoginResponse } from '../store/userRedicure';
 import type { ActionItem, ActionListResponse, ActionWithLanguageItem, RoleItem, PermissionItem } from '../store/action';
+import type { CustomerUserItem, UpdateCustomerProfilePayload } from '../store/customer';
+import type { OtpMessageItem } from '../store/otp';
+import type {
+  CarCategoryItem,
+  CreateOrUpdateCarCategoryPayload,
+  CarServiceCategoryItem,
+  CreateOrUpdateCarServiceCategoryPayload,
+  DriverSubscriptionItem,
+  CreateUpdateSubscriptionPayload,
+  PriceSetAsPerKmItem,
+  CreateOrUpdatePriceSetAsPerKmPayload,
+} from '../store/car';
+import type {
+  RentalTripCustomerItem,
+  AllRentalTripItem,
+  UpdateTripBidPayload,
+  CancelTripPayload,
+  AcceptTripPayload,
+} from '../store/rentalTrip';
+
+// Re-export all store types so existing page imports keep working without changes
+export type { CustomerUserItem, UpdateCustomerProfilePayload } from '../store/customer';
+export type { OtpMessageItem } from '../store/otp';
+export type {
+  CarCategoryItem,
+  CreateOrUpdateCarCategoryPayload,
+  CarServiceCategoryItem,
+  CreateOrUpdateCarServiceCategoryPayload,
+  DriverSubscriptionItem,
+  CreateUpdateSubscriptionPayload,
+  PriceSetAsPerKmItem,
+  CreateOrUpdatePriceSetAsPerKmPayload,
+} from '../store/car';
+export type {
+  RentalTripCustomerItem,
+  AllRentalTripItem,
+  UpdateTripBidPayload,
+  CancelTripPayload,
+  AcceptTripPayload,
+  TripLocationPoint,
+  TripBidderItem,
+  TripPersonDetails,
+  TripCancellationComment,
+} from '../store/rentalTrip';
 
 // Base URL for the backend API
 const BASE_URL = 'http://3.209.161.158/api';
 export const newwork_image_url = 'http://3.209.161.158/api/assets/uploads/images/'
+
+// Intercept responses to extract API error messages centrally
+axios.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    const apiMessage = error.response?.data?.message || error.response?.data?.detail || error.response?.data?.error;
+    if (apiMessage) {
+      return Promise.reject(new Error(apiMessage));
+    }
+    return Promise.reject(error);
+  }
+);
 
 
 export const adminLogin = async (
@@ -86,8 +142,36 @@ export const createAction = async (payload: {
   }
 };
 
+// UpdateTripBidPayload — defined in src/data/models.ts, re-exported above
 
+export const updateTripBid = async (payload: UpdateTripBidPayload): Promise<string> => {
+  const token = localStorage.getItem('authToken');
+  const { platform, language_code } = getLoginDefaults();
 
+  const formData = new URLSearchParams();
+  formData.append('platform', platform);
+  formData.append('action_when', 'update_trip_bid');
+  formData.append('language_code', language_code);
+  formData.append('trip_uuid', payload.trip_uuid);
+  formData.append('driver_uuid', payload.driver_uuid);
+  formData.append('bid_amount', payload.bid_amount);
+
+  const response = await axios.post(
+    `${BASE_URL}/v1/rental-trip/update-trip-bid`,
+    formData.toString(),
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+    }
+  );
+
+  if (!response.data || !response.data.status) {
+    throw new Error(response.data?.message || 'Failed to update bid');
+  }
+  return response.data.message || 'Bid updated successfully.';
+};
 export const editAction = async (payload: {
   uuid: string;
   action_when: string;
@@ -236,6 +320,25 @@ export const createRole = async (payload: {
   }
 };
 
+// CustomerUserItem — defined in src/data/models.ts, re-exported above
+
+export const fetchCustomerList = async (): Promise<CustomerUserItem[]> => {
+  const token = localStorage.getItem('authToken');
+  const { language_code } = getLoginDefaults();
+  const response = await axios.get(
+    `${BASE_URL}/v1/admin/customer-list?platform=web&language_code=${language_code}&action_when=customer_list`,
+    {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    }
+  );
+  if (response.data && response.data.status) {
+    return response.data.data;
+  }
+  throw new Error(response.data.message || 'Failed to fetch customer list');
+};
+
 export const fetchAdminUserList = async (): Promise<any[]> => {
   const token = localStorage.getItem('authToken');
   const { language_code } = getLoginDefaults();
@@ -366,16 +469,7 @@ export const uploadAdminProfilePicture = async (
   return response.data.data;
 };
 
-export interface OtpMessageItem {
-  id: number;
-  uuid: string;
-  county_code_for_otp: string;
-  otp_code: string;
-  otp_message: string;
-  status: string;
-  created_at: string;
-  updated_at: string;
-}
+// OtpMessageItem — defined in src/data/models.ts, re-exported above
 
 export const fetchOtpMessagesList = async (): Promise<OtpMessageItem[]> => {
   const token = localStorage.getItem('authToken');
@@ -448,19 +542,7 @@ export const deleteOtpMessage = async (uuid: string): Promise<void> => {
   }
 };
 
-export interface DriverSubscriptionItem {
-  id: number;
-  uuid: string;
-  subscription_type: string;
-  price: number;
-  previous_price: number;
-  validate_for: number;
-  created_at: string;
-  updated_at: string;
-  status: string;
-  flag_one?: number | string | null;
-  flag_two?: number | string | null;
-}
+// DriverSubscriptionItem — defined in src/data/models.ts, re-exported above
 
 export const fetchDriverSubscriptionList = async (): Promise<DriverSubscriptionItem[]> => {
   const token = localStorage.getItem('authToken');
@@ -478,14 +560,7 @@ export const fetchDriverSubscriptionList = async (): Promise<DriverSubscriptionI
   throw new Error(response.data.message || 'Failed to fetch driver subscription list');
 };
 
-export interface CarCategoryItem {
-  id: number;
-  uuid: string;
-  car_type: string;
-  car_avatar?: string | null;
-  set_capacity?: number | string | null;
-  status?: string | null;
-}
+// CarCategoryItem — defined in src/data/models.ts, re-exported above
 
 export const fetchCarCategoryList = async (): Promise<CarCategoryItem[]> => {
   const token = localStorage.getItem('authToken');
@@ -503,13 +578,7 @@ export const fetchCarCategoryList = async (): Promise<CarCategoryItem[]> => {
   throw new Error(response.data.message || 'Failed to fetch car category list');
 };
 
-export interface CreateOrUpdateCarCategoryPayload {
-  uuid?: string;
-  car_type: string;
-  set_capacity: string | number;
-  status: string;
-  car_avatar?: File | null;
-}
+// CreateOrUpdateCarCategoryPayload — defined in src/data/models.ts, re-exported above
 
 export const createOrUpdateCarCategory = async (
   payload: CreateOrUpdateCarCategoryPayload
@@ -550,17 +619,7 @@ export const createOrUpdateCarCategory = async (
   return response.data.message || 'Saved successfully';
 };
 
-export interface CreateUpdateSubscriptionPayload {
-  uuid?: string;
-  subscription_type: string;
-  price: number;
-  previous_price: number;
-  validate_for: number;
-  car_categories_uuid: string;
-  status: string;
-  flag_one: number | string;
-  flag_two: number | string;
-}
+// CreateUpdateSubscriptionPayload — defined in src/data/models.ts, re-exported above
 
 export const createOrUpdateDriverSubscription = async (
   payload: CreateUpdateSubscriptionPayload
@@ -602,16 +661,7 @@ export const createOrUpdateDriverSubscription = async (
   return response.data.message || 'Saved successfully';
 };
 
-export interface CarServiceCategoryItem {
-  id: number;
-  uuid: string;
-  service_name: string;
-  avatar?: string | null;
-  status: string;
-  created_at: string;
-  updated_at: string;
-  car_category?: CarCategoryItem | null;
-}
+// CarServiceCategoryItem — defined in src/data/models.ts, re-exported above
 
 export const fetchCarServiceCategoryList = async (): Promise<CarServiceCategoryItem[]> => {
   const token = localStorage.getItem('authToken');
@@ -629,13 +679,7 @@ export const fetchCarServiceCategoryList = async (): Promise<CarServiceCategoryI
   throw new Error(response.data.message || 'Failed to fetch car service category list');
 };
 
-export interface CreateOrUpdateCarServiceCategoryPayload {
-  uuid?: string;
-  service_name: string;
-  status: string;
-  car_category_uuid: string;
-  service_avatar?: File | null;
-}
+// CreateOrUpdateCarServiceCategoryPayload — defined in src/data/models.ts, re-exported above
 
 export const createOrUpdateCarServiceCategory = async (
   payload: CreateOrUpdateCarServiceCategoryPayload
@@ -723,23 +767,7 @@ export const deleteCarCategory = async (uuid: string): Promise<string> => {
   return response.data.message || 'Deleted successfully';
 };
 
-export interface PriceSetAsPerKmItem {
-  id: number;
-  uuid: string;
-  price_per_km: number;
-  minimum_booking_price: number;
-  waiting_time: number;
-  waiting_price: number;
-  cancellation_fee: number;
-  busy_time_price_percentage: number;
-  busy_start_time: string;
-  busy_end_time: string;
-  country_code: string;
-  status: string;
-  created_at: string;
-  updated_at: string;
-  car_service_category?: CarServiceCategoryItem | null;
-}
+// PriceSetAsPerKmItem — defined in src/data/models.ts, re-exported above
 
 export const fetchPriceSetAsPerKmList = async (): Promise<PriceSetAsPerKmItem[]> => {
   const token = localStorage.getItem('authToken');
@@ -757,20 +785,7 @@ export const fetchPriceSetAsPerKmList = async (): Promise<PriceSetAsPerKmItem[]>
   throw new Error(response.data.message || 'Failed to fetch price set as per km list');
 };
 
-export interface CreateOrUpdatePriceSetAsPerKmPayload {
-  uuid?: string;
-  price_per_km: number;
-  minimum_booking_price: number;
-  status: string;
-  waiting_time: number;
-  waiting_price: number;
-  cancellation_fee: number;
-  busy_start_time: string;
-  busy_end_time: string;
-  busy_time_price_percentage: number;
-  country_code: string;
-  car_service_category_uuid: string;
-}
+// CreateOrUpdatePriceSetAsPerKmPayload — defined in src/data/models.ts, re-exported above
 
 export const createOrUpdatePriceSetAsPerKm = async (
   payload: CreateOrUpdatePriceSetAsPerKmPayload
@@ -835,4 +850,214 @@ export const deletePriceSetAsPerKm = async (uuid: string): Promise<string> => {
   return response.data.message || 'Deleted successfully';
 };
 
+// UpdateCustomerProfilePayload — defined in src/data/models.ts, re-exported above
 
+export const updateCustomerProfile = async (
+  payload: UpdateCustomerProfilePayload
+): Promise<void> => {
+  const token = localStorage.getItem('authToken');
+  const { platform, language_code } = getLoginDefaults();
+
+  const formData = new URLSearchParams();
+  formData.append('platform', platform);
+  formData.append('language_code', language_code);
+  formData.append('action_when', 'customer_profile_edit');
+  formData.append('uuid', payload.uuid);
+  formData.append('full_name', payload.full_name);
+  formData.append('email', payload.email);
+  formData.append('phone_number', payload.phone_number);
+  formData.append('country_code', payload.country_code);
+  formData.append('is_notification_enabled', payload.is_notification_enabled ? 'true' : 'false');
+  formData.append('device_token_for_notification', payload.device_token_for_notification);
+  formData.append('is_active', payload.is_active ? 'true' : 'false');
+
+  const response = await axios.post(
+    `${BASE_URL}/v1/customer/profile-update`,
+    formData.toString(),
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+    }
+  );
+
+  if (!response.data || !response.data.status) {
+    throw new Error(response.data?.message || 'Failed to update customer profile');
+  }
+};
+
+export const uploadCustomerProfilePicture = async (
+  customerUuid: string,
+  avatarFile: File
+): Promise<{ profile_picture: string }> => {
+  const token = localStorage.getItem('authToken');
+  const { platform, language_code } = getLoginDefaults();
+
+  const formData = new FormData();
+  formData.append('customer_uuid', customerUuid);
+  formData.append('platform', platform);
+  formData.append('language_code', language_code);
+  formData.append('action_when', 'customer_profile_picture_upload');
+  formData.append('avatar', avatarFile);
+
+  const response = await axios.post(
+    `${BASE_URL}/v1/customer/customer-profile-picture-update`,
+    formData,
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'multipart/form-data',
+      },
+    }
+  );
+
+  if (!response.data || !response.data.status) {
+    throw new Error(response.data?.message || 'Failed to upload customer profile picture');
+  }
+
+  return response.data.data;
+};
+
+// RentalTripCustomerItem — defined in src/data/models.ts, re-exported above
+
+export const fetchCustomerTripHistory = async (
+  customerUuid: string,
+  tripStatus: string
+): Promise<RentalTripCustomerItem[]> => {
+  const token = localStorage.getItem('authToken');
+  const response = await axios.get(
+    `${BASE_URL}/v1/rental-trip/rental-bid-trip-list_for_customer?platform=web&language_code=bn&action_when=rental_bid_trip_list_for_customer&customer_uuid=${customerUuid}&trip_status=${tripStatus}`,
+    {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    }
+  );
+  if (response.data && response.data.status) {
+    return response.data.data;
+  }
+  throw new Error(response.data.message || 'Failed to fetch customer trip history');
+};
+
+export const fetchCurrentCustomerUser = async (): Promise<any> => {
+  const token = localStorage.getItem('authToken');
+  const response = await axios.get(
+    `${BASE_URL}/v1/customer/get-current-customer-user?platform=web&language_code=bn&action_when=admin_login`,
+    {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    }
+  );
+  if (response.data && response.data.status) {
+    return response.data.data;
+  }
+  throw new Error(response.data.message || 'Failed to fetch current customer user');
+};
+
+// AllRentalTripItem — defined in src/data/models.ts, re-exported above
+
+export const fetchAllRentalTripList = async (params: {
+  customer_uuid?: string;
+  trip_status?: string;
+  start_date?: string;
+  end_date?: string;
+  customer_phone?: string;
+  driver_phone?: string;
+  today?: boolean;
+}): Promise<AllRentalTripItem[]> => {
+  const token = localStorage.getItem('authToken');
+  const query = new URLSearchParams();
+  query.append('platform', 'web');
+  query.append('language_code', 'bn');
+  query.append('action_when', 'all_rental_trip_list');
+  if (params.customer_uuid) query.append('customer_uuid', params.customer_uuid);
+  if (params.trip_status) query.append('trip_status', params.trip_status);
+  if (params.start_date) query.append('start_date', params.start_date);
+  if (params.end_date) query.append('end_date', params.end_date);
+  if (params.customer_phone) query.append('customer_phone', params.customer_phone);
+  if (params.driver_phone) query.append('driver_phone', params.driver_phone);
+  if (params.today !== undefined) query.append('today', String(params.today));
+
+  const response = await axios.get(
+    `${BASE_URL}/v1/rental-trip/all-rental-trip-list?${query.toString()}`,
+    {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    }
+  );
+  if (response.data && response.data.status) {
+    return response.data.data;
+  }
+  throw new Error(response.data.message || 'Failed to fetch all rental trip list');
+};
+
+// CancelTripPayload — defined in src/data/models.ts, re-exported above
+
+export const cancelTripByAdmin = async (payload: CancelTripPayload): Promise<string> => {
+  const token = localStorage.getItem('authToken');
+  const { platform, language_code } = getLoginDefaults();
+
+  const formData = new URLSearchParams();
+  formData.append('platform', platform);
+  formData.append('action_when', 'cancel_trip_driver_or_customer_admin');
+  formData.append('language_code', language_code);
+  formData.append('trip_uuid', payload.trip_uuid);
+  formData.append('comment', payload.comment);
+  if (payload.driver_uuid) {
+    formData.append('driver_uuid', payload.driver_uuid);
+  }
+
+  console.log("push data", formData.toString())
+
+  const response = await axios.post(
+    `${BASE_URL}/v1/rental-trip/cancel-trip-driver-or-customer-admin`,
+    formData.toString(),
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+    }
+  );
+
+  if (!response.data || !response.data.status) {
+    throw new Error(response.data?.message || 'Failed to cancel trip');
+  }
+  return response.data.message || 'Trip cancelled successfully.';
+};
+
+
+// AcceptTripPayload — defined in src/data/models.ts, re-exported above
+
+export const acceptTripForCustomer = async (payload: AcceptTripPayload): Promise<string> => {
+  const token = localStorage.getItem('authToken');
+  const { platform, language_code } = getLoginDefaults();
+
+  const formData = new URLSearchParams();
+  formData.append('platform', platform);
+  formData.append('action_when', 'accept_trip_for_customer');
+  formData.append('language_code', language_code);
+  formData.append('bid_uuid', payload.bid_uuid);
+  if (payload.customer_uuid) {
+    formData.append('customer_uuid', payload.customer_uuid);
+  }
+
+  const response = await axios.post(
+    `${BASE_URL}/v1/rental-trip/accept_trip_for_customer`,
+    formData.toString(),
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+    }
+  );
+
+  if (!response.data || !response.data.status) {
+    throw new Error(response.data?.message || 'Failed to accept trip');
+  }
+  return response.data.message || 'Trip accepted successfully.';
+};

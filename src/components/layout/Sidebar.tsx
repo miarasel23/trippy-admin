@@ -28,8 +28,8 @@ export default function Sidebar({ isOpen = true }: { isOpen?: boolean }) {
 
   const links = [
     { to: '/dashboard', icon: 'fa-dashboard', text: t('dashboard'), perms: [] },
-    { to: '/dashboard/trip', icon: 'fa-search', text: t('trip'), perms: [] },
-    { to: '/dashboard/customer', icon: 'fa-users', text: t('customer'), perms: [] },
+    { to: '/dashboard/trip-track', icon: 'fa-search', text: t('tripTrack'), perms: [] },
+    { to: '/dashboard/customer', icon: 'fa-users', text: t('customer'), perms: ['customer_list'] },
     { to: '/dashboard/rider', icon: 'fa-user-circle', text: t('rider'), perms: [] },
     { to: '/dashboard/admin-user', icon: 'fa-user-secret', text: t('adminUser'), perms: [] },
     {
@@ -152,12 +152,12 @@ export default function Sidebar({ isOpen = true }: { isOpen?: boolean }) {
                             </div>
                           );
                         }
-                        const isSubActive = location.pathname === sub.to;
+                        const isSubActive = sub.to ? location.pathname === sub.to : false;
                         const subIcon = (sub as any).icon || 'fa-bookmark-o';
                         return (
                           <Link
                             key={sIdx}
-                            to={sub.to}
+                            to={sub.to || '#'}
                             className={`flex items-center gap-3 px-4 py-2 rounded-lg text-xs transition-colors ${
                               isSubActive
                                 ? 'bg-blue-600 text-white font-medium'

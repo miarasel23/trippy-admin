@@ -39,8 +39,31 @@ export default function PriceSetAsPerKm() {
   const loadData = async () => {
     try {
       setLoading(true); setError(null);
-      const [pricesData, categoriesData] = await Promise.all([fetchPriceSetAsPerKmList(), fetchCarServiceCategoryList()]);
-      setPrices(pricesData); setServiceCategories(categoriesData);
+      let pricesData: PriceSetAsPerKmItem[] = [];
+      let categoriesData: CarServiceCategoryItem[] = [];
+
+      try {
+        pricesData = await fetchPriceSetAsPerKmList();
+      } catch (err: any) {
+        if (err.response?.status === 404 || err.message?.includes('404')) {
+          pricesData = [];
+        } else {
+          throw err;
+        }
+      }
+
+      try {
+        categoriesData = await fetchCarServiceCategoryList();
+      } catch (err: any) {
+        if (err.response?.status === 404 || err.message?.includes('404')) {
+          categoriesData = [];
+        } else {
+          throw err;
+        }
+      }
+
+      setPrices(pricesData);
+      setServiceCategories(categoriesData);
     } catch (err: any) { setError(err.message || 'Error loading data'); }
     finally { setLoading(false); }
   };
@@ -201,9 +224,11 @@ export default function PriceSetAsPerKm() {
                   </td>
                 </tr>
               ))}
-              {filteredPrices.length === 0 && (
+              {prices.length === 0 ? (
+                <tr><td colSpan={11} className="px-4 py-12 text-center text-slate-500">No data found</td></tr>
+              ) : filteredPrices.length === 0 ? (
                 <tr><td colSpan={11} className="px-4 py-12 text-center text-slate-500">No price configurations match the search query.</td></tr>
-              )}
+              ) : null}
             </tbody>
           </table>
         )}

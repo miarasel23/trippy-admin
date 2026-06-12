@@ -15,9 +15,14 @@ import Header from '../components/layout/Header';
 import CarCategoryList from '../pages/CarCategoryList';
 import CarServiceCategoryList from '../pages/CarServiceCategoryList';
 import PriceSetAsPerKm from '../pages/PriceSetAsPerKm';
+import CustomerList from '../pages/CustomerList';
+import CustomerTripHistory from '../pages/CustomerTripHistory';
+import TripTrack from '../pages/TripTrack';
 
 export const AppRoutes = () => {
-  const { isAuthenticated, loading } = useContext(AuthContextTrippy);
+  const auth = useContext(AuthContextTrippy);
+  const isAuthenticated = auth?.isAuthenticated ?? false;
+  const loading = auth?.loading ?? true;
   const [sidebarCollapsed, setSidebarCollapsed] = React.useState(false);
 
   if (loading) {
@@ -38,12 +43,11 @@ export const AppRoutes = () => {
     <Router>
       <div className="min-h-screen bg-gray-50 text-gray-800 flex">
         {isAuthenticated && <Sidebar isOpen={!sidebarCollapsed} />}
-        
-        <div className={`flex-1 flex flex-col min-h-screen transition-all duration-300 ${
-          isAuthenticated ? (sidebarCollapsed ? 'pl-0' : 'pl-64') : ''
-        }`}>
+
+        <div className={`flex-1 flex flex-col min-h-screen transition-all duration-300 ${isAuthenticated ? (sidebarCollapsed ? 'pl-0' : 'pl-64') : ''
+          }`}>
           {isAuthenticated && <Header onToggleSidebar={toggleSidebar} />}
-          
+
           <main className={`flex-1 ${isAuthenticated ? 'p-6' : 'p-0'}`}>
             <Routes>
               <Route path="/" element={isAuthenticated ? <Navigate to="/home" replace /> : <Login />} />
@@ -57,6 +61,9 @@ export const AppRoutes = () => {
               <Route path="/dashboard/setting/cars/car-service-category" element={isAuthenticated ? <CarServiceCategoryList /> : <Navigate to="/" replace />} />
               <Route path="/dashboard/setting/cars/price-set-as-per-km" element={isAuthenticated ? <PriceSetAsPerKm /> : <Navigate to="/" replace />} />
               <Route path="/dashboard/admin-user" element={isAuthenticated ? <AdminUserList /> : <Navigate to="/" replace />} />
+              <Route path="/dashboard/customer" element={isAuthenticated ? <CustomerList /> : <Navigate to="/" replace />} />
+              <Route path="/dashboard/trip" element={isAuthenticated ? <CustomerTripHistory /> : <Navigate to="/" replace />} />
+              <Route path="/dashboard/trip-track" element={isAuthenticated ? <TripTrack /> : <Navigate to="/" replace />} />
             </Routes>
           </main>
 
