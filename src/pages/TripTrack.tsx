@@ -527,9 +527,7 @@ export default function TripTrack() {
                                         <span className="px-2 py-0.5 bg-indigo-900/40 text-indigo-300 rounded text-[10px] font-semibold uppercase tracking-wider">
                                           {bid.status}
                                         </span>
-                                      </div>
-
-                                      <div className="grid grid-cols-2 gap-2 text-xs border-t border-slate-800/80 pt-2.5">
+                                                                  <div className="grid grid-cols-2 gap-2 text-xs border-t border-slate-800/80 pt-2.5">
                                         <div className="text-slate-400">
                                           Bid Amount: <span className="text-white font-bold">{bid.bid_amount} ৳</span>
                                         </div>
@@ -546,6 +544,37 @@ export default function TripTrack() {
                                           Insurance Charge: {bid.insurance_charge_amount} ৳
                                         </div>
                                       </div>
+
+                                      {bid.driver_details?.car_photos && bid.driver_details.car_photos.length > 0 && (
+                                        <div className="space-y-1.5 mt-3 pt-2.5 border-t border-slate-800/60">
+                                          <span className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">
+                                            Car Pictures
+                                          </span>
+                                          <div className="flex flex-wrap gap-2">
+                                            {bid.driver_details.car_photos.map((photo: string, pIdx: number) => {
+                                              const picUrl = photo.startsWith('http') ? photo : `${newwork_image_url}${photo}`;
+                                              return (
+                                                <img
+                                                  key={pIdx}
+                                                  src={picUrl}
+                                                  alt={`Car Photo ${pIdx + 1}`}
+                                                  className="w-12 h-12 rounded object-cover cursor-pointer hover:opacity-80 border border-slate-800 transition-opacity"
+                                                  onClick={() =>
+                                                    setPreviewImage({
+                                                      url: picUrl,
+                                                      title: `${bid.driver_details?.full_name || 'Driver'}'s Car - Image ${pIdx + 1}`
+                                                    })
+                                                  }
+                                                  onError={(e) => {
+                                                    e.currentTarget.onerror = null;
+                                                    e.currentTarget.src = noImage;
+                                                  }}
+                                                />
+                                              );
+                                            })}
+                                          </div>
+                                        </div>
+                                      )}
                                     </div>
                                   ))}
                                 </div>

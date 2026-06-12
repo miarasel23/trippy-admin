@@ -1087,6 +1087,7 @@ export interface AllRentalTripItem {
       phone_number: string;
       email: string | null;
       profile_picture: string | null;
+      car_photos?: string[];
     };
   }[];
   amount_details: {
