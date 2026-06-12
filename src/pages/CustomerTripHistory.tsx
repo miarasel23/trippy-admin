@@ -13,7 +13,7 @@ export default function CustomerTripHistory() {
 
   const [customers, setCustomers] = useState<CustomerUserItem[]>([]);
   const [trips, setTrips] = useState<RentalTripCustomerItem[]>([]);
-  const [selectedStatus, setSelectedStatus] = useState<'REQUESTED' | 'ACCEPTED' | 'CANCEL'>('REQUESTED');
+  const [selectedStatus, setSelectedStatus] = useState<'REQUESTED' | 'ACCEPTED' | 'CANCELLED'>('REQUESTED');
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedTripForMap, setSelectedTripForMap] = useState<RentalTripCustomerItem | null>(null);
@@ -137,10 +137,10 @@ export default function CustomerTripHistory() {
     loadTripHistory();
   }, [customerUuid, selectedStatus]);
 
-  const statusTabs: { value: 'REQUESTED' | 'ACCEPTED' | 'CANCEL'; label: string; colorClass: string }[] = [
+  const statusTabs: { value: 'REQUESTED' | 'ACCEPTED' | 'CANCELLED'; label: string; colorClass: string }[] = [
     { value: 'REQUESTED', label: 'Requested', colorClass: 'border-amber-500 text-amber-400 bg-amber-500/10' },
     { value: 'ACCEPTED', label: 'Accepted', colorClass: 'border-emerald-500 text-emerald-400 bg-emerald-500/10' },
-    { value: 'CANCEL', label: 'Cancelled', colorClass: 'border-rose-500 text-rose-400 bg-rose-500/10' }
+    { value: 'CANCELLED', label: 'CANCELLED', colorClass: 'border-rose-500 text-rose-400 bg-rose-500/10' }
   ];
 
   return (

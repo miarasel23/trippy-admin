@@ -1107,7 +1107,20 @@ export interface AllRentalTripItem {
     email: string | null;
     profile_picture: string | null;
   };
-  accepted_driver_details: any;
+  accepted_driver_details: {
+    uuid: string;
+    full_name: string | null;
+    phone_number: string;
+    email: string | null;
+    profile_picture: string | null;
+  } | null;
+  cancellation_comments: {
+    uuid: string;
+    comment: string;
+    cancelled_by: string;
+    cancelled_by_uuid: string | null;
+    created_at: string | null;
+  }[];
 }
 
 export const fetchAllRentalTripList = async (params: {

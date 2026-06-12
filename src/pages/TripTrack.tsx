@@ -283,7 +283,7 @@ export default function TripTrack() {
               <option value="">All Statuses</option>
               <option value="REQUESTED">Requested</option>
               <option value="ACCEPTED">Accepted</option>
-              <option value="CANCEL">Cancelled</option>
+              <option value="CANCELLED">Cancelled</option>
               <option value="COMPLETED">Completed</option>
             </select>
           </div>
@@ -625,6 +625,91 @@ export default function TripTrack() {
                                       )}
                                     </div>
                                   ))}
+                                </div>
+                              </div>
+                            </td>
+                          </tr>
+                        )}
+
+                        {/* Cancellation Details Row for CANCELLED trips */}
+                        {trip.trip_details.trip_status === 'CANCELLED' && (
+                          <tr className="bg-rose-950/20 border-b border-rose-900/30">
+                            <td colSpan={9} className="px-6 py-4">
+                              <div className="space-y-4">
+                                <h4 className="text-xs font-bold text-rose-400 uppercase tracking-wider flex items-center gap-1.5">
+                                  <span>🚫</span> Cancellation Details
+                                </h4>
+
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                  {/* Assigned Driver at cancellation */}
+                                  {trip.accepted_driver_details && (
+                                    <div className="bg-slate-950 p-4 rounded-xl border border-rose-900/40 space-y-2">
+                                      <p className="text-[10px] font-bold text-rose-400 uppercase tracking-wider">Assigned Driver</p>
+                                      <div className="flex items-center gap-3">
+                                        <img
+                                          src={
+                                            trip.accepted_driver_details.profile_picture
+                                              ? `${newwork_image_url}${trip.accepted_driver_details.profile_picture}`
+                                              : noImage
+                                          }
+                                          alt={trip.accepted_driver_details.full_name || 'Driver'}
+                                          className="w-10 h-10 rounded-full object-cover ring-2 ring-rose-800/40"
+                                          onError={(e) => {
+                                            e.currentTarget.onerror = null;
+                                            e.currentTarget.src = noImage;
+                                          }}
+                                        />
+                                        <div>
+                                          <div className="text-sm font-semibold text-slate-200">
+                                            {trip.accepted_driver_details.full_name || 'N/A'}
+                                          </div>
+                                          <div className="text-xs text-slate-400 font-mono">
+                                            {trip.accepted_driver_details.phone_number}
+                                          </div>
+                                          {trip.accepted_driver_details.email && (
+                                            <div className="text-xs text-slate-500">
+                                              {trip.accepted_driver_details.email}
+                                            </div>
+                                          )}
+                                        </div>
+                                      </div>
+                                    </div>
+                                  )}
+
+                                  {/* Cancellation Comments */}
+                                  {trip.cancellation_comments && trip.cancellation_comments.length > 0 ? (
+                                    <div className="bg-slate-950 p-4 rounded-xl border border-rose-900/40 space-y-2">
+                                      <p className="text-[10px] font-bold text-rose-400 uppercase tracking-wider">Cancellation Reason</p>
+                                      {trip.cancellation_comments.map((c) => (
+                                        <div key={c.uuid} className="space-y-1">
+                                          <div className="flex items-center gap-2">
+                                            <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${
+                                              c.cancelled_by === 'ADMIN'
+                                                ? 'bg-purple-900/50 text-purple-300'
+                                                : c.cancelled_by === 'DRIVER'
+                                                ? 'bg-blue-900/50 text-blue-300'
+                                                : 'bg-amber-900/50 text-amber-300'
+                                            }`}>
+                                              {c.cancelled_by}
+                                            </span>
+                                            {c.created_at && (
+                                              <span className="text-[10px] text-slate-500 font-mono">
+                                                {new Date(c.created_at).toLocaleString()}
+                                              </span>
+                                            )}
+                                          </div>
+                                          <p className="text-sm text-slate-300 bg-slate-900/60 rounded p-2 border border-slate-800/60">
+                                            {c.comment}
+                                          </p>
+                                        </div>
+                                      ))}
+                                    </div>
+                                  ) : (
+                                    <div className="bg-slate-950 p-4 rounded-xl border border-rose-900/40">
+                                      <p className="text-[10px] font-bold text-rose-400 uppercase tracking-wider mb-1">Cancellation Reason</p>
+                                      <p className="text-xs text-slate-500 italic">No comment recorded.</p>
+                                    </div>
+                                  )}
                                 </div>
                               </div>
                             </td>
