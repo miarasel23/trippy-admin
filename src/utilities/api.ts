@@ -7,6 +7,18 @@ import type { ActionItem, ActionListResponse, ActionWithLanguageItem, RoleItem, 
 const BASE_URL = 'http://3.209.161.158/api';
 export const newwork_image_url = 'http://3.209.161.158/api/assets/uploads/images/'
 
+// Intercept responses to extract API error messages centrally
+axios.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    const apiMessage = error.response?.data?.message || error.response?.data?.detail || error.response?.data?.error;
+    if (apiMessage) {
+      return Promise.reject(new Error(apiMessage));
+    }
+    return Promise.reject(error);
+  }
+);
+
 
 export const adminLogin = async (
   email: string,

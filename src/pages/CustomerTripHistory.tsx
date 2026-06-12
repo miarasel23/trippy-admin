@@ -31,7 +31,7 @@ export default function CustomerTripHistory() {
   const [cancelling, setCancelling] = useState<boolean>(false);
   const [cancelError, setCancelError] = useState<string | null>(null);
 
-  const [editingBid, setEditingBid] = useState<{trip_uuid: string, driver_uuid: string, bid_amount: string} | null>(null);
+  const [editingBid, setEditingBid] = useState<{ trip_uuid: string, driver_uuid: string, bid_uuid: string, bid_amount: string } | null>(null);
   const [updatingBid, setUpdatingBid] = useState<boolean>(false);
   const [acceptingBid, setAcceptingBid] = useState<string | null>(null);
 
@@ -491,7 +491,7 @@ export default function CustomerTripHistory() {
                               <td className="px-4 py-4 text-xs text-slate-300 space-y-1">
                                 <div>Start: <span className="font-mono text-slate-100">{new Date(trip.start_datetime).toLocaleString()}</span></div>
                                 {trip.end_datetime && (
-                                  <div>End: <span className="font-mono text-slate-100">{new Date(trip.end_datetime).toLocaleString()}</span></div>
+                                  <div>Return: <span className="font-mono text-slate-100">{new Date(trip.end_datetime).toLocaleString()}</span></div>
                                 )}
                                 {trip.hours_booked && (
                                   <div className="text-indigo-400">Duration: {trip.hours_booked} hours</div>
@@ -553,11 +553,10 @@ export default function CustomerTripHistory() {
                                       {trip.drivers.map((driver: any, idx: number) => (
                                         <div
                                           key={driver.rent_bid_uuid || idx}
-                                          className={`p-4 rounded-xl space-y-3 transition-colors shadow-lg ${
-                                            driver.bid_status === 'CANCELLED'
-                                              ? 'bg-rose-950/20 border border-rose-900/50'
-                                              : 'bg-slate-950 border border-slate-800/80 hover:border-slate-700/80'
-                                          }`}
+                                          className={`p-4 rounded-xl space-y-3 transition-colors shadow-lg ${driver.bid_status === 'CANCELLED'
+                                            ? 'bg-rose-950/20 border border-rose-900/50'
+                                            : 'bg-slate-950 border border-slate-800/80 hover:border-slate-700/80'
+                                            }`}
                                         >
                                           <div className="flex items-center justify-between">
                                             <div className="flex items-center gap-2">
@@ -582,7 +581,7 @@ export default function CustomerTripHistory() {
                                             <div className="col-span-2 flex items-center justify-between text-slate-400 bg-slate-900/50 p-2 rounded border border-slate-800">
                                               <div className="flex items-center gap-2">
                                                 <span>Bid Fare:</span>
-                                                {editingBid?.trip_uuid === trip.trip_details.uuid && editingBid?.driver_uuid === driver.driver_uuid ? (
+                                                {editingBid?.trip_uuid === trip.uuid && editingBid?.bid_uuid === driver.rent_bid_uuid ? (
                                                   <form onSubmit={handleUpdateBid} className="flex items-center gap-2">
                                                     <input
                                                       type="number"
@@ -603,9 +602,9 @@ export default function CustomerTripHistory() {
                                                 )}
                                               </div>
                                               <div className="flex gap-2">
-                                                {(!editingBid || editingBid.trip_uuid !== trip.trip_details.uuid || editingBid.driver_uuid !== driver.driver_uuid) && driver.bid_status !== 'CANCELLED' && (
-                                                  <button 
-                                                    onClick={() => setEditingBid({ trip_uuid: trip.trip_details.uuid, driver_uuid: driver.driver_uuid || '', bid_amount: String(driver.bid_amount) })}
+                                                {(!editingBid || editingBid.trip_uuid !== trip.uuid || editingBid.bid_uuid !== driver.rent_bid_uuid) && driver.bid_status === 'REQUESTED' && trip.trip_status === 'REQUESTED' && (
+                                                  <button
+                                                    onClick={() => setEditingBid({ trip_uuid: trip.uuid, driver_uuid: driver.driver_uuid || '', bid_uuid: driver.rent_bid_uuid, bid_amount: String(driver.bid_amount) })}
                                                     className="text-[10px] text-indigo-400 hover:text-indigo-300 cursor-pointer bg-slate-800 px-2 py-1 rounded border border-slate-700 transition-colors"
                                                   >
                                                     Edit Bid

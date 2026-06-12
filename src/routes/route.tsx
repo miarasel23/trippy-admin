@@ -43,12 +43,11 @@ export const AppRoutes = () => {
     <Router>
       <div className="min-h-screen bg-gray-50 text-gray-800 flex">
         {isAuthenticated && <Sidebar isOpen={!sidebarCollapsed} />}
-        
-        <div className={`flex-1 flex flex-col min-h-screen transition-all duration-300 ${
-          isAuthenticated ? (sidebarCollapsed ? 'pl-0' : 'pl-64') : ''
-        }`}>
+
+        <div className={`flex-1 flex flex-col min-h-screen transition-all duration-300 ${isAuthenticated ? (sidebarCollapsed ? 'pl-0' : 'pl-64') : ''
+          }`}>
           {isAuthenticated && <Header onToggleSidebar={toggleSidebar} />}
-          
+
           <main className={`flex-1 ${isAuthenticated ? 'p-6' : 'p-0'}`}>
             <Routes>
               <Route path="/" element={isAuthenticated ? <Navigate to="/home" replace /> : <Login />} />

@@ -41,7 +41,7 @@ export default function TripTrack() {
   const [cancelling, setCancelling] = useState<boolean>(false);
   const [cancelError, setCancelError] = useState<string | null>(null);
 
-  const [editingBid, setEditingBid] = useState<{trip_uuid: string, driver_uuid: string, bid_amount: string} | null>(null);
+  const [editingBid, setEditingBid] = useState<{trip_uuid: string, driver_uuid: string, bid_uuid: string, bid_amount: string} | null>(null);
   const [updatingBid, setUpdatingBid] = useState<boolean>(false);
   const [acceptingBid, setAcceptingBid] = useState<string | null>(null);
 
@@ -623,7 +623,7 @@ export default function TripTrack() {
                                         <div className="col-span-2 flex items-center justify-between text-slate-400 bg-slate-900/50 p-2 rounded border border-slate-800">
                                           <div className="flex items-center gap-2">
                                             <span>Bid Amount:</span>
-                                            {editingBid?.trip_uuid === trip.trip_details.uuid && editingBid?.driver_uuid === bid.driver_details?.uuid ? (
+                                            {editingBid?.trip_uuid === trip.trip_details.uuid && editingBid?.bid_uuid === bid.bid_uuid ? (
                                               <form onSubmit={handleUpdateBid} className="flex items-center gap-2">
                                                 <input
                                                   type="number"
@@ -644,9 +644,9 @@ export default function TripTrack() {
                                             )}
                                           </div>
                                           <div className="flex gap-2">
-                                            {(!editingBid || editingBid.trip_uuid !== trip.trip_details.uuid || editingBid.driver_uuid !== bid.driver_details?.uuid) && bid.status !== 'CANCELLED' && (
+                                            {(!editingBid || editingBid.trip_uuid !== trip.trip_details.uuid || editingBid.bid_uuid !== bid.bid_uuid) && bid.status === 'REQUESTED' && trip.trip_details.trip_status === 'REQUESTED' && (
                                               <button 
-                                                onClick={() => setEditingBid({ trip_uuid: trip.trip_details.uuid, driver_uuid: bid.driver_details?.uuid || '', bid_amount: String(bid.bid_amount) })}
+                                                onClick={() => setEditingBid({ trip_uuid: trip.trip_details.uuid, driver_uuid: bid.driver_details?.uuid || '', bid_uuid: bid.bid_uuid, bid_amount: String(bid.bid_amount) })}
                                                 className="text-[10px] text-indigo-400 hover:text-indigo-300 cursor-pointer bg-slate-800 px-2 py-1 rounded border border-slate-700 transition-colors"
                                               >
                                                 Edit Bid
