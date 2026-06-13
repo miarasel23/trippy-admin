@@ -42,3 +42,23 @@ export interface UpdateRiderProfilePicturePayload {
   driver_uuid: string;
   avatar: File;
 }
+
+export interface DriverDocumentItem {
+  id: number;
+  document_type: string | null;
+  document_url: string;
+  document_number: string | null;
+  is_verified: string | null;
+  created_at: string | null;
+  updated_at: string | null;
+}
+
+export interface CarPhotoItem {
+  id: number;
+  document_type: string | null;
+  document_url: string;
+  car_categories_uuid: string;
+  is_verified: string | null;
+  created_at: string | null;
+  updated_at: string | null;
+}

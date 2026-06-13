@@ -4,8 +4,8 @@ import { BASE_URL } from '../../../shared/utils/constants';
 import type { RiderItem } from './types';
 
 // Re-export types
-export type { RiderItem, UpdateRiderProfilePicturePayload } from './types';
-import type { UpdateRiderProfilePicturePayload } from './types';
+export type { RiderItem, UpdateRiderProfilePicturePayload, DriverDocumentItem, CarPhotoItem } from './types';
+import type { UpdateRiderProfilePicturePayload, DriverDocumentItem, CarPhotoItem } from './types';
 
 export const fetchRiderList = async (): Promise<RiderItem[]> => {
   const token = localStorage.getItem('authToken');
@@ -95,4 +95,110 @@ export const updateRiderProfilePicture = async (payload: UpdateRiderProfilePictu
   } catch (error: any) {
     throw new Error(error.response?.data?.message || 'Failed to update profile picture');
   }
+};
+
+export const fetchRiderDocuments = async (driver_uuid: string): Promise<DriverDocumentItem[]> => {
+  const token = localStorage.getItem('authToken');
+  const { language_code, platform } = getLoginDefaults();
+
+  const formData = new FormData();
+  formData.append('platform', platform);
+  formData.append('language_code', language_code);
+  formData.append('action_when', 'driver_document_list');
+  formData.append('driver_uuid', driver_uuid);
+
+  const response = await axios.post(
+    `${BASE_URL}/v1/driver/driver-document-list`,
+    formData,
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'multipart/form-data',
+      }
+    }
+  );
+  if (response.data && response.data.status) {
+    return response.data.data;
+  }
+  throw new Error(response.data.message || 'Failed to fetch driver documents');
+};
+
+export const fetchRiderCarPhotos = async (driver_uuid: string): Promise<CarPhotoItem[]> => {
+  const token = localStorage.getItem('authToken');
+  const { language_code, platform } = getLoginDefaults();
+
+  const formData = new FormData();
+  formData.append('platform', platform);
+  formData.append('language_code', language_code);
+  formData.append('action_when', 'car_photo_list');
+  formData.append('driver_uuid', driver_uuid);
+
+  const response = await axios.post(
+    `${BASE_URL}/v1/driver/car-setup-and-photo-list`,
+    formData,
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'multipart/form-data',
+      }
+    }
+  );
+  if (response.data && response.data.status) {
+    return response.data.data;
+  }
+  throw new Error(response.data.message || 'Failed to fetch car photos');
+};
+
+export const updateDriverDocumentStatus = async (id: number, status: string): Promise<string> => {
+  const token = localStorage.getItem('authToken');
+  const { language_code, platform } = getLoginDefaults();
+
+  const formData = new FormData();
+  formData.append('platform', platform);
+  formData.append('language_code', language_code);
+  formData.append('action_when', 'driver_document_status_update');
+  formData.append('id', id.toString());
+  formData.append('status', status);
+
+  const response = await axios.post(
+    `${BASE_URL}/v1/driver/driver-document-status-update`,
+    formData,
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'multipart/form-data',
+      }
+    }
+  );
+  if (response.data && response.data.status) {
+    return response.data.message || 'Status updated successfully';
+  }
+  throw new Error(response.data.message || 'Failed to update document status');
+};
+
+export const updateCarPhotoStatus = async (id: number, status: string): Promise<string> => {
+  const token = localStorage.getItem('authToken');
+  const { language_code, platform } = getLoginDefaults();
+
+  const formData = new FormData();
+  formData.append('platform', platform);
+  formData.append('language_code', language_code);
+  formData.append('action_when', 'car_setup_and_photo_upload_status_update');
+  formData.append('id', id.toString());
+  formData.append('status', status);
+
+  const response = await axios.post(
+    `${BASE_URL}/v1/driver/car-setup-and-photo-upload-status-update`,
+    formData,
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'multipart/form-data',
+      }
+    }
+  );
+  if (response.data && response.data.status) {
+    return response.data.message || 'Status updated successfully';
+  }
+  throw new Error(response.data.message || 'Failed to update car photo status');
 };

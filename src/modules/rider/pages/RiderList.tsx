@@ -5,6 +5,7 @@ import { newwork_image_url } from '../../../shared/utils/constants';
 import { PopupMessage } from '../../../shared/components/PopupMessage';
 import noImage from '../../../shared/assets/images/no-image.png';
 import RiderEditForm from '../components/RiderEditForm';
+import RiderViewModal from '../components/RiderViewModal';
 
 export default function RiderList() {
   const [riders, setRiders] = useState<RiderItem[]>([]);
@@ -18,10 +19,20 @@ export default function RiderList() {
   const [editItem, setEditItem] = useState<RiderItem | null>(null);
   const [popup, setPopup] = useState<{ show: boolean; type: 'success' | 'error'; message: string }>({ show: false, type: 'success', message: '' });
 
+  // View Modal State
+  const [showViewModal, setShowViewModal] = useState<boolean>(false);
+  const [viewItem, setViewItem] = useState<RiderItem | null>(null);
+
   const handleEditClick = (item: RiderItem) => {
     setActiveDropdown(null);
     setEditItem(item);
     setShowEditModal(true);
+  };
+
+  const handleViewClick = (item: RiderItem) => {
+    setActiveDropdown(null);
+    setViewItem(item);
+    setShowViewModal(true);
   };
 
   // Close dropdown when clicking outside
@@ -155,9 +166,9 @@ export default function RiderList() {
                         </button>
 
                         {activeDropdown === item.uuid && (
-                          <div className="absolute right-0 mt-2 w-36 bg-slate-800 border border-slate-700 rounded-lg shadow-xl z-10 py-1">
+                              <div className="absolute right-0 mt-2 w-36 bg-slate-800 border border-slate-700 rounded-lg shadow-xl z-10 py-1">
                             <button
-                              onClick={() => { setActiveDropdown(null); /* handle view */ }}
+                              onClick={() => handleViewClick(item)}
                               className="w-full text-left px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white transition-colors flex items-center gap-2 cursor-pointer"
                             >
                               <i className="fa fa-eye w-4"></i> View
@@ -203,6 +214,13 @@ export default function RiderList() {
           loadData(); 
         }} 
       />
+
+      {showViewModal && (
+        <RiderViewModal 
+          item={viewItem} 
+          onClose={() => setShowViewModal(false)} 
+        />
+      )}
 
       <PopupMessage show={popup.show} type={popup.type} message={popup.message} onClose={() => setPopup(prev => ({ ...prev, show: false }))} />
 
