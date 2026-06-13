@@ -1,11 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
-import { fetchCustomerTripHistory, cancelTripByAdmin, updateTripBid, acceptTripForCustomer } from '../services/tripApi';
-import { fetchCustomerList, fetchCurrentCustomerUser } from '../../customer/services/customerApi';
+import { fetchCustomerTripHistory, cancelTripByAdmin, updateTripBid, acceptTripForCustomer } from '../../trip/services/tripApi';
+import { fetchCustomerList, fetchCurrentCustomerUser } from '../services/customerApi';
 import { newwork_image_url } from '../../../shared/utils/constants';
-import type { RentalTripCustomerItem } from '../services/types';
-import type { CustomerUserItem } from '../../customer/services/types';
+import type { RentalTripCustomerItem } from '../../trip/services/types';
+import type { CustomerUserItem } from '../services/types';
 import noImage from '../../../shared/assets/images/no-image.png';
+import MapModal from '../../trip/components/MapModal';
+import ImagePreviewModal from '../components/ImagePreviewModal';
+import CancelTripModal from '../../trip/components/CancelTripModal';
 import { useToast } from '../../../shared/hooks/useToast';
 import { PopupMessage } from '../../../shared/components/PopupMessage';
 
@@ -723,221 +726,27 @@ export default function CustomerTripHistory() {
         </div>
       )}
 
-      {/* Map Modal */}
-      {selectedTripForMap && (
-        <>
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-            <div className="w-full max-w-3xl bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl overflow-hidden">
-              <div className="flex items-center justify-between p-4 bg-slate-800 border-b border-slate-700">
-                <h3 className="text-white font-semibold flex items-center gap-2">
-                  <span>🗺️</span> Trip Route Map
-                </h3>
-                <button
-                  onClick={() => setSelectedTripForMap(null)}
-                  className="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-700 transition-colors cursor-pointer"
-                >
-                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
-              </div>
-              <div className="p-4 space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
-                  <div className="p-3 bg-slate-950 rounded-lg border border-slate-800">
-                    <span className="block text-[10px] uppercase font-bold text-emerald-500 tracking-wider mb-1">Pickup Location</span>
-                    <span className="text-slate-300 font-medium">
-                      {selectedTripForMap.pickup_locations?.[0]?.address || 'No Address'}
-                    </span>
-                    {selectedTripForMap.pickup_locations?.[0] && (
-                      <span className="block font-mono text-slate-500 text-[10px] mt-1">
-                        Coordinates: {selectedTripForMap.pickup_locations[0].latitude}, {selectedTripForMap.pickup_locations[0].longitude}
-                      </span>
-                    )}
-                  </div>
-                  <div className="p-3 bg-slate-950 rounded-lg border border-slate-800">
-                    <span className="block text-[10px] uppercase font-bold text-rose-500 tracking-wider mb-1">Dropoff Location</span>
-                    <span className="text-slate-300 font-medium">
-                      {selectedTripForMap.dropoff_locations?.[0]?.address || 'No Address'}
-                    </span>
-                    {selectedTripForMap.dropoff_locations?.[0] && (
-                      <span className="block font-mono text-slate-500 text-[10px] mt-1">
-                        Coordinates: {selectedTripForMap.dropoff_locations[0].latitude}, {selectedTripForMap.dropoff_locations[0].longitude}
-                      </span>
-                    )}
-                  </div>
-                </div>
+      <MapModal
+        selectedTripForMap={selectedTripForMap}
+        mapZoom={mapZoom}
+        setMapZoom={setMapZoom}
+        onClose={() => setSelectedTripForMap(null)}
+      />
 
-                <div className="w-full h-96 bg-slate-950 rounded-xl overflow-hidden border border-slate-800 relative">
-                  {/* Floating Custom Zoom Controls */}
-                  <div className="absolute top-3 right-3 flex flex-col gap-2 z-10">
-                    <button
-                      onClick={() => setMapZoom((prev) => Math.min(prev + 1, 21))}
-                      className="w-8 h-8 flex items-center justify-center bg-slate-900/90 hover:bg-slate-800 text-white font-bold rounded-lg border border-slate-700 shadow-lg cursor-pointer focus:outline-none transition-colors"
-                      title="Zoom In"
-                    >
-                      +
-                    </button>
-                    <button
-                      onClick={() => setMapZoom((prev) => Math.max(prev - 1, 1))}
-                      className="w-8 h-8 flex items-center justify-center bg-slate-900/90 hover:bg-slate-800 text-white font-bold rounded-lg border border-slate-700 shadow-lg cursor-pointer focus:outline-none transition-colors"
-                      title="Zoom Out"
-                    >
-                      −
-                    </button>
-                  </div>
+      <ImagePreviewModal
+        previewImage={previewImage}
+        onClose={() => setPreviewImage(null)}
+      />
 
-                  {selectedTripForMap.pickup_locations?.[0] ? (
-                    <iframe
-                      title="Trip Map"
-                      width="100%"
-                      height="100%"
-                      style={{ border: 0 }}
-                      loading="lazy"
-                      allowFullScreen
-                      src={
-                        selectedTripForMap.dropoff_locations?.[0]
-                          ? `https://maps.google.com/maps?saddr=${selectedTripForMap.pickup_locations[0].latitude},${selectedTripForMap.pickup_locations[0].longitude}&daddr=${selectedTripForMap.dropoff_locations[0].latitude},${selectedTripForMap.dropoff_locations[0].longitude}&t=m&z=${mapZoom}&ie=UTF8&iwloc=&output=embed`
-                          : `https://maps.google.com/maps?q=${selectedTripForMap.pickup_locations[0].latitude},${selectedTripForMap.pickup_locations[0].longitude}&t=m&z=${mapZoom}&ie=UTF8&iwloc=&output=embed`
-                      }
-                    ></iframe>
-                  ) : (
-                    <div className="absolute inset-0 flex items-center justify-center text-slate-500 text-xs">
-                      Coordinates are missing for this trip map.
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              <div className="flex justify-between items-center gap-3 px-6 py-4 border-t border-slate-800 bg-slate-950/40">
-                {selectedTripForMap.pickup_locations?.[0] && selectedTripForMap.dropoff_locations?.[0] ? (
-                  <a
-                    href={`https://www.google.com/maps/dir/?api=1&origin=${selectedTripForMap.pickup_locations[0].latitude},${selectedTripForMap.pickup_locations[0].longitude}&destination=${selectedTripForMap.dropoff_locations[0].latitude},${selectedTripForMap.dropoff_locations[0].longitude}&travelmode=driving`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="px-4 py-2 text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-500 rounded-lg transition-colors cursor-pointer flex items-center gap-1"
-                  >
-                    <span>🧭</span> Open in Google Maps
-                  </a>
-                ) : selectedTripForMap.pickup_locations?.[0] ? (
-                  <a
-                    href={`https://www.google.com/maps/search/?api=1&query=${selectedTripForMap.pickup_locations[0].latitude},${selectedTripForMap.pickup_locations[0].longitude}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="px-4 py-2 text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-500 rounded-lg transition-colors cursor-pointer flex items-center gap-1"
-                  >
-                    <span>🧭</span> Open in Google Maps
-                  </a>
-                ) : (
-                  <div></div>
-                )}
-                <button
-                  onClick={() => setSelectedTripForMap(null)}
-                  className="px-5 py-2 text-xs font-semibold text-slate-300 bg-slate-800 hover:bg-slate-700 rounded-lg transition-colors cursor-pointer"
-                >
-                  Close
-                </button>
-              </div>
-            </div>
-          </div>
-          <div className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm"></div>
-        </>
-      )}
-
-      {/* Preview Image Modal */}
-      {previewImage && (
-        <>
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={() => setPreviewImage(null)}>
-            <div className="bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl overflow-hidden max-w-md w-full" onClick={(e) => e.stopPropagation()}>
-              <div className="flex items-center justify-between p-4 bg-slate-800 border-b border-slate-700">
-                <h3 className="text-white font-semibold">{previewImage.title}</h3>
-                <button onClick={() => setPreviewImage(null)} className="text-slate-400 hover:text-white p-1 rounded-lg cursor-pointer">
-                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
-                </button>
-              </div>
-              <div className="p-4 flex justify-center bg-slate-950">
-                <img src={previewImage.url} alt={previewImage.title} className="max-w-full max-h-96 object-contain" />
-              </div>
-            </div>
-          </div>
-          <div className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm"></div>
-        </>
-      )}
-
-      {/* Cancellation Modal */}
-      {cancelTripUuid && (
-        <>
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-            <div className="w-full max-w-md bg-slate-900 border border-slate-700/80 rounded-2xl shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200">
-              <div className="flex items-center justify-between p-4 bg-slate-800 border-b border-slate-700">
-                <h3 className="text-white font-semibold flex items-center gap-2">
-                  <span className="text-rose-500 text-lg">⚠️</span> Cancel Trip Confirmation
-                </h3>
-                <button
-                  onClick={() => setCancelTripUuid(null)}
-                  className="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-700 transition-colors cursor-pointer"
-                >
-                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
-              </div>
-              <form onSubmit={handleCancelTripSubmit}>
-                <div className="p-6 space-y-4">
-                  <p className="text-xs text-slate-300 leading-relaxed">
-                    Are you sure you want to cancel this trip? This action cannot be undone. Please provide a reason or comment for the cancellation.
-                  </p>
-
-                  {cancelError && (
-                    <div className="p-3 bg-rose-900/40 border border-rose-700/50 text-rose-300 rounded-lg text-xs">
-                      {cancelError}
-                    </div>
-                  )}
-
-                  <div className="space-y-1.5">
-                    <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider">
-                      Cancellation Reason *
-                    </label>
-                    <textarea
-                      required
-                      rows={3}
-                      value={cancelComment}
-                      onChange={(e) => setCancelComment(e.target.value)}
-                      placeholder="Enter comment/reason for cancellation..."
-                      className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-lg text-slate-200 placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-rose-500 focus:border-transparent text-sm resize-none"
-                    />
-                  </div>
-                </div>
-
-                <div className="flex justify-end gap-3 px-6 py-4 border-t border-slate-800 bg-slate-950/40">
-                  <button
-                    type="button"
-                    onClick={() => setCancelTripUuid(null)}
-                    className="px-4 py-2 text-xs font-semibold text-slate-300 bg-slate-800 hover:bg-slate-700 rounded-lg transition-colors cursor-pointer"
-                    disabled={cancelling}
-                  >
-                    Go Back
-                  </button>
-                  <button
-                    type="submit"
-                    className="px-4 py-2 text-xs font-semibold text-white bg-rose-600 hover:bg-rose-500 rounded-lg transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1.5"
-                    disabled={cancelling || !cancelComment.trim()}
-                  >
-                    {cancelling ? (
-                      <>
-                        <div className="animate-spin rounded-full h-3.5 w-3.5 border-2 border-white border-t-transparent"></div>
-                        Cancelling...
-                      </>
-                    ) : (
-                      'Confirm Cancellation'
-                    )}
-                  </button>
-                </div>
-              </form>
-            </div>
-          </div>
-          <div className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm"></div>
-        </>
-      )}
+      <CancelTripModal
+        isOpen={!!cancelTripUuid}
+        onClose={() => setCancelTripUuid(null)}
+        onSubmit={handleCancelTripSubmit}
+        cancelComment={cancelComment}
+        setCancelComment={setCancelComment}
+        cancelling={cancelling}
+        cancelError={cancelError}
+      />
       {/* Accept Bid Confirmation Popup */}
       <PopupMessage
         show={confirmPopup.show}

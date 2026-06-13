@@ -112,6 +112,12 @@ export interface AllRentalTripItem {
     trip_status: string;
     country_code: string;
     created_at: string;
+    car_category?: {
+      uuid: string;
+      car_type: string;
+      set_capacity: number;
+      car_avatar: string;
+    } | null;
   };
   location_details: {
     pickup_locations: TripLocationPoint[];

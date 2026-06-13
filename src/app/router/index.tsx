@@ -21,7 +21,7 @@ import CarServiceCategoryList from '../../modules/settings/pages/CarServiceCateg
 import PriceSetAsPerKm from '../../modules/settings/pages/PriceSetAsPerKm';
 
 import CustomerList from '../../modules/customer/pages/CustomerList';
-import CustomerTripHistory from '../../modules/trip/pages/CustomerTripHistory';
+import CustomerTripHistory from '../../modules/customer/pages/CustomerTripHistory';
 import TripTrack from '../../modules/trip/pages/TripTrack';
 import RiderList from '../../modules/rider/pages/RiderList';
 
