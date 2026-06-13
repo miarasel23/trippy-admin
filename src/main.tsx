@@ -1,6 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App.tsx';
+import 'font-awesome/css/font-awesome.min.css';
 import './styles/global.css';
 import { AuthProviderTrippy } from './shared/hooks/useAuth';
 import { ToastProvider } from './shared/hooks/useToast';
