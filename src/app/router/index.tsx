@@ -23,6 +23,7 @@ import PriceSetAsPerKm from '../../modules/settings/pages/PriceSetAsPerKm';
 import CustomerList from '../../modules/customer/pages/CustomerList';
 import CustomerTripHistory from '../../modules/trip/pages/CustomerTripHistory';
 import TripTrack from '../../modules/trip/pages/TripTrack';
+import RiderList from '../../modules/rider/pages/RiderList';
 
 export const AppRoutes = () => {
   const auth = useContext(AuthContextTrippy);
@@ -72,6 +73,7 @@ export const AppRoutes = () => {
               <Route path="/dashboard/admin-user" element={isAuthenticated ? <AdminUserList /> : <Navigate to="/" replace />} />
               
               <Route path="/dashboard/customer" element={isAuthenticated ? <CustomerList /> : <Navigate to="/" replace />} />
+              <Route path="/dashboard/rider" element={isAuthenticated ? <RiderList /> : <Navigate to="/" replace />} />
               <Route path="/dashboard/trip" element={isAuthenticated ? <CustomerTripHistory /> : <Navigate to="/" replace />} />
               <Route path="/dashboard/trip-track" element={isAuthenticated ? <TripTrack /> : <Navigate to="/" replace />} />
             </Routes>
