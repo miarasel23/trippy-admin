@@ -1,17 +1,16 @@
-import { StrictMode } from 'react';
-import { createRoot } from 'react-dom/client';
-import 'font-awesome/css/font-awesome.min.css';
-import './index.css';
+import React from 'react';
+import ReactDOM from 'react-dom/client';
 import App from './App.tsx';
-import AuthProviderTrippy from './context/AuthContextTrippy';
-import { ToastProvider } from './context/ToastContext';
+import './styles/global.css';
+import { AuthProviderTrippy } from './shared/hooks/useAuth';
+import { ToastProvider } from './shared/hooks/useToast';
 
-createRoot(document.getElementById('root')!).render(
-  <StrictMode>
+ReactDOM.createRoot(document.getElementById('root')!).render(
+  <React.StrictMode>
     <AuthProviderTrippy>
       <ToastProvider>
         <App />
       </ToastProvider>
     </AuthProviderTrippy>
-  </StrictMode>
+  </React.StrictMode>,
 );
