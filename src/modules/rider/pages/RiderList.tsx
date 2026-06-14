@@ -180,10 +180,10 @@ export default function RiderList() {
                               <i className="fa fa-pencil w-4"></i> Edit
                             </button>
                             <button
-                              onClick={() => { setActiveDropdown(null); /* handle trip */ }}
-                              className="w-full text-left px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white transition-colors flex items-center gap-2 cursor-pointer"
+                              className="w-full text-left px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 transition-colors flex items-center gap-2"
+                              onClick={() => { setActiveDropdown(null); /* handle transaction */ }}
                             >
-                              <i className="fa fa-car w-4"></i> Trip
+                              <i className="fa fa-exchange-alt w-4 text-center"></i> Transaction
                             </button>
                           </div>
                         )}
