@@ -168,3 +168,34 @@ export const acceptTripForCustomer = async (payload: AcceptTripPayload): Promise
   }
   return response.data.message || 'Trip accepted successfully.';
 };
+
+export const fetchRiderTripHistory = async (
+  driverUuid: string,
+  tripStatus: string
+): Promise<RentalTripCustomerItem[]> => {
+  const token = localStorage.getItem('authToken');
+  const { platform, language_code } = getLoginDefaults();
+
+  const formData = new URLSearchParams();
+  formData.append('platform', platform);
+  formData.append('language_code', language_code);
+  formData.append('action_when', 'accept_or_cancel_or_complete_trip_for_driver');
+  formData.append('driver_uuid', driverUuid);
+  formData.append('status', tripStatus);
+
+  const response = await axios.post(
+    `${BASE_URL}/v1/rental-trip/accept-or-cancel-or-complete-trip-for-driver`,
+    formData.toString(),
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/x-www-form-urlencoded',
+      }
+    }
+  );
+
+  if (response.data && response.data.status) {
+    return response.data.data;
+  }
+  throw new Error(response.data.message || 'Failed to fetch rider trip history');
+};

@@ -5,14 +5,17 @@ import { newwork_image_url } from '../../../shared/utils/constants';
 import noImage from '../../../shared/assets/images/no-image.png';
 import ImagePreviewModal from '../../trip/components/ImagePreviewModal';
 import { PopupMessage } from '../../../shared/components/PopupMessage';
+import RiderTripHistory from './RiderTripHistory';
 
 interface RiderViewModalProps {
   item: RiderItem | null;
   onClose: () => void;
 }
 
+type TabType = 'info' | 'document' | 'carPhotos' | 'trips';
+
 export default function RiderViewModal({ item, onClose }: RiderViewModalProps) {
-  const [activeTab, setActiveTab] = useState<'info' | 'document' | 'carPhotos'>('info');
+  const [activeTab, setActiveTab] = useState<TabType>('info');
   const [documents, setDocuments] = useState<DriverDocumentItem[]>([]);
   const [carPhotos, setCarPhotos] = useState<CarPhotoItem[]>([]);
   const [loadingDocs, setLoadingDocs] = useState(false);
@@ -182,6 +185,15 @@ export default function RiderViewModal({ item, onClose }: RiderViewModalProps) {
                 }`}
             >
               <i className="fa fa-car mr-2"></i>Car Photos
+            </button>
+            <button
+              onClick={() => setActiveTab('trips')}
+              className={`px-4 py-3 text-sm font-semibold transition-colors border-b-2 whitespace-nowrap ${activeTab === 'trips'
+                ? 'border-indigo-500 text-indigo-400'
+                : 'border-transparent text-slate-400 hover:text-slate-200 hover:border-slate-700'
+                }`}
+            >
+              <i className="fa fa-history mr-2"></i>Trip History
             </button>
           </div>
 
@@ -372,6 +384,12 @@ export default function RiderViewModal({ item, onClose }: RiderViewModalProps) {
                       <p>No car photos found for this rider.</p>
                     </div>
                   )}
+                </div>
+              )}
+
+              {activeTab === 'trips' && (
+                <div className="mt-4">
+                  <RiderTripHistory driverUuid={item.uuid} />
                 </div>
               )}
             </div>
