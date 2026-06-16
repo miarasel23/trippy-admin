@@ -17,6 +17,7 @@ export interface RentalTripCustomerItem {
   country_code: string;
   hours_booked: number | null;
   trip_status: string;
+  note: string | null;
   created_at: string;
   car_category?: {
     uuid: string;
@@ -110,6 +111,7 @@ export interface AllRentalTripItem {
     end_datetime: string | null;
     hours_booked: number | null;
     trip_status: string;
+    note: string | null;
     country_code: string;
     created_at: string;
     car_category?: {

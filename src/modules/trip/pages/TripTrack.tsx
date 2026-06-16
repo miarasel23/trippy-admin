@@ -539,6 +539,11 @@ export default function TripTrack() {
                             <div className="text-[10px] text-slate-400">
                               Payment: <span className="font-semibold text-slate-300">{trip.trip_details.payment_method || 'N/A'}</span>
                             </div>
+                            {trip.trip_details.note && (
+                              <div className="text-[10px] text-slate-400">
+                                Note: <span className="font-semibold text-slate-300">{trip.trip_details.note}</span>
+                              </div>
+                            )}
                           </td>
                           <td className="px-4 py-4 space-y-2 max-w-xs">
                             {/* Pickup locations */}
