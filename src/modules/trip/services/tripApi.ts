@@ -9,6 +9,13 @@ import type {
   AcceptTripPayload,
 } from './types';
 
+export interface AllRentalTripListResponse {
+  data: AllRentalTripItem[];
+  total: number;
+  page: number;
+  limit: number;
+}
+
 // Re-export types
 export type {
   RentalTripCustomerItem,
@@ -46,10 +53,12 @@ export const fetchAllRentalTripList = async (params: {
   trip_status?: string;
   start_date?: string;
   end_date?: string;
+  phone?: string;
   customer_phone?: string;
   driver_phone?: string;
   today?: boolean;
-}): Promise<AllRentalTripItem[]> => {
+  page?: number;
+}): Promise<AllRentalTripListResponse> => {
   const token = localStorage.getItem('authToken');
   const query = new URLSearchParams();
   query.append('platform', 'web');
@@ -59,12 +68,14 @@ export const fetchAllRentalTripList = async (params: {
   if (params.trip_status) query.append('trip_status', params.trip_status);
   if (params.start_date) query.append('start_date', params.start_date);
   if (params.end_date) query.append('end_date', params.end_date);
+  if (params.phone) query.append('phone', params.phone);
   if (params.customer_phone) query.append('customer_phone', params.customer_phone);
   if (params.driver_phone) query.append('driver_phone', params.driver_phone);
   if (params.today !== undefined) query.append('today', String(params.today));
+  if (params.page) query.append('page', String(params.page));
 
   const response = await axios.get(
-    `${BASE_URL}/v1/rental-trip/all-rental-trip-list?${query.toString()}`,
+    `${BASE_URL}/v1/admin/trip/all-trip-list-for-admin?${query.toString()}`,
     {
       headers: {
         Authorization: `Bearer ${token}`
@@ -72,7 +83,12 @@ export const fetchAllRentalTripList = async (params: {
     }
   );
   if (response.data && response.data.status) {
-    return response.data.data;
+    return {
+      data: response.data.data || [],
+      total: response.data.total || 0,
+      page: response.data.page || 1,
+      limit: response.data.limit || 50,
+    };
   }
   throw new Error(response.data.message || 'Failed to fetch all rental trip list');
 };
