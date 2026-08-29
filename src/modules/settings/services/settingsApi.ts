@@ -395,6 +395,7 @@ export const createOrUpdateCarCategory = async (
   formData.append('car_type', payload.car_type);
   formData.append('set_capacity', payload.set_capacity.toString());
   formData.append('status', payload.status);
+  formData.append('sort_order', payload.sort_order.toString());
 
   if (payload.uuid) {
     formData.append('uuid', payload.uuid);

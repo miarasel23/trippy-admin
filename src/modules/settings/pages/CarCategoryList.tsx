@@ -23,6 +23,7 @@ export default function CarCategoryList() {
   const [editItem, setEditItem] = useState<CarCategoryItem | null>(null);
   const [carType, setCarType] = useState<string>('SEDAN');
   const [setCapacity, setSetCapacity] = useState<string>('');
+  const [sortOrder, setSortOrder] = useState<string>('');
   const [status, setStatus] = useState<string>('ACTIVE');
   const [carAvatar, setCarAvatar] = useState<File | null>(null);
   const [submitting, setSubmitting] = useState<boolean>(false);
@@ -42,8 +43,8 @@ export default function CarCategoryList() {
 
   useEffect(() => { loadData(); }, []);
 
-  const handleAddClick = () => { setEditItem(null); setCarType('SEDAN'); setSetCapacity(''); setStatus('ACTIVE'); setCarAvatar(null); setFormError(null); setShowModal(true); };
-  const handleEditClick = (item: CarCategoryItem) => { setEditItem(item); setCarType(item.car_type); setSetCapacity(item.set_capacity ? item.set_capacity.toString() : ''); setStatus(item.status || 'ACTIVE'); setCarAvatar(null); setFormError(null); setShowModal(true); };
+  const handleAddClick = () => { setEditItem(null); setCarType('SEDAN'); setSetCapacity(''); setSortOrder(''); setStatus('ACTIVE'); setCarAvatar(null); setFormError(null); setShowModal(true); };
+  const handleEditClick = (item: CarCategoryItem) => { setEditItem(item); setCarType(item.car_type); setSetCapacity(item.set_capacity ? item.set_capacity.toString() : ''); setSortOrder(item.sort_order != null ? item.sort_order.toString() : ''); setStatus(item.status || 'ACTIVE'); setCarAvatar(null); setFormError(null); setShowModal(true); };
   const handleDeleteClick = (uuid: string) => { setDeleteTargetUuid(uuid); setShowDeleteConfirm(true); };
 
   const confirmDelete = async () => {
@@ -65,9 +66,10 @@ export default function CarCategoryList() {
     e.preventDefault();
     if (!carType.trim()) { setFormError('Car Type is required'); return; }
     if (!setCapacity || isNaN(Number(setCapacity))) { setFormError('Valid Seat Capacity is required'); return; }
+    if (!sortOrder || isNaN(Number(sortOrder)) || !Number.isInteger(Number(sortOrder))) { setFormError('Sort Order must be a valid integer'); return; }
     try {
       setSubmitting(true); setFormError(null);
-      const msg = await createOrUpdateCarCategory({ car_type: carType.trim(), set_capacity: Number(setCapacity), status, car_avatar: carAvatar, ...(editItem ? { uuid: editItem.uuid } : {}) });
+      const msg = await createOrUpdateCarCategory({ car_type: carType.trim(), set_capacity: Number(setCapacity), sort_order: parseInt(sortOrder, 10), status, car_avatar: carAvatar, ...(editItem ? { uuid: editItem.uuid } : {}) });
       setShowModal(false);
       await loadData();
       setPopup({ show: true, type: 'success', message: msg });
@@ -121,6 +123,7 @@ export default function CarCategoryList() {
                 <th className="px-4 py-3">Image</th>
                 <th className="px-4 py-3">Car Type</th>
                 <th className="px-4 py-3">Capacity</th>
+                <th className="px-4 py-3">Sort Order</th>
                 <th className="px-4 py-3">Status</th>
                 <th className="px-4 py-3">Action</th>
               </tr>
@@ -142,6 +145,11 @@ export default function CarCategoryList() {
                     </td>
                     <td className="px-4 py-3 text-slate-300">{item.set_capacity ?? 'N/A'}</td>
                     <td className="px-4 py-3">
+                      <span className="px-2.5 py-1 bg-slate-700/60 text-slate-200 rounded-md text-xs font-mono border border-slate-600/50">
+                        {item.sort_order != null ? item.sort_order : '—'}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3">
                       <span className={`px-2.5 py-1 rounded-full text-xs font-semibold ${item.status === 'ACTIVE' ? 'bg-emerald-900/50 text-emerald-300 border border-emerald-700/50' : 'bg-rose-900/50 text-rose-300 border border-rose-700/50'}`}>{item.status ?? 'ACTIVE'}</span>
                     </td>
                     <td className="px-4 py-3">
@@ -160,7 +168,7 @@ export default function CarCategoryList() {
                 );
               })}
               {filteredCategories.length === 0 && (
-                <tr><td colSpan={7} className="px-4 py-12 text-center text-slate-500">No car categories match the search query.</td></tr>
+                <tr><td colSpan={8} className="px-4 py-12 text-center text-slate-500">No car categories match the search query.</td></tr>
               )}
             </tbody>
           </table>
@@ -189,6 +197,20 @@ export default function CarCategoryList() {
                 <div>
                   <label className={labelCls}>Seat Capacity *</label>
                   <input type="number" className={inputCls} placeholder="e.g. 4" value={setCapacity} onChange={(e) => setSetCapacity(e.target.value)} required />
+                </div>
+                <div>
+                  <label className={labelCls}>Sort Order *</label>
+                  <input
+                    type="number"
+                    step="1"
+                    min="0"
+                    className={inputCls}
+                    placeholder="e.g. 1"
+                    value={sortOrder}
+                    onChange={(e) => setSortOrder(e.target.value)}
+                    required
+                  />
+                  <p className="mt-1 text-xs text-slate-500">Integer value used to control display order (lower = first).</p>
                 </div>
                 <div>
                   <label className={labelCls}>Status *</label>

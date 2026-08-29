@@ -50,6 +50,7 @@ export interface CarCategoryItem {
   car_avatar?: string | null;
   set_capacity?: number | string | null;
   status?: string | null;
+  sort_order?: number | null;
 }
 
 export interface CreateOrUpdateCarCategoryPayload {
@@ -57,6 +58,7 @@ export interface CreateOrUpdateCarCategoryPayload {
   car_type: string;
   set_capacity: string | number;
   status: string;
+  sort_order: number;
   car_avatar?: File | null;
 }
 
