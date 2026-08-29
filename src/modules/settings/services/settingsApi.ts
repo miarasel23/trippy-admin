@@ -463,7 +463,39 @@ export const fetchCarServiceCategoryList = async (): Promise<CarServiceCategoryI
     }
   );
   if (response.data && response.data.status) {
-    return response.data.data;
+    const rawData = response.data.data;
+    if (rawData && typeof rawData === 'object' && !Array.isArray(rawData)) {
+      const items: CarServiceCategoryItem[] = [];
+      Object.entries(rawData).forEach(([serviceName, list]: [string, any]) => {
+        if (Array.isArray(list)) {
+          list.forEach((rawItem: any) => {
+            const serviceCatUuid = rawItem.car_service_category_uuid || rawItem.uuid;
+            items.push({
+              id: rawItem.id,
+              uuid: serviceCatUuid,
+              car_service_category_uuid: rawItem.car_service_category_uuid,
+              service_name: serviceName,
+              avatar: rawItem.car_avatar || rawItem.avatar,
+              status: rawItem.status || 'ACTIVE',
+              sort_order: rawItem.sort_order,
+              created_at: rawItem.created_at || '',
+              updated_at: rawItem.updated_at || '',
+              car_category: rawItem.car_category ? rawItem.car_category : {
+                id: rawItem.id,
+                uuid: rawItem.uuid,
+                car_type: rawItem.car_type,
+                set_capacity: rawItem.set_capacity,
+                car_avatar: rawItem.car_avatar,
+                sort_order: rawItem.sort_order,
+                status: rawItem.status
+              }
+            });
+          });
+        }
+      });
+      return items;
+    }
+    return response.data.data as CarServiceCategoryItem[];
   }
   throw new Error(response.data.message || 'Failed to fetch car service category list');
 };

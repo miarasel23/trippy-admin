@@ -67,11 +67,13 @@ export interface CreateOrUpdateCarCategoryPayload {
 export interface CarServiceCategoryItem {
   id: number;
   uuid: string;
+  car_service_category_uuid?: string;
   service_name: string;
   avatar?: string | null;
   status: string;
-  created_at: string;
-  updated_at: string;
+  sort_order?: number | null;
+  created_at?: string;
+  updated_at?: string;
   car_category?: CarCategoryItem | null;
 }
 

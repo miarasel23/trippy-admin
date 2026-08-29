@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { fetchCarServiceCategoryList, fetchCarCategoryList, createOrUpdateCarServiceCategory, deleteCarServiceCategory } from '../services/settingsApi';
 import { newwork_image_url } from '../../../shared/utils/constants';
 import type { CarServiceCategoryItem, CarCategoryItem } from '../services/types';
@@ -8,6 +8,7 @@ import { PopupMessage } from '../../../shared/components/PopupMessage';
 
 const labelCls = "block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1";
 const selectCls = "w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-colors text-sm";
+const inputCls = "w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-slate-200 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-colors text-sm";
 
 export default function CarServiceCategoryList() {
   const t = useTranslation();
@@ -16,6 +17,7 @@ export default function CarServiceCategoryList() {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState<string>('');
+  const [activeTab, setActiveTab] = useState<string>('ALL');
   const [previewImage, setPreviewImage] = useState<{ url: string; title: string } | null>(null);
 
   const [showModal, setShowModal] = useState<boolean>(false);
@@ -73,28 +75,61 @@ export default function CarServiceCategoryList() {
     finally { setSubmitting(false); }
   };
 
-  const filteredCategories = serviceCategories.filter((item) => {
+  // Build all groups from the full data (for tab labels + counts)
+  const allGrouped = useMemo(() => {
+    return serviceCategories.reduce<Record<string, CarServiceCategoryItem[]>>((acc, item) => {
+      (acc[item.service_name] = acc[item.service_name] || []).push(item);
+      return acc;
+    }, {});
+  }, [serviceCategories]);
+
+  // Tab list: "ALL" + one per service group
+  const tabKeys = ['ALL', ...Object.keys(allGrouped)];
+
+  // Visible items: filter by active tab + search query
+  const visibleItems = useMemo(() => {
     const q = searchQuery.toLowerCase();
-    return item.service_name.toLowerCase().includes(q) || item.uuid.toLowerCase().includes(q) || (item.car_category?.car_type || '').toLowerCase().includes(q);
-  });
+    const base = activeTab === 'ALL' ? serviceCategories : (allGrouped[activeTab] || []);
+    return base.filter((item) =>
+      item.service_name.toLowerCase().includes(q) ||
+      item.uuid.toLowerCase().includes(q) ||
+      (item.car_category?.car_type || '').toLowerCase().includes(q)
+    );
+  }, [serviceCategories, allGrouped, activeTab, searchQuery]);
+
+  const tabCount = (key: string) => key === 'ALL' ? serviceCategories.length : (allGrouped[key]?.length ?? 0);
 
   return (
     <div className="bg-slate-900 rounded-2xl shadow-2xl border border-slate-800 overflow-hidden">
-      {/* Header */}
+
+      {/* ── Top Header ── */}
       <div className="flex flex-wrap items-center justify-between gap-4 px-6 py-4 border-b border-slate-800">
-        <div className="flex items-center gap-4 flex-wrap">
+        <div className="flex items-center gap-3 flex-wrap">
           <h2 className="text-lg font-bold text-white">{t('carServiceCategory')} List</h2>
-          <div className="relative">
-            <input type="text" className="pl-9 pr-4 py-2 bg-slate-800 border border-slate-700 rounded-lg text-slate-300 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm w-60 transition-colors"
-              placeholder="Search service categories..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
-            <svg className="absolute left-3 top-2.5 w-4 h-4 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
-          </div>
+          <span className="text-xs text-slate-500 bg-slate-800 px-2 py-1 rounded-md border border-slate-700">
+            {Object.keys(allGrouped).length} service types · {serviceCategories.length} total
+          </span>
         </div>
-        <div className="flex gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
+          {/* Search */}
+          <div className="relative">
+            <input
+              type="text"
+              className="pl-9 pr-4 py-2 bg-slate-800 border border-slate-700 rounded-lg text-slate-300 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm w-52 transition-colors"
+              placeholder="Search..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+            <svg className="absolute left-3 top-2.5 w-4 h-4 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+          </div>
+          {/* Add button */}
           <button onClick={handleAddClick} className="flex items-center gap-1.5 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium rounded-lg transition-colors cursor-pointer shadow-lg shadow-indigo-900/40">
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
-            Add Service Category
+            Add
           </button>
+          {/* Refresh */}
           <button onClick={loadData} disabled={loading} className="flex items-center gap-1.5 px-4 py-2 bg-slate-700 hover:bg-slate-600 disabled:opacity-50 text-slate-300 text-sm font-medium rounded-lg transition-colors cursor-pointer">
             <svg className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
             Refresh
@@ -102,68 +137,137 @@ export default function CarServiceCategoryList() {
         </div>
       </div>
 
-      {/* Body */}
+      {/* ── Tabs ── */}
+      {!loading && !error && (
+        <div className="flex items-center gap-0 px-4 pt-3 overflow-x-auto border-b border-slate-800 scrollbar-none">
+          {tabKeys.map((key) => {
+            const isActive = activeTab === key;
+            return (
+              <button
+                key={key}
+                onClick={() => setActiveTab(key)}
+                className={`relative flex items-center gap-1.5 px-4 py-2.5 text-xs font-semibold whitespace-nowrap transition-colors cursor-pointer border-b-2 -mb-px ${
+                  isActive
+                    ? 'border-indigo-500 text-indigo-400'
+                    : 'border-transparent text-slate-500 hover:text-slate-300 hover:border-slate-600'
+                }`}
+              >
+                {key === 'ALL' ? 'All' : key.replace(/_/g, ' ')}
+                <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-bold leading-none ${
+                  isActive
+                    ? 'bg-indigo-500/20 text-indigo-300'
+                    : 'bg-slate-700 text-slate-400'
+                }`}>
+                  {tabCount(key)}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      )}
+
+      {/* ── Body ── */}
       <div className="overflow-x-auto">
-        {loading && (<div className="flex justify-center items-center py-20"><div className="animate-spin rounded-full h-10 w-10 border-4 border-indigo-500 border-t-transparent"></div></div>)}
+        {loading && (
+          <div className="flex justify-center items-center py-20">
+            <div className="animate-spin rounded-full h-10 w-10 border-4 border-indigo-500 border-t-transparent"></div>
+          </div>
+        )}
         {error && <div className="m-4 px-4 py-3 bg-rose-900/40 border border-rose-700 text-rose-300 rounded-lg text-sm">{error}</div>}
+
         {!loading && !error && (
-          <table className="w-full text-sm text-left">
-            <thead>
-              <tr className="bg-slate-800/60 text-xs text-slate-400 uppercase tracking-wider">
-                <th className="px-4 py-3 w-16">SL</th>
-                <th className="px-4 py-3">UUID</th>
-                <th className="px-4 py-3">Avatar</th>
-                <th className="px-4 py-3">Service Name</th>
-                <th className="px-4 py-3">Car Category</th>
-                <th className="px-4 py-3">Status</th>
-                <th className="px-4 py-3">Action</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-800/60">
-              {filteredCategories.map((item, index) => {
-                const avatarUrl = item.avatar ? (item.avatar.startsWith('http') ? item.avatar : `${newwork_image_url}${item.avatar}`) : noImage;
-                return (
-                  <tr key={item.uuid} className="hover:bg-slate-800/40 transition-colors">
-                    <td className="px-4 py-3 text-slate-400 font-mono">{index + 1}</td>
-                    <td className="px-4 py-3 text-xs font-mono text-slate-500 max-w-xs truncate">{item.uuid}</td>
-                    <td className="px-4 py-3">
-                      <img src={avatarUrl} alt={item.service_name} className="w-9 h-9 rounded-full object-cover ring-2 ring-slate-700 cursor-pointer hover:ring-indigo-500 transition-all"
-                        onClick={() => setPreviewImage({ url: avatarUrl, title: item.service_name })}
-                        onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = noImage; }} />
-                    </td>
-                    <td className="px-4 py-3 font-semibold text-slate-200">{item.service_name}</td>
-                    <td className="px-4 py-3">
-                      {item.car_category ? (
-                        <span className="px-2.5 py-1 bg-indigo-900/50 text-indigo-300 rounded-md text-xs font-semibold border border-indigo-700/50">{item.car_category.car_type}</span>
-                      ) : <span className="text-slate-500">None</span>}
-                    </td>
-                    <td className="px-4 py-3">
-                      <span className={`px-2.5 py-1 rounded-full text-xs font-semibold ${item.status === 'ACTIVE' ? 'bg-emerald-900/50 text-emerald-300 border border-emerald-700/50' : 'bg-rose-900/50 text-rose-300 border border-rose-700/50'}`}>{item.status ?? 'ACTIVE'}</span>
-                    </td>
-                    <td className="px-4 py-3">
-                      <div className="flex gap-2">
-                        <button onClick={() => handleEditClick(item)} className="flex items-center gap-1 px-3 py-1.5 bg-slate-700 hover:bg-indigo-600 text-slate-300 hover:text-white text-xs font-medium rounded-lg transition-colors cursor-pointer">
-                          <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
-                          Edit
-                        </button>
-                        <button onClick={() => handleDeleteClick(item.uuid)} className="flex items-center gap-1 px-3 py-1.5 bg-slate-700 hover:bg-rose-600 text-slate-300 hover:text-white text-xs font-medium rounded-lg transition-colors cursor-pointer">
-                          <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
-                          Delete
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                );
-              })}
-              {filteredCategories.length === 0 && (
-                <tr><td colSpan={7} className="px-4 py-12 text-center text-slate-500">No car service categories match the search query.</td></tr>
-              )}
-            </tbody>
-          </table>
+          visibleItems.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-16 text-slate-500">
+              <svg className="w-10 h-10 mb-3 opacity-40" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              No items found.
+            </div>
+          ) : (
+            <table className="w-full text-sm text-left">
+              <thead>
+                <tr className="bg-slate-800/60 text-xs text-slate-400 uppercase tracking-wider">
+                  <th className="px-4 py-3 w-12">SL</th>
+                  <th className="px-4 py-3">UUID</th>
+                  <th className="px-4 py-3">Avatar</th>
+                  {activeTab === 'ALL' && <th className="px-4 py-3">Service</th>}
+                  <th className="px-4 py-3">Car Category</th>
+                  <th className="px-4 py-3">Sort Order</th>
+                  <th className="px-4 py-3">Status</th>
+                  <th className="px-4 py-3">Action</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-800/60">
+                {visibleItems.map((item, index) => {
+                  const avatarUrl = item.avatar
+                    ? (item.avatar.startsWith('http') ? item.avatar : `${newwork_image_url}${item.avatar}`)
+                    : noImage;
+                  return (
+                    <tr key={item.uuid} className="hover:bg-slate-800/40 transition-colors">
+                      <td className="px-4 py-3 text-slate-400 font-mono text-xs">{index + 1}</td>
+                      <td className="px-4 py-3 text-xs font-mono text-slate-500 max-w-xs truncate">{item.uuid}</td>
+                      <td className="px-4 py-3">
+                        <img
+                          src={avatarUrl}
+                          alt={item.service_name}
+                          className="w-9 h-9 rounded-full object-cover ring-2 ring-slate-700 cursor-pointer hover:ring-indigo-500 transition-all"
+                          onClick={() => setPreviewImage({ url: avatarUrl, title: item.service_name })}
+                          onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = noImage; }}
+                        />
+                      </td>
+                      {activeTab === 'ALL' && (
+                        <td className="px-4 py-3">
+                          <span className="px-2.5 py-1 bg-indigo-900/40 text-indigo-300 rounded-md text-xs font-bold border border-indigo-700/40">
+                            {item.service_name.replace(/_/g, ' ')}
+                          </span>
+                        </td>
+                      )}
+                      <td className="px-4 py-3">
+                        {item.car_category ? (
+                          <div className="flex items-center gap-2">
+                            <span className="px-2.5 py-1 bg-slate-700/70 text-slate-200 rounded-md text-xs font-semibold border border-slate-600/50">
+                              {item.car_category.car_type}
+                            </span>
+                            <span className="text-xs text-slate-500">Cap: {item.car_category.set_capacity}</span>
+                          </div>
+                        ) : <span className="text-slate-500 text-xs">None</span>}
+                      </td>
+                      <td className="px-4 py-3">
+                        {item.sort_order != null ? (
+                          <span className="px-2.5 py-1 bg-slate-800 text-slate-300 rounded-md text-xs font-mono border border-slate-700 font-semibold">
+                            #{item.sort_order}
+                          </span>
+                        ) : (
+                          <span className="text-slate-500 text-xs">—</span>
+                        )}
+                      </td>
+                      <td className="px-4 py-3">
+                        <span className={`px-2.5 py-1 rounded-full text-xs font-semibold ${item.status === 'ACTIVE' ? 'bg-emerald-900/50 text-emerald-300 border border-emerald-700/50' : 'bg-rose-900/50 text-rose-300 border border-rose-700/50'}`}>
+                          {item.status ?? 'ACTIVE'}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3">
+                        <div className="flex gap-2">
+                          <button onClick={() => handleEditClick(item)} className="flex items-center gap-1 px-3 py-1.5 bg-slate-700 hover:bg-indigo-600 text-slate-300 hover:text-white text-xs font-medium rounded-lg transition-colors cursor-pointer">
+                            <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
+                            Edit
+                          </button>
+                          <button onClick={() => handleDeleteClick(item.uuid)} className="flex items-center gap-1 px-3 py-1.5 bg-slate-700 hover:bg-rose-600 text-slate-300 hover:text-white text-xs font-medium rounded-lg transition-colors cursor-pointer">
+                            <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                            Delete
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          )
         )}
       </div>
 
-      {/* Add/Edit Modal */}
+      {/* ── Add/Edit Modal ── */}
       {showModal && (
         <>
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
@@ -222,7 +326,7 @@ export default function CarServiceCategoryList() {
         </>
       )}
 
-      {/* Preview Image */}
+      {/* ── Preview Image ── */}
       {previewImage && (
         <>
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={() => setPreviewImage(null)}>
@@ -244,7 +348,7 @@ export default function CarServiceCategoryList() {
 
       <PopupMessage show={popup.show} type={popup.type} message={popup.message} onClose={() => setPopup(prev => ({ ...prev, show: false }))} />
 
-      {/* Delete Confirmation */}
+      {/* ── Delete Confirmation ── */}
       {showDeleteConfirm && (
         <>
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
