@@ -141,8 +141,8 @@ export default function RiderViewModal({ item, onClose }: RiderViewModalProps) {
 
   return (
     <>
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-0">
-        <div className="relative bg-slate-900 rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col border border-slate-800 animate-fadeIn">
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 overflow-y-auto">
+        <div className="relative bg-slate-900 rounded-2xl shadow-2xl w-full max-w-6xl max-h-[92vh] overflow-hidden flex flex-col border border-slate-800 animate-fadeIn my-auto">
           {/* Header */}
           <div className="flex justify-between items-center px-6 py-4 border-b border-slate-800 bg-slate-900/50">
             <h3 className="text-xl font-bold text-white flex items-center gap-2">

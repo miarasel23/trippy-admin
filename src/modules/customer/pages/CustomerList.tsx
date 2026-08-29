@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { fetchCustomerList, updateCustomerProfile, uploadCustomerProfilePicture } from '../services/customerApi';
 import { newwork_image_url } from '../../../shared/utils/constants';
 import type { CustomerUserItem } from '../services/types';
@@ -14,10 +14,12 @@ import ImagePreviewModal from '../components/ImagePreviewModal';
 export default function CustomerList() {
   const t = useTranslation();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const urlQuery = searchParams.get('search') || searchParams.get('phone') || searchParams.get('uuid') || '';
   const [customers, setCustomers] = useState<CustomerUserItem[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  const [searchQuery, setSearchQuery] = useState<string>('');
+  const [searchQuery, setSearchQuery] = useState<string>(urlQuery);
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
 
   // Details Modal State
@@ -154,6 +156,13 @@ export default function CustomerList() {
   useEffect(() => {
     loadData();
   }, []);
+
+  useEffect(() => {
+    const q = searchParams.get('search') || searchParams.get('phone') || searchParams.get('uuid') || '';
+    if (q) {
+      setSearchQuery(q);
+    }
+  }, [searchParams]);
 
   const handleViewDetails = (customer: CustomerUserItem) => {
     setSelectedCustomer(customer);

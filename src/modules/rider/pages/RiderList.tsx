@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { fetchRiderList } from '../services/riderApi';
 import type { RiderItem } from '../services/types';
 import { newwork_image_url } from '../../../shared/utils/constants';
@@ -8,10 +9,12 @@ import RiderEditForm from '../components/RiderEditForm';
 import RiderViewModal from '../components/RiderViewModal';
 
 export default function RiderList() {
+  const [searchParams] = useSearchParams();
+  const urlQuery = searchParams.get('search') || searchParams.get('phone') || searchParams.get('uuid') || '';
   const [riders, setRiders] = useState<RiderItem[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  const [searchQuery, setSearchQuery] = useState<string>('');
+  const [searchQuery, setSearchQuery] = useState<string>(urlQuery);
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
 
   // Edit Modal State
@@ -58,6 +61,13 @@ export default function RiderList() {
   useEffect(() => {
     loadData();
   }, []);
+
+  useEffect(() => {
+    const q = searchParams.get('search') || searchParams.get('phone') || searchParams.get('uuid') || '';
+    if (q) {
+      setSearchQuery(q);
+    }
+  }, [searchParams]);
 
   const filteredRiders = riders.filter((rider) => {
     const q = searchQuery.toLowerCase();
