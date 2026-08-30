@@ -116,20 +116,20 @@ export interface CreateUpdateSubscriptionPayload {
 // ─── Price Set As Per Km ────────────────────────────────────
 
 export interface PriceSetAsPerKmItem {
-  id: number;
-  uuid: string;
-  price_per_km: number;
-  minimum_booking_price: number;
-  waiting_time: number;
-  waiting_price: number;
-  cancellation_fee: number;
-  busy_time_price_percentage: number;
-  busy_start_time: string;
-  busy_end_time: string;
-  country_code: string;
-  status: string;
-  created_at: string;
-  updated_at: string;
+  id?: number;
+  uuid?: string;
+  price_per_km?: number;
+  minimum_booking_price?: number;
+  waiting_time?: number;
+  waiting_price?: number;
+  cancellation_fee?: number;
+  busy_time_price_percentage?: number;
+  busy_start_time?: string;
+  busy_end_time?: string;
+  country_code?: string;
+  status?: string;
+  created_at?: string;
+  updated_at?: string;
   car_service_category?: CarServiceCategoryItem | null;
 }
 

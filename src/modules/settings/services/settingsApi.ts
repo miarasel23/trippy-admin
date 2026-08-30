@@ -466,33 +466,49 @@ export const fetchCarServiceCategoryList = async (): Promise<CarServiceCategoryI
     const rawData = response.data.data;
     if (rawData && typeof rawData === 'object' && !Array.isArray(rawData)) {
       const items: CarServiceCategoryItem[] = [];
-      Object.entries(rawData).forEach(([serviceName, list]: [string, any]) => {
-        if (Array.isArray(list)) {
-          list.forEach((rawItem: any) => {
-            const serviceCatUuid = rawItem.car_service_category_uuid || rawItem.uuid;
-            items.push({
-              id: rawItem.id,
-              uuid: serviceCatUuid,
-              car_service_category_uuid: rawItem.car_service_category_uuid,
-              service_name: serviceName,
-              avatar: rawItem.car_avatar || rawItem.avatar,
-              status: rawItem.status || 'ACTIVE',
-              sort_order: rawItem.sort_order,
-              created_at: rawItem.created_at || '',
-              updated_at: rawItem.updated_at || '',
-              car_category: rawItem.car_category ? rawItem.car_category : {
-                id: rawItem.id,
-                uuid: rawItem.uuid,
-                car_type: rawItem.car_type,
-                set_capacity: rawItem.set_capacity,
-                car_avatar: rawItem.car_avatar,
-                sort_order: rawItem.sort_order,
-                status: rawItem.status
-              }
+      const serviceCategoriesList = rawData.car_service_categories || rawData.car_service_catergories;
+      if (Array.isArray(serviceCategoriesList)) {
+        serviceCategoriesList.forEach((service: any) => {
+          const carList = service.car_categories || service.car_category || service.car_catergry;
+          if (Array.isArray(carList) && carList.length > 0) {
+            carList.forEach((carItem: any) => {
+              items.push({
+                id: carItem.id,
+                uuid: carItem.car_service_category_uuid || service.uuid,
+                car_service_category_uuid: service.uuid,
+                service_name: service.service_name,
+                avatar: service.avatar,
+                status: service.status || 'ACTIVE',
+                sort_order: carItem.sort_order,
+                created_at: service.created_at || '',
+                updated_at: service.updated_at || '',
+                car_category: {
+                  id: carItem.id,
+                  uuid: carItem.uuid,
+                  car_type: carItem.car_type,
+                  set_capacity: carItem.set_capacity,
+                  car_avatar: carItem.car_avatar,
+                  sort_order: carItem.sort_order,
+                  status: carItem.status
+                }
+              });
             });
-          });
-        }
-      });
+          } else {
+            items.push({
+              id: 0,
+              uuid: service.uuid,
+              car_service_category_uuid: service.uuid,
+              service_name: service.service_name,
+              avatar: service.avatar,
+              status: service.status || 'ACTIVE',
+              sort_order: null,
+              created_at: service.created_at || '',
+              updated_at: service.updated_at || '',
+              car_category: null
+            });
+          }
+        });
+      }
       return items;
     }
     return response.data.data as CarServiceCategoryItem[];
@@ -571,7 +587,54 @@ export const fetchPriceSetAsPerKmList = async (): Promise<PriceSetAsPerKmItem[]>
     }
   );
   if (response.data && response.data.status) {
-    return response.data.data;
+    const rawData = response.data.data;
+    if (rawData && typeof rawData === 'object' && !Array.isArray(rawData)) {
+      const items: PriceSetAsPerKmItem[] = [];
+      const serviceCategoriesList = rawData.car_service_categories || rawData.car_service_catergories;
+      if (Array.isArray(serviceCategoriesList)) {
+        serviceCategoriesList.forEach((service: any) => {
+          const carList = service.car_categories || service.car_category || service.car_catergry;
+          if (Array.isArray(carList)) {
+            carList.forEach((carItem: any) => {
+              const info = carItem.car_info?.list_price_set_as_per_km;
+              items.push({
+                id: info?.id,
+                uuid: info?.uuid,
+                price_per_km: info ? Number(info.price_per_km) : undefined,
+                minimum_booking_price: info ? Number(info.minimum_booking_price) : undefined,
+                waiting_time: info ? Number(info.waiting_time) : undefined,
+                waiting_price: info ? Number(info.waiting_price) : undefined,
+                cancellation_fee: info ? Number(info.cancellation_fee) : undefined,
+                busy_time_price_percentage: info ? Number(info.busy_time_price_percentage) : undefined,
+                busy_start_time: info?.busy_start_time,
+                busy_end_time: info?.busy_end_time,
+                country_code: info?.country_code,
+                status: info?.status || 'ACTIVE',
+                created_at: info?.created_at || '',
+                updated_at: info?.updated_at || '',
+                car_service_category: {
+                  id: carItem.id,
+                  uuid: carItem.car_service_category_uuid || service.uuid,
+                  service_name: service.service_name,
+                  avatar: service.avatar,
+                  status: service.status || 'ACTIVE',
+                  car_category: {
+                    id: carItem.id,
+                    uuid: carItem.uuid,
+                    car_type: carItem.car_type,
+                    set_capacity: carItem.set_capacity,
+                    car_avatar: carItem.car_avatar,
+                    status: carItem.status
+                  }
+                }
+              });
+            });
+          }
+        });
+      }
+      return items;
+    }
+    return response.data.data as PriceSetAsPerKmItem[];
   }
   throw new Error(response.data.message || 'Failed to fetch price set as per km list');
 };
