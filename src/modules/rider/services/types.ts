@@ -62,3 +62,50 @@ export interface CarPhotoItem {
   created_at: string | null;
   updated_at: string | null;
 }
+
+// ─── Driver Transaction History ───────────────────────────────
+
+export type TransactionFilterType =
+  | 'today'
+  | 'this_week'
+  | 'last_week'
+  | 'last_month'
+  | 'last_three_month';
+
+export interface ActivePackageDetails {
+  id: string | null;
+  subscription_uuid: string | null;
+  subscription_renewal_date_time: string | null;
+  subscription_expiry_date_time: string | null;
+  car_subscription_type: string | null;
+  car_subscription_price: number;
+}
+
+export interface DriverTransactionItem {
+  uuid: string;
+  debit: number;
+  credit: number;
+  main_balance: number;
+  bounce_debit: number;
+  bounce_credit: number;
+  bounce_main_balance: number;
+  description: string | null;
+  created_at: string | null;
+}
+
+export interface DriverTransactionHistoryResponse {
+  status: boolean;
+  message: string;
+  active_pacage_details: ActivePackageDetails | null;
+  current_blanc: number;
+  due_blanc: number;
+  total_earning: number;
+  data: DriverTransactionItem[];
+}
+
+export interface RechargeDriverAccountParams {
+  driver_uuid: string;
+  transaction_id: string;
+  country_code?: string;
+  subscription_uuid?: string;
+}

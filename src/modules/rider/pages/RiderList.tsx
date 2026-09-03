@@ -7,6 +7,7 @@ import { PopupMessage } from '../../../shared/components/PopupMessage';
 import noImage from '../../../shared/assets/images/no-image.png';
 import RiderEditForm from '../components/RiderEditForm';
 import RiderViewModal from '../components/RiderViewModal';
+import RiderTransactionModal from '../components/RiderTransactionModal';
 
 export default function RiderList() {
   const [searchParams] = useSearchParams();
@@ -25,6 +26,16 @@ export default function RiderList() {
   // View Modal State
   const [showViewModal, setShowViewModal] = useState<boolean>(false);
   const [viewItem, setViewItem] = useState<RiderItem | null>(null);
+
+  // Transaction Modal State
+  const [showTransactionModal, setShowTransactionModal] = useState<boolean>(false);
+  const [transactionItem, setTransactionItem] = useState<RiderItem | null>(null);
+
+  const handleTransactionClick = (item: RiderItem) => {
+    setActiveDropdown(null);
+    setTransactionItem(item);
+    setShowTransactionModal(true);
+  };
 
   const handleEditClick = (item: RiderItem) => {
     setActiveDropdown(null);
@@ -190,10 +201,10 @@ export default function RiderList() {
                               <i className="fa fa-pencil w-4"></i> Edit
                             </button>
                             <button
-                              className="w-full text-left px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 transition-colors flex items-center gap-2"
-                              onClick={() => { setActiveDropdown(null); /* handle transaction */ }}
+                              className="w-full text-left px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white transition-colors flex items-center gap-2 cursor-pointer"
+                              onClick={() => handleTransactionClick(item)}
                             >
-                              <i className="fa fa-exchange-alt w-4 text-center"></i> Transaction
+                              <i className="fa fa-money w-4 text-center"></i> Transaction
                             </button>
                           </div>
                         )}
@@ -229,6 +240,17 @@ export default function RiderList() {
         <RiderViewModal 
           item={viewItem} 
           onClose={() => setShowViewModal(false)} 
+        />
+      )}
+
+      {showTransactionModal && (
+        <RiderTransactionModal
+          isOpen={showTransactionModal}
+          onClose={() => {
+            setShowTransactionModal(false);
+            setTransactionItem(null);
+          }}
+          rider={transactionItem}
         />
       )}
 

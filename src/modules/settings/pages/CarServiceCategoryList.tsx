@@ -8,7 +8,6 @@ import { PopupMessage } from '../../../shared/components/PopupMessage';
 
 const labelCls = "block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5";
 const selectCls = "w-full px-3.5 py-2.5 bg-slate-800 border border-slate-700/80 rounded-xl text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/60 focus:border-indigo-500/50 transition-all text-sm";
-const inputCls = "w-full px-3.5 py-2.5 bg-slate-800 border border-slate-700/80 rounded-xl text-slate-200 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/60 focus:border-indigo-500/50 transition-all text-sm";
 
 export default function CarServiceCategoryList() {
   const t = useTranslation();

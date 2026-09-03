@@ -6,13 +6,14 @@ import noImage from '../../../shared/assets/images/no-image.png';
 import ImagePreviewModal from '../../trip/components/ImagePreviewModal';
 import { PopupMessage } from '../../../shared/components/PopupMessage';
 import RiderTripHistory from './RiderTripHistory';
+import RiderTransactionView from './RiderTransactionView';
 
 interface RiderViewModalProps {
   item: RiderItem | null;
   onClose: () => void;
 }
 
-type TabType = 'info' | 'document' | 'carPhotos' | 'trips';
+type TabType = 'info' | 'document' | 'carPhotos' | 'trips' | 'transactions';
 
 export default function RiderViewModal({ item, onClose }: RiderViewModalProps) {
   const [activeTab, setActiveTab] = useState<TabType>('info');
@@ -194,6 +195,15 @@ export default function RiderViewModal({ item, onClose }: RiderViewModalProps) {
                 }`}
             >
               <i className="fa fa-history mr-2"></i>Trip History
+            </button>
+            <button
+              onClick={() => setActiveTab('transactions')}
+              className={`px-4 py-3 text-sm font-semibold transition-colors border-b-2 whitespace-nowrap ${activeTab === 'transactions'
+                ? 'border-indigo-500 text-indigo-400'
+                : 'border-transparent text-slate-400 hover:text-slate-200 hover:border-slate-700'
+                }`}
+            >
+              <i className="fa fa-money mr-2"></i>Transactions
             </button>
           </div>
 
@@ -390,6 +400,12 @@ export default function RiderViewModal({ item, onClose }: RiderViewModalProps) {
               {activeTab === 'trips' && (
                 <div className="mt-4">
                   <RiderTripHistory driverUuid={item.uuid} />
+                </div>
+              )}
+
+              {activeTab === 'transactions' && (
+                <div className="mt-4">
+                  <RiderTransactionView rider={item} />
                 </div>
               )}
             </div>

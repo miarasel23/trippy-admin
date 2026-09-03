@@ -109,34 +109,63 @@ export interface AllRentalTripItem {
     start_datetime: string;
     end_datetime: string | null;
     hours_booked: number | null;
+    note?: string | null;
     trip_status: string;
     country_code: string;
+    offer_ammount?: number | null;
+    customer_offer_ammount?: number | null;
     created_at: string;
+    updated_at?: string;
     car_category?: {
       uuid: string;
       car_type: string;
       set_capacity: number;
       car_avatar: string;
     } | null;
+    service_category?: {
+      uuid: string;
+      service_name: string;
+    } | null;
   };
   location_details: {
     pickup_locations: TripLocationPoint[];
     dropoff_locations: TripLocationPoint[];
   };
-  all_bidders: TripBidderItem[];
-  amount_details: {
-    accepted_bid_amount: number | null;
-    commission_amount: number | null;
-    booking_charge_amount: number | null;
-    insurance_charge_amount: number | null;
-    customer_discount_amount: number | null;
-    total_amount: number | null;
-    price_per_km: number;
-    minimum_booking_price: number;
-  };
-  customer_details: TripPersonDetails;
-  accepted_driver_details: TripPersonDetails | null;
-  cancellation_comments: TripCancellationComment[];
+  customer: {
+    customer_uuid: string;
+    name: string | null;
+    phone: string | null;
+    email: string | null;
+    profile_picture: string | null;
+    country_code?: string;
+    is_active?: boolean;
+    average_rating?: number;
+    total_trip_count?: number;
+    total_trip_complete?: number;
+    trip_accepted_rate?: number;
+  } | null;
+  bids: Array<{
+    uuid: string;
+    status: string;
+    bid_amount: number;
+    commission_amount: number;
+    booking_charge_amount: number;
+    insurance_charge_amount: number;
+    driver_bonus_amount?: number;
+    customer_discount_amount?: number | null;
+    total_amount: number;
+    created_at: string;
+    driver: {
+      driver_uuid: string;
+      name: string | null;
+      phone: string | null;
+      email: string | null;
+      profile_picture: string | null;
+      country_code?: string;
+      is_active?: string;
+    } | null;
+  }>;
+  total_bids: number;
 }
 
 // ─── Trip API Payloads ──────────────────────────────────────

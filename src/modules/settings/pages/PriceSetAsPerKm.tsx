@@ -210,7 +210,7 @@ export default function PriceSetAsPerKm() {
             car_uuid: item.car_service_category.car_category.uuid,
             car_type: item.car_service_category.car_category.car_type,
             set_capacity: item.car_service_category.car_category.set_capacity || 0,
-            car_avatar: item.car_service_category.car_avatar || item.car_service_category.car_category.car_avatar,
+            car_avatar: item.car_service_category.avatar || item.car_service_category.car_category.car_avatar,
             price_item: item.uuid ? item : null
           });
         }

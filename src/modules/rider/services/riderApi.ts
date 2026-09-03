@@ -4,8 +4,23 @@ import { BASE_URL } from '../../../shared/utils/constants';
 import type { RiderItem } from './types';
 
 // Re-export types
-export type { RiderItem, UpdateRiderProfilePicturePayload, DriverDocumentItem, CarPhotoItem } from './types';
-import type { UpdateRiderProfilePicturePayload, DriverDocumentItem, CarPhotoItem } from './types';
+export type {
+  RiderItem,
+  UpdateRiderProfilePicturePayload,
+  DriverDocumentItem,
+  CarPhotoItem,
+  TransactionFilterType,
+  ActivePackageDetails,
+  DriverTransactionItem,
+  DriverTransactionHistoryResponse,
+} from './types';
+import type {
+  UpdateRiderProfilePicturePayload,
+  DriverDocumentItem,
+  CarPhotoItem,
+  TransactionFilterType,
+  DriverTransactionHistoryResponse,
+} from './types';
 
 export const fetchRiderList = async (): Promise<RiderItem[]> => {
   const token = localStorage.getItem('authToken');
@@ -201,4 +216,101 @@ export const updateCarPhotoStatus = async (id: number, status: string): Promise<
     return response.data.message || 'Status updated successfully';
   }
   throw new Error(response.data.message || 'Failed to update car photo status');
+};
+
+export const fetchDriverTransactionHistory = async (params: {
+  driver_uuid: string;
+  filter_type?: TransactionFilterType;
+  page?: number;
+}): Promise<DriverTransactionHistoryResponse> => {
+  const token = localStorage.getItem('authToken');
+  const { language_code, platform } = getLoginDefaults();
+
+  const formData = new FormData();
+  formData.append('platform', platform);
+  formData.append('language_code', language_code);
+  formData.append('action_when', 'driver_transation_history');
+  formData.append('driver_uuid', params.driver_uuid);
+  formData.append('filter_type', params.filter_type || 'today');
+  formData.append('page', (params.page || 1).toString());
+
+  const response = await axios.post(
+    `${BASE_URL}/v1/driver/driver-transation-history`,
+    formData,
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'multipart/form-data',
+      },
+    }
+  );
+
+  if (response.data && response.data.status) {
+    return response.data;
+  }
+  throw new Error(response.data?.message || 'Failed to fetch driver transaction history');
+};
+
+export const rechargeDriverAccount = async (params: {
+  driver_uuid: string;
+  transaction_id: string;
+  country_code?: string;
+  subscription_uuid?: string;
+}): Promise<{ status: boolean; message: string }> => {
+  const token = localStorage.getItem('authToken');
+  const platform = 'web';
+  const language_code = 'bn';
+  const action_when = 'recharge_driver_account';
+  const country_code = params.country_code || 'BD';
+  const subscription_uuid = params.subscription_uuid || '';
+  const transaction_id = params.transaction_id.trim();
+
+  const queryParams = new URLSearchParams({
+    platform,
+    language_code,
+    action_when,
+    driver_uuid: params.driver_uuid,
+    country_code,
+    subscription_uuid,
+    transaction_id,
+  });
+
+  const formData = new FormData();
+  formData.append('platform', platform);
+  formData.append('language_code', language_code);
+  formData.append('action_when', action_when);
+  formData.append('driver_uuid', params.driver_uuid);
+  formData.append('country_code', country_code);
+  if (subscription_uuid) {
+    formData.append('subscription_uuid', subscription_uuid);
+  }
+  formData.append('transaction_id', transaction_id);
+
+  try {
+    const response = await axios.post(
+      `${BASE_URL}/v1/subscription/recharge-driver-account?${queryParams.toString()}`,
+      formData,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'multipart/form-data',
+        },
+      }
+    );
+
+    if (response.data && (response.data.status || response.data.status_code === 200)) {
+      return {
+        status: true,
+        message: response.data.message || 'Driver account recharged successfully',
+      };
+    }
+    throw new Error(response.data?.message || 'Failed to recharge driver account');
+  } catch (error: any) {
+    const errorMsg =
+      error?.response?.data?.message ||
+      error?.response?.data?.detail ||
+      error?.message ||
+      'Failed to recharge driver account';
+    throw new Error(errorMsg);
+  }
 };

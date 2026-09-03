@@ -402,11 +402,11 @@ export default function TripTrack() {
                               <button
                                 type="button"
                                 title="Click to preview vehicle image"
-                                onClick={() => setPreviewImage({ url: `${newwork_image_url}${trip.trip_details.car_category.car_avatar}`, title: trip.trip_details.car_category.car_type })}
+                                onClick={() => trip.trip_details.car_category && setPreviewImage({ url: `${newwork_image_url}${trip.trip_details.car_category.car_avatar}`, title: trip.trip_details.car_category.car_type })}
                                 className="w-16 h-12 rounded-xl bg-white border border-slate-200/20 shadow-md overflow-hidden flex items-center justify-center p-1 shrink-0 hover:ring-2 hover:ring-violet-500/60 transition-all cursor-pointer"
                               >
-                                <img src={`${newwork_image_url}${trip.trip_details.car_category.car_avatar}`}
-                                  alt={trip.trip_details.car_category.car_type}
+                                <img src={`${newwork_image_url}${trip.trip_details.car_category?.car_avatar || ''}`}
+                                  alt={trip.trip_details.car_category?.car_type || ''}
                                   className="w-full h-full object-contain"
                                   onError={e => { e.currentTarget.onerror = null; e.currentTarget.src = noImage; }} />
                               </button>
@@ -675,7 +675,7 @@ export default function TripTrack() {
                                         <InfoRow label="Commission" value={`${bid.commission_amount} ৳`} />
                                         <InfoRow label="Booking" value={`${bid.booking_charge_amount} ৳`} />
                                         <InfoRow label="Insurance" value={`${bid.insurance_charge_amount} ৳`} />
-                                        {bid.driver_bonus_amount > 0 && <InfoRow label="Bonus" value={`${bid.driver_bonus_amount} ৳`} accent="text-amber-400 font-bold" />}
+                                        {(bid.driver_bonus_amount ?? 0) > 0 && <InfoRow label="Bonus" value={`${bid.driver_bonus_amount} ৳`} accent="text-amber-400 font-bold" />}
                                         <div className="col-span-2 pt-2 border-t border-slate-800/60">
                                           <p className="text-xs text-slate-400 font-mono truncate">Bid: {bid.uuid}</p>
                                           <p className="text-xs text-slate-400 font-mono">{formatTripDateTime(bid.created_at)}</p>
