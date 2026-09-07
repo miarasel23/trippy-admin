@@ -29,6 +29,7 @@ export default function Sidebar({ isOpen = true }: { isOpen?: boolean }) {
   const links = [
     { to: '/dashboard', icon: 'fa-dashboard', text: t('dashboard'), perms: [] },
     { to: '/dashboard/trip-track', icon: 'fa-search', text: t('tripTrack'), perms: [] },
+    { to: '/dashboard/live-chat', icon: 'fa-comments', text: t('liveChat'), perms: [] },
     { to: '/dashboard/customer', icon: 'fa-users', text: t('customer'), perms: ['customer_list'] },
     { to: '/dashboard/rider', icon: 'fa-user-circle', text: t('rider'), perms: [] },
     { to: '/dashboard/admin-user', icon: 'fa-user-secret', text: t('adminUser'), perms: [] },

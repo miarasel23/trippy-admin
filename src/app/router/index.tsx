@@ -24,6 +24,8 @@ import CustomerList from '../../modules/customer/pages/CustomerList';
 import CustomerTripHistory from '../../modules/customer/pages/CustomerTripHistory';
 import TripTrack from '../../modules/trip/pages/TripTrack';
 import RiderList from '../../modules/rider/pages/RiderList';
+import LiveChatPage from '../../modules/chat/pages/LiveChatPage';
+import { ChatFloatingWidget } from '../../modules/chat/components/ChatFloatingWidget';
 
 export const AppRoutes = () => {
   const auth = useContext(AuthContextTrippy);
@@ -76,11 +78,15 @@ export const AppRoutes = () => {
               <Route path="/dashboard/rider" element={isAuthenticated ? <RiderList /> : <Navigate to="/" replace />} />
               <Route path="/dashboard/trip" element={isAuthenticated ? <CustomerTripHistory /> : <Navigate to="/" replace />} />
               <Route path="/dashboard/trip-track" element={isAuthenticated ? <TripTrack /> : <Navigate to="/" replace />} />
+              <Route path="/dashboard/live-chat" element={isAuthenticated ? <LiveChatPage /> : <Navigate to="/" replace />} />
             </Routes>
           </main>
 
           {isAuthenticated && <Footer />}
         </div>
+
+        {/* Global Floating Chat Widget pinned at bottom right */}
+        {isAuthenticated && <ChatFloatingWidget />}
       </div>
     </Router>
   );
