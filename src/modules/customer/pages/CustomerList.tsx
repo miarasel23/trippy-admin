@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { fetchCustomerList, updateCustomerProfile, uploadCustomerProfilePicture } from '../services/customerApi';
+import { fetchCustomerListPaginated, updateCustomerProfile, uploadCustomerProfilePicture } from '../services/customerApi';
 import { newwork_image_url } from '../../../shared/utils/constants';
 import type { CustomerUserItem } from '../services/types';
 import { useTranslation } from '../../../shared/utils/translation';
@@ -21,6 +21,8 @@ export default function CustomerList() {
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState<string>(urlQuery);
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const [limit, setLimit] = useState<number>(10);
 
   // Details Modal State
   const [selectedCustomer, setSelectedCustomer] = useState<CustomerUserItem | null>(null);
@@ -131,13 +133,15 @@ export default function CustomerList() {
   };
 
 
-  const loadData = async () => {
+  const loadData = async (page: number = currentPage, pageLimit: number = limit) => {
     try {
       setLoading(true);
       setError(null);
       let data: CustomerUserItem[] = [];
       try {
-        data = await fetchCustomerList();
+        const response = await fetchCustomerListPaginated(page, pageLimit);
+        data = response.data || [];
+        setCurrentPage(response.page || page);
       } catch (err: any) {
         if (err.response?.status === 404 || err.message?.includes('404')) {
           data = [];
@@ -153,8 +157,20 @@ export default function CustomerList() {
     }
   };
 
+  const handlePageChange = (newPage: number) => {
+    if (newPage < 1) return;
+    setCurrentPage(newPage);
+    loadData(newPage, limit);
+  };
+
+  const handleLimitChange = (newLimit: number) => {
+    setLimit(newLimit);
+    setCurrentPage(1);
+    loadData(1, newLimit);
+  };
+
   useEffect(() => {
-    loadData();
+    loadData(1, limit);
   }, []);
 
   useEffect(() => {
@@ -210,7 +226,7 @@ export default function CustomerList() {
           </div>
         </div>
         <button
-          onClick={loadData}
+          onClick={() => loadData()}
           disabled={loading}
           className="flex items-center gap-1.5 px-4 py-2 bg-slate-700 hover:bg-slate-600 disabled:opacity-50 text-slate-300 text-sm font-medium rounded-lg transition-colors cursor-pointer"
         >
@@ -443,6 +459,52 @@ export default function CustomerList() {
             </tbody>
           </table>
         )}
+      </div>
+
+      {/* Pagination Footer Bar */}
+      <div className="flex flex-wrap items-center justify-between gap-3 px-6 py-3.5 bg-slate-900 border-t border-slate-800 text-xs text-slate-400 select-none">
+        <div className="flex items-center gap-2">
+          <span>Rows per page:</span>
+          <select
+            value={limit}
+            onChange={(e) => handleLimitChange(Number(e.target.value))}
+            className="bg-slate-800 border border-slate-700 text-slate-200 rounded-lg px-2.5 py-1 font-semibold focus:outline-none focus:ring-1 focus:ring-indigo-500 cursor-pointer"
+          >
+            <option value={10}>10</option>
+            <option value={25}>25</option>
+            <option value={50}>50</option>
+            <option value={100}>100</option>
+          </select>
+          <span className="text-slate-500 ml-1">
+            (Showing {customers.length} {customers.length === 1 ? 'customer' : 'customers'} on page {currentPage})
+          </span>
+        </div>
+
+        <div className="flex items-center gap-1.5">
+          <button
+            onClick={() => handlePageChange(currentPage - 1)}
+            disabled={currentPage <= 1 || loading}
+            className="flex items-center gap-1 px-3 py-1.5 rounded-lg border border-slate-700 bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white disabled:opacity-40 disabled:pointer-events-none transition cursor-pointer font-medium"
+            title="Previous Page"
+          >
+            <i className="fa fa-chevron-left text-[10px]"></i>
+            <span>Previous</span>
+          </button>
+
+          <span className="px-3 py-1.5 rounded-lg bg-indigo-600/20 border border-indigo-500/40 text-indigo-300 font-bold">
+            Page {currentPage}
+          </span>
+
+          <button
+            onClick={() => handlePageChange(currentPage + 1)}
+            disabled={customers.length < limit || loading}
+            className="flex items-center gap-1 px-3 py-1.5 rounded-lg border border-slate-700 bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white disabled:opacity-40 disabled:pointer-events-none transition cursor-pointer font-medium"
+            title="Next Page"
+          >
+            <span>Next</span>
+            <i className="fa fa-chevron-right text-[10px]"></i>
+          </button>
+        </div>
       </div>
 
       {/* Details Modal */}

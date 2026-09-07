@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { fetchRiderList } from '../services/riderApi';
+import { fetchRiderListPaginated } from '../services/riderApi';
 import type { RiderItem } from '../services/types';
 import { newwork_image_url } from '../../../shared/utils/constants';
 import { PopupMessage } from '../../../shared/components/PopupMessage';
@@ -17,6 +17,8 @@ export default function RiderList() {
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState<string>(urlQuery);
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const [limit, setLimit] = useState<number>(10);
 
   // Edit Modal State
   const [showEditModal, setShowEditModal] = useState<boolean>(false);
@@ -56,12 +58,13 @@ export default function RiderList() {
     return () => document.removeEventListener('click', handleClickOutside);
   }, []);
 
-  const loadData = async () => {
+  const loadData = async (page: number = currentPage, pageLimit: number = limit) => {
     try {
       setLoading(true);
       setError(null);
-      const data = await fetchRiderList();
-      setRiders(data);
+      const response = await fetchRiderListPaginated(page, pageLimit);
+      setRiders(response.data || []);
+      setCurrentPage(response.page || page);
     } catch (err: any) {
       setError(err.message || 'Error loading rider list');
     } finally {
@@ -69,8 +72,20 @@ export default function RiderList() {
     }
   };
 
+  const handlePageChange = (newPage: number) => {
+    if (newPage < 1) return;
+    setCurrentPage(newPage);
+    loadData(newPage, limit);
+  };
+
+  const handleLimitChange = (newLimit: number) => {
+    setLimit(newLimit);
+    setCurrentPage(1);
+    loadData(1, newLimit);
+  };
+
   useEffect(() => {
-    loadData();
+    loadData(1, limit);
   }, []);
 
   useEffect(() => {
@@ -111,7 +126,7 @@ export default function RiderList() {
         </div>
         <div className="flex gap-2">
           <button
-            onClick={loadData}
+            onClick={() => loadData()}
             disabled={loading}
             className="flex items-center gap-1.5 px-4 py-2 bg-slate-700 hover:bg-slate-600 disabled:opacity-50 text-slate-300 text-sm font-medium rounded-lg transition-colors cursor-pointer"
           >
@@ -223,6 +238,52 @@ export default function RiderList() {
             </tbody>
           </table>
         )}
+      </div>
+
+      {/* Pagination Footer Bar */}
+      <div className="flex flex-wrap items-center justify-between gap-3 px-6 py-3.5 bg-slate-900 border-t border-slate-800 text-xs text-slate-400 select-none">
+        <div className="flex items-center gap-2">
+          <span>Rows per page:</span>
+          <select
+            value={limit}
+            onChange={(e) => handleLimitChange(Number(e.target.value))}
+            className="bg-slate-800 border border-slate-700 text-slate-200 rounded-lg px-2.5 py-1 font-semibold focus:outline-none focus:ring-1 focus:ring-indigo-500 cursor-pointer"
+          >
+            <option value={10}>10</option>
+            <option value={25}>25</option>
+            <option value={50}>50</option>
+            <option value={100}>100</option>
+          </select>
+          <span className="text-slate-500 ml-1">
+            (Showing {riders.length} {riders.length === 1 ? 'driver' : 'drivers'} on page {currentPage})
+          </span>
+        </div>
+
+        <div className="flex items-center gap-1.5">
+          <button
+            onClick={() => handlePageChange(currentPage - 1)}
+            disabled={currentPage <= 1 || loading}
+            className="flex items-center gap-1 px-3 py-1.5 rounded-lg border border-slate-700 bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white disabled:opacity-40 disabled:pointer-events-none transition cursor-pointer font-medium"
+            title="Previous Page"
+          >
+            <i className="fa fa-chevron-left text-[10px]"></i>
+            <span>Previous</span>
+          </button>
+
+          <span className="px-3 py-1.5 rounded-lg bg-indigo-600/20 border border-indigo-500/40 text-indigo-300 font-bold">
+            Page {currentPage}
+          </span>
+
+          <button
+            onClick={() => handlePageChange(currentPage + 1)}
+            disabled={riders.length < limit || loading}
+            className="flex items-center gap-1 px-3 py-1.5 rounded-lg border border-slate-700 bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white disabled:opacity-40 disabled:pointer-events-none transition cursor-pointer font-medium"
+            title="Next Page"
+          >
+            <span>Next</span>
+            <i className="fa fa-chevron-right text-[10px]"></i>
+          </button>
+        </div>
       </div>
 
       <RiderEditForm 

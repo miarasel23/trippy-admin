@@ -6,11 +6,26 @@ import type { CustomerUserItem, UpdateCustomerProfilePayload } from './types';
 // Re-export types
 export type { CustomerUserItem, UpdateCustomerProfilePayload } from './types';
 
-export const fetchCustomerList = async (): Promise<CustomerUserItem[]> => {
+export interface PaginatedCustomerResponse {
+  status: boolean;
+  message: string;
+  page: number;
+  limit: number;
+  data: CustomerUserItem[];
+}
+
+/**
+ * Fetch paginated customer list
+ */
+export const fetchCustomerListPaginated = async (
+  page: number = 1,
+  limit: number = 10
+): Promise<PaginatedCustomerResponse> => {
   const token = localStorage.getItem('authToken');
-  const { language_code } = getLoginDefaults();
-  const response = await axios.get(
-    `${BASE_URL}/v1/admin/customer-list?platform=web&language_code=${language_code}&action_when=customer_list`,
+  const { language_code, platform } = getLoginDefaults();
+  const lang = ['bn', 'en'].includes(language_code) ? language_code : 'bn';
+  const response = await axios.get<PaginatedCustomerResponse>(
+    `${BASE_URL}/v1/admin/customer-list?platform=${platform}&language_code=${lang}&action_when=customer_list&page=${page}&limit=${limit}`,
     {
       headers: {
         Authorization: `Bearer ${token}`
@@ -18,9 +33,17 @@ export const fetchCustomerList = async (): Promise<CustomerUserItem[]> => {
     }
   );
   if (response.data && response.data.status) {
-    return response.data.data;
+    return response.data;
   }
-  throw new Error(response.data.message || 'Failed to fetch customer list');
+  throw new Error(response.data?.message || 'Failed to fetch customer list');
+};
+
+/**
+ * Fetch customer list (returns array, default page=1, limit=100)
+ */
+export const fetchCustomerList = async (page: number = 1, limit: number = 100): Promise<CustomerUserItem[]> => {
+  const res = await fetchCustomerListPaginated(page, limit);
+  return res.data || [];
 };
 
 export const updateCustomerProfile = async (

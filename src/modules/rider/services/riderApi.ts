@@ -22,11 +22,26 @@ import type {
   DriverTransactionHistoryResponse,
 } from './types';
 
-export const fetchRiderList = async (): Promise<RiderItem[]> => {
+export interface PaginatedRiderResponse {
+  status: boolean;
+  message: string;
+  page: number;
+  limit: number;
+  data: RiderItem[];
+}
+
+/**
+ * Fetch paginated driver list
+ */
+export const fetchRiderListPaginated = async (
+  page: number = 1,
+  limit: number = 10
+): Promise<PaginatedRiderResponse> => {
   const token = localStorage.getItem('authToken');
-  const { language_code } = getLoginDefaults();
-  const response = await axios.get(
-    `${BASE_URL}/v1/admin/driver-list?platform=web&language_code=${language_code}&action_when=driver_list`,
+  const { language_code, platform } = getLoginDefaults();
+  const lang = ['bn', 'en'].includes(language_code) ? language_code : 'bn';
+  const response = await axios.get<PaginatedRiderResponse>(
+    `${BASE_URL}/v1/admin/driver-list?platform=${platform}&language_code=${lang}&action_when=driver_list&page=${page}&limit=${limit}`,
     {
       headers: {
         Authorization: `Bearer ${token}`
@@ -34,9 +49,17 @@ export const fetchRiderList = async (): Promise<RiderItem[]> => {
     }
   );
   if (response.data && response.data.status) {
-    return response.data.data;
+    return response.data;
   }
-  throw new Error(response.data.message || 'Failed to fetch rider list');
+  throw new Error(response.data?.message || 'Failed to fetch rider list');
+};
+
+/**
+ * Fetch driver list (returns array, default page=1, limit=100)
+ */
+export const fetchRiderList = async (page: number = 1, limit: number = 100): Promise<RiderItem[]> => {
+  const res = await fetchRiderListPaginated(page, limit);
+  return res.data || [];
 };
 
 export const updateRiderProfile = async (payload: import('./types').UpdateRiderProfilePayload): Promise<string> => {
