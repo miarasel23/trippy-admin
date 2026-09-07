@@ -14,8 +14,14 @@ import {
   sendLiveChatMessage,
   markLiveChatRead,
 } from '../services/chatApi';
-import { fetchCustomerList, type CustomerUserItem } from '../../customer/services/customerApi';
-import { fetchRiderList, type RiderItem } from '../../rider/services/riderApi';
+import {
+  fetchCustomerListPaginated,
+  type CustomerUserItem,
+} from '../../customer/services/customerApi';
+import {
+  fetchRiderListPaginated,
+  type RiderItem,
+} from '../../rider/services/riderApi';
 import { playIncomingMessageSound } from '../utils/sound';
 import type {
   InboxRoom,
@@ -30,8 +36,22 @@ export interface LiveChatContextType {
   errorRooms: string | null;
   customers: CustomerUserItem[];
   loadingCustomers: boolean;
+  customerPage: number;
+  customerLimit: number;
+  customerHasMore: boolean;
+  onCustomerPageChange: (page: number) => void;
+  onCustomerLimitChange: (limit: number) => void;
   drivers: RiderItem[];
   loadingDrivers: boolean;
+  driverPage: number;
+  driverLimit: number;
+  driverHasMore: boolean;
+  onDriverPageChange: (page: number) => void;
+  onDriverLimitChange: (limit: number) => void;
+  chatPage: number;
+  chatLimit: number;
+  onChatPageChange: (page: number) => void;
+  onChatLimitChange: (limit: number) => void;
   activeTarget: ActiveChatTarget | null;
   messages: ChatMessage[];
   loadingMessages: boolean;
@@ -41,8 +61,8 @@ export interface LiveChatContextType {
   lastSyncTime: Date | null;
   newIncomingMessageId: string | null;
   loadRooms: (showLoading?: boolean) => Promise<void>;
-  loadCustomers: (showLoading?: boolean) => Promise<void>;
-  loadDrivers: (showLoading?: boolean) => Promise<void>;
+  loadCustomers: (page?: number, limit?: number, showLoading?: boolean) => Promise<void>;
+  loadDrivers: (page?: number, limit?: number, showLoading?: boolean) => Promise<void>;
   loadMessages: (target: ActiveChatTarget, showLoading?: boolean) => Promise<void>;
   selectRoom: (room: InboxRoom) => void;
   selectCustomer: (customer: CustomerUserItem) => void;
@@ -65,9 +85,28 @@ export const LiveChatProvider: React.FC<{ children: ReactNode }> = ({ children }
 
   const [customers, setCustomers] = useState<CustomerUserItem[]>([]);
   const [loadingCustomers, setLoadingCustomers] = useState<boolean>(false);
+  const [customerPage, setCustomerPage] = useState<number>(1);
+  const [customerLimit, setCustomerLimit] = useState<number>(15);
+  const [customerHasMore, setCustomerHasMore] = useState<boolean>(true);
 
   const [drivers, setDrivers] = useState<RiderItem[]>([]);
   const [loadingDrivers, setLoadingDrivers] = useState<boolean>(false);
+  const [driverPage, setDriverPage] = useState<number>(1);
+  const [driverLimit, setDriverLimit] = useState<number>(15);
+  const [driverHasMore, setDriverHasMore] = useState<boolean>(true);
+
+  const [chatPage, setChatPage] = useState<number>(1);
+  const [chatLimit, setChatLimit] = useState<number>(15);
+
+  const customerPageRef = useRef<number>(customerPage);
+  customerPageRef.current = customerPage;
+  const customerLimitRef = useRef<number>(customerLimit);
+  customerLimitRef.current = customerLimit;
+
+  const driverPageRef = useRef<number>(driverPage);
+  driverPageRef.current = driverPage;
+  const driverLimitRef = useRef<number>(driverLimit);
+  driverLimitRef.current = driverLimit;
 
   const [activeTarget, setActiveTarget] = useState<ActiveChatTarget | null>(null);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -166,30 +205,99 @@ export const LiveChatProvider: React.FC<{ children: ReactNode }> = ({ children }
     [getAdminUuid]
   );
 
-  // Fetch Customers list
-  const loadCustomers = useCallback(async (showLoading = true) => {
-    if (showLoading) setLoadingCustomers(true);
-    try {
-      const data = await fetchCustomerList();
-      setCustomers(data || []);
-    } catch (err: any) {
-      console.error('Failed to load customers:', err);
-    } finally {
-      if (showLoading) setLoadingCustomers(false);
-    }
+  // Fetch Customers list with pagination
+  const loadCustomers = useCallback(
+    async (page?: number, limit?: number, showLoading = true) => {
+      const targetPage = page ?? customerPageRef.current;
+      const targetLimit = limit ?? customerLimitRef.current;
+
+      if (showLoading) setLoadingCustomers(true);
+      try {
+        const response = await fetchCustomerListPaginated(targetPage, targetLimit);
+        const data = response.data || [];
+        setCustomers(data);
+        setCustomerPage(response.page || targetPage);
+        setCustomerLimit(response.limit || targetLimit);
+        setCustomerHasMore(data.length >= targetLimit);
+      } catch (err: any) {
+        console.error('Failed to load customers:', err);
+        setCustomers([]);
+      } finally {
+        if (showLoading) setLoadingCustomers(false);
+      }
+    },
+    []
+  );
+
+  // Fetch Drivers list with pagination
+  const loadDrivers = useCallback(
+    async (page?: number, limit?: number, showLoading = true) => {
+      const targetPage = page ?? driverPageRef.current;
+      const targetLimit = limit ?? driverLimitRef.current;
+
+      if (showLoading) setLoadingDrivers(true);
+      try {
+        const response = await fetchRiderListPaginated(targetPage, targetLimit);
+        const data = response.data || [];
+        setDrivers(data);
+        setDriverPage(response.page || targetPage);
+        setDriverLimit(response.limit || targetLimit);
+        setDriverHasMore(data.length >= targetLimit);
+      } catch (err: any) {
+        console.error('Failed to load drivers:', err);
+        setDrivers([]);
+      } finally {
+        if (showLoading) setLoadingDrivers(false);
+      }
+    },
+    []
+  );
+
+  // Pagination Change Handlers
+  const onCustomerPageChange = useCallback(
+    (newPage: number) => {
+      if (newPage < 1) return;
+      setCustomerPage(newPage);
+      loadCustomers(newPage, customerLimitRef.current, true);
+    },
+    [loadCustomers]
+  );
+
+  const onCustomerLimitChange = useCallback(
+    (newLimit: number) => {
+      setCustomerLimit(newLimit);
+      setCustomerPage(1);
+      loadCustomers(1, newLimit, true);
+    },
+    [loadCustomers]
+  );
+
+  const onDriverPageChange = useCallback(
+    (newPage: number) => {
+      if (newPage < 1) return;
+      setDriverPage(newPage);
+      loadDrivers(newPage, driverLimitRef.current, true);
+    },
+    [loadDrivers]
+  );
+
+  const onDriverLimitChange = useCallback(
+    (newLimit: number) => {
+      setDriverLimit(newLimit);
+      setDriverPage(1);
+      loadDrivers(1, newLimit, true);
+    },
+    [loadDrivers]
+  );
+
+  const onChatPageChange = useCallback((newPage: number) => {
+    if (newPage < 1) return;
+    setChatPage(newPage);
   }, []);
 
-  // Fetch Drivers list
-  const loadDrivers = useCallback(async (showLoading = true) => {
-    if (showLoading) setLoadingDrivers(true);
-    try {
-      const data = await fetchRiderList();
-      setDrivers(data || []);
-    } catch (err: any) {
-      console.error('Failed to load drivers:', err);
-    } finally {
-      if (showLoading) setLoadingDrivers(false);
-    }
+  const onChatLimitChange = useCallback((newLimit: number) => {
+    setChatLimit(newLimit);
+    setChatPage(1);
   }, []);
 
   // Fetch Messages for active chat
@@ -389,8 +497,8 @@ export const LiveChatProvider: React.FC<{ children: ReactNode }> = ({ children }
   // Refresh all data
   const refreshAll = useCallback(() => {
     loadRooms(false);
-    loadCustomers(false);
-    loadDrivers(false);
+    loadCustomers(customerPageRef.current, customerLimitRef.current, false);
+    loadDrivers(driverPageRef.current, driverLimitRef.current, false);
     if (activeTargetRef.current) {
       loadMessages(activeTargetRef.current, false);
     }
@@ -411,8 +519,8 @@ export const LiveChatProvider: React.FC<{ children: ReactNode }> = ({ children }
     const adminUuid = getAdminUuid();
     if (adminUuid) {
       loadRooms(true);
-      loadCustomers(true);
-      loadDrivers(true);
+      loadCustomers(1, customerLimitRef.current, true);
+      loadDrivers(1, driverLimitRef.current, true);
     }
   }, [getAdminUuid, loadRooms, loadCustomers, loadDrivers]);
 
@@ -466,8 +574,22 @@ export const LiveChatProvider: React.FC<{ children: ReactNode }> = ({ children }
     errorRooms,
     customers,
     loadingCustomers,
+    customerPage,
+    customerLimit,
+    customerHasMore,
+    onCustomerPageChange,
+    onCustomerLimitChange,
     drivers,
     loadingDrivers,
+    driverPage,
+    driverLimit,
+    driverHasMore,
+    onDriverPageChange,
+    onDriverLimitChange,
+    chatPage,
+    chatLimit,
+    onChatPageChange,
+    onChatLimitChange,
     activeTarget,
     messages,
     loadingMessages,

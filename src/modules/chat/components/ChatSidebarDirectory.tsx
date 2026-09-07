@@ -8,8 +8,22 @@ interface ChatSidebarDirectoryProps {
   loadingRooms: boolean;
   customers: CustomerUserItem[];
   loadingCustomers: boolean;
+  customerPage?: number;
+  customerLimit?: number;
+  customerHasMore?: boolean;
+  onCustomerPageChange?: (page: number) => void;
+  onCustomerLimitChange?: (limit: number) => void;
   drivers: RiderItem[];
   loadingDrivers: boolean;
+  driverPage?: number;
+  driverLimit?: number;
+  driverHasMore?: boolean;
+  onDriverPageChange?: (page: number) => void;
+  onDriverLimitChange?: (limit: number) => void;
+  chatPage?: number;
+  chatLimit?: number;
+  onChatPageChange?: (page: number) => void;
+  onChatLimitChange?: (limit: number) => void;
   activeTarget: ActiveChatTarget | null;
   onSelectRoom: (room: InboxRoom) => void;
   onSelectCustomer: (customer: CustomerUserItem) => void;
@@ -23,8 +37,22 @@ export const ChatSidebarDirectory: React.FC<ChatSidebarDirectoryProps> = ({
   loadingRooms,
   customers,
   loadingCustomers,
+  customerPage = 1,
+  customerLimit = 15,
+  customerHasMore = true,
+  onCustomerPageChange,
+  onCustomerLimitChange,
   drivers,
   loadingDrivers,
+  driverPage = 1,
+  driverLimit = 15,
+  driverHasMore = true,
+  onDriverPageChange,
+  onDriverLimitChange,
+  chatPage,
+  chatLimit,
+  onChatPageChange,
+  onChatLimitChange,
   activeTarget,
   onSelectRoom,
   onSelectCustomer,
@@ -34,6 +62,15 @@ export const ChatSidebarDirectory: React.FC<ChatSidebarDirectoryProps> = ({
 }) => {
   const [activeTab, setActiveTab] = useState<'customers' | 'drivers' | 'chats'>('customers');
   const [searchQuery, setSearchQuery] = useState('');
+
+  // Local fallback for chat pagination
+  const [localChatPage, setLocalChatPage] = useState(1);
+  const [localChatLimit, setLocalChatLimit] = useState(15);
+
+  const currentChatPage = chatPage !== undefined ? chatPage : localChatPage;
+  const currentChatLimit = chatLimit !== undefined ? chatLimit : localChatLimit;
+  const handleChatPageChange = onChatPageChange || setLocalChatPage;
+  const handleChatLimitChange = onChatLimitChange || setLocalChatLimit;
 
   // Map of unread counts per user UUID from rooms
   const unreadMap = useMemo(() => {
@@ -87,6 +124,14 @@ export const ChatSidebarDirectory: React.FC<ChatSidebarDirectoryProps> = ({
       return name.includes(q) || msg.includes(q);
     });
   }, [rooms, searchQuery]);
+
+  const chatTotalPages = Math.max(1, Math.ceil(filteredChats.length / currentChatLimit));
+  const safeChatPage = Math.min(Math.max(1, currentChatPage), chatTotalPages);
+
+  const paginatedChats = useMemo(() => {
+    const start = (safeChatPage - 1) * currentChatLimit;
+    return filteredChats.slice(start, start + currentChatLimit);
+  }, [filteredChats, safeChatPage, currentChatLimit]);
 
   const totalUnreadChats = rooms.reduce((acc, r) => {
     const isUnread =
@@ -423,7 +468,7 @@ export const ChatSidebarDirectory: React.FC<ChatSidebarDirectoryProps> = ({
               </p>
             </div>
           ) : (
-            filteredChats.map((room) => {
+            paginatedChats.map((room) => {
               const isSelected = activeTarget?.conversation_uuid === room.conversation_uuid;
               const isDriver = !!room.driver_uuid;
               const isCustomer = !isDriver && !!room.customer_uuid;
@@ -518,14 +563,161 @@ export const ChatSidebarDirectory: React.FC<ChatSidebarDirectoryProps> = ({
         )}
       </div>
 
-      {/* Directory Footer */}
-      <div className="px-3 py-2 bg-slate-950 border-t border-slate-900 flex items-center justify-between text-[11px] text-slate-500 shrink-0">
-        <span>
-          {activeTab === 'customers' && `${filteredCustomers.length} Customers`}
-          {activeTab === 'drivers' && `${filteredDrivers.length} Drivers`}
-          {activeTab === 'chats' && `${filteredChats.length} Conversations`}
-        </span>
-        <span className="text-[10px] text-slate-600">Always Connected</span>
+      {/* Directory Footer with Pagination Controls */}
+      <div className="px-3 py-2 bg-slate-950 border-t border-slate-850 flex items-center justify-between text-[11px] text-slate-400 shrink-0 select-none">
+        {/* CUSTOMERS PAGINATION CONTROLS */}
+        {activeTab === 'customers' && (
+          <>
+            <div className="flex items-center gap-1.5">
+              <select
+                value={customerLimit}
+                onChange={(e) => onCustomerLimitChange?.(Number(e.target.value))}
+                disabled={loadingCustomers}
+                className="bg-slate-900 border border-slate-800 text-slate-300 rounded-md px-1.5 py-0.5 text-[10px] font-medium focus:outline-none focus:ring-1 focus:ring-violet-500 cursor-pointer"
+                title="Customers per page"
+              >
+                <option value={10}>10</option>
+                <option value={15}>15</option>
+                <option value={25}>25</option>
+                <option value={50}>50</option>
+                <option value={100}>100</option>
+              </select>
+              <span className="text-[10px] text-slate-400 font-medium">
+                {filteredCustomers.length} cust.
+              </span>
+            </div>
+
+            <div className="flex items-center gap-1">
+              <button
+                type="button"
+                onClick={() => onCustomerPageChange?.(customerPage - 1)}
+                disabled={customerPage <= 1 || loadingCustomers}
+                className="flex items-center gap-1 px-2 py-0.5 rounded-md border border-slate-800 bg-slate-900 text-slate-300 hover:bg-slate-800 hover:text-white disabled:opacity-30 disabled:pointer-events-none text-[10px] font-medium transition cursor-pointer"
+                title="Previous Page"
+              >
+                <i className="fa fa-chevron-left text-[8px]"></i>
+                <span>Prev</span>
+              </button>
+
+              <span className="px-2 py-0.5 rounded-md bg-violet-600/25 border border-violet-500/40 text-violet-300 font-bold text-[10px]">
+                P. {customerPage}
+              </span>
+
+              <button
+                type="button"
+                onClick={() => onCustomerPageChange?.(customerPage + 1)}
+                disabled={!customerHasMore || customers.length < customerLimit || loadingCustomers}
+                className="flex items-center gap-1 px-2 py-0.5 rounded-md border border-slate-800 bg-slate-900 text-slate-300 hover:bg-slate-800 hover:text-white disabled:opacity-30 disabled:pointer-events-none text-[10px] font-medium transition cursor-pointer"
+                title="Next Page"
+              >
+                <span>Next</span>
+                <i className="fa fa-chevron-right text-[8px]"></i>
+              </button>
+            </div>
+          </>
+        )}
+
+        {/* DRIVERS PAGINATION CONTROLS */}
+        {activeTab === 'drivers' && (
+          <>
+            <div className="flex items-center gap-1.5">
+              <select
+                value={driverLimit}
+                onChange={(e) => onDriverLimitChange?.(Number(e.target.value))}
+                disabled={loadingDrivers}
+                className="bg-slate-900 border border-slate-800 text-slate-300 rounded-md px-1.5 py-0.5 text-[10px] font-medium focus:outline-none focus:ring-1 focus:ring-emerald-500 cursor-pointer"
+                title="Drivers per page"
+              >
+                <option value={10}>10</option>
+                <option value={15}>15</option>
+                <option value={25}>25</option>
+                <option value={50}>50</option>
+                <option value={100}>100</option>
+              </select>
+              <span className="text-[10px] text-slate-400 font-medium">
+                {filteredDrivers.length} driv.
+              </span>
+            </div>
+
+            <div className="flex items-center gap-1">
+              <button
+                type="button"
+                onClick={() => onDriverPageChange?.(driverPage - 1)}
+                disabled={driverPage <= 1 || loadingDrivers}
+                className="flex items-center gap-1 px-2 py-0.5 rounded-md border border-slate-800 bg-slate-900 text-slate-300 hover:bg-slate-800 hover:text-white disabled:opacity-30 disabled:pointer-events-none text-[10px] font-medium transition cursor-pointer"
+                title="Previous Page"
+              >
+                <i className="fa fa-chevron-left text-[8px]"></i>
+                <span>Prev</span>
+              </button>
+
+              <span className="px-2 py-0.5 rounded-md bg-emerald-600/25 border border-emerald-500/40 text-emerald-300 font-bold text-[10px]">
+                P. {driverPage}
+              </span>
+
+              <button
+                type="button"
+                onClick={() => onDriverPageChange?.(driverPage + 1)}
+                disabled={!driverHasMore || drivers.length < driverLimit || loadingDrivers}
+                className="flex items-center gap-1 px-2 py-0.5 rounded-md border border-slate-800 bg-slate-900 text-slate-300 hover:bg-slate-800 hover:text-white disabled:opacity-30 disabled:pointer-events-none text-[10px] font-medium transition cursor-pointer"
+                title="Next Page"
+              >
+                <span>Next</span>
+                <i className="fa fa-chevron-right text-[8px]"></i>
+              </button>
+            </div>
+          </>
+        )}
+
+        {/* ACTIVE CHATS PAGINATION CONTROLS */}
+        {activeTab === 'chats' && (
+          <>
+            <div className="flex items-center gap-1.5">
+              <select
+                value={currentChatLimit}
+                onChange={(e) => handleChatLimitChange(Number(e.target.value))}
+                className="bg-slate-900 border border-slate-800 text-slate-300 rounded-md px-1.5 py-0.5 text-[10px] font-medium focus:outline-none focus:ring-1 focus:ring-blue-500 cursor-pointer"
+                title="Chats per page"
+              >
+                <option value={10}>10</option>
+                <option value={15}>15</option>
+                <option value={25}>25</option>
+                <option value={50}>50</option>
+              </select>
+              <span className="text-[10px] text-slate-400 font-medium">
+                {filteredChats.length} chats
+              </span>
+            </div>
+
+            <div className="flex items-center gap-1">
+              <button
+                type="button"
+                onClick={() => handleChatPageChange(Math.max(1, safeChatPage - 1))}
+                disabled={safeChatPage <= 1}
+                className="flex items-center gap-1 px-2 py-0.5 rounded-md border border-slate-800 bg-slate-900 text-slate-300 hover:bg-slate-800 hover:text-white disabled:opacity-30 disabled:pointer-events-none text-[10px] font-medium transition cursor-pointer"
+                title="Previous Page"
+              >
+                <i className="fa fa-chevron-left text-[8px]"></i>
+                <span>Prev</span>
+              </button>
+
+              <span className="px-2 py-0.5 rounded-md bg-blue-600/25 border border-blue-500/40 text-blue-300 font-bold text-[10px]">
+                {safeChatPage}/{chatTotalPages}
+              </span>
+
+              <button
+                type="button"
+                onClick={() => handleChatPageChange(Math.min(chatTotalPages, safeChatPage + 1))}
+                disabled={safeChatPage >= chatTotalPages}
+                className="flex items-center gap-1 px-2 py-0.5 rounded-md border border-slate-800 bg-slate-900 text-slate-300 hover:bg-slate-800 hover:text-white disabled:opacity-30 disabled:pointer-events-none text-[10px] font-medium transition cursor-pointer"
+                title="Next Page"
+              >
+                <span>Next</span>
+                <i className="fa fa-chevron-right text-[8px]"></i>
+              </button>
+            </div>
+          </>
+        )}
       </div>
     </div>
   );

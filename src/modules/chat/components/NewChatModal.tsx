@@ -1,7 +1,13 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import type { ActiveChatTarget } from '../types';
-import { fetchCustomerList, type CustomerUserItem } from '../../customer/services/customerApi';
-import { fetchRiderList, type RiderItem } from '../../rider/services/riderApi';
+import {
+  fetchCustomerListPaginated,
+  type CustomerUserItem,
+} from '../../customer/services/customerApi';
+import {
+  fetchRiderListPaginated,
+  type RiderItem,
+} from '../../rider/services/riderApi';
 
 interface NewChatModalProps {
   isOpen: boolean;
@@ -18,6 +24,8 @@ export const NewChatModal: React.FC<NewChatModalProps> = ({
   const [searchQuery, setSearchQuery] = useState('');
   const [customers, setCustomers] = useState<CustomerUserItem[]>([]);
   const [drivers, setDrivers] = useState<RiderItem[]>([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [limit, setLimit] = useState(10);
   const [loading, setLoading] = useState(false);
   const [fetchError, setFetchError] = useState<string | null>(null);
 
@@ -26,7 +34,7 @@ export const NewChatModal: React.FC<NewChatModalProps> = ({
   const [manualUuid, setManualUuid] = useState('');
   const [manualName, setManualName] = useState('');
 
-  // Fetch customers when modal opens or when tab switches
+  // Fetch users when modal opens, when tab switches, or when page/limit changes
   useEffect(() => {
     if (!isOpen) return;
 
@@ -36,15 +44,11 @@ export const NewChatModal: React.FC<NewChatModalProps> = ({
       setFetchError(null);
       try {
         if (receiverType === 'CUSTOMER') {
-          if (customers.length === 0) {
-            const data = await fetchCustomerList();
-            if (isMounted) setCustomers(data);
-          }
+          const res = await fetchCustomerListPaginated(currentPage, limit);
+          if (isMounted) setCustomers(res.data || []);
         } else {
-          if (drivers.length === 0) {
-            const data = await fetchRiderList();
-            if (isMounted) setDrivers(data);
-          }
+          const res = await fetchRiderListPaginated(currentPage, limit);
+          if (isMounted) setDrivers(res.data || []);
         }
       } catch (err: any) {
         console.error('Failed to load user list:', err);
@@ -61,12 +65,13 @@ export const NewChatModal: React.FC<NewChatModalProps> = ({
     return () => {
       isMounted = false;
     };
-  }, [isOpen, receiverType, customers.length, drivers.length]);
+  }, [isOpen, receiverType, currentPage, limit]);
 
-  // Reset search and errors when changing type or opening
+  // Reset page and search when changing type or opening
   useEffect(() => {
     setSearchQuery('');
     setFetchError(null);
+    setCurrentPage(1);
   }, [receiverType, isOpen]);
 
   // Filtered lists
@@ -429,25 +434,75 @@ export const NewChatModal: React.FC<NewChatModalProps> = ({
         </div>
 
         {/* Footer */}
-        <div className="px-5 py-3 bg-slate-950 border-t border-slate-800 flex items-center justify-between text-[11px] text-slate-400 shrink-0">
-          <span>
+        <div className="px-5 py-3 bg-slate-950 border-t border-slate-800 flex items-center justify-between text-[11px] text-slate-400 shrink-0 select-none">
+          <div className="flex items-center gap-2">
             {!isManualMode && (
               <>
-                Showing{' '}
-                <strong className="text-white font-semibold">
-                  {isDriver ? filteredDrivers.length : filteredCustomers.length}
-                </strong>{' '}
-                {isDriver ? 'drivers' : 'customers'}
+                <select
+                  value={limit}
+                  onChange={(e) => {
+                    setLimit(Number(e.target.value));
+                    setCurrentPage(1);
+                  }}
+                  disabled={loading}
+                  className="bg-slate-900 border border-slate-800 text-slate-300 rounded-md px-2 py-0.5 text-[10px] font-medium focus:outline-none focus:ring-1 focus:ring-blue-500 cursor-pointer"
+                  title="Items per page"
+                >
+                  <option value={5}>5 / page</option>
+                  <option value={10}>10 / page</option>
+                  <option value={20}>20 / page</option>
+                  <option value={50}>50 / page</option>
+                </select>
+                <span>
+                  Showing{' '}
+                  <strong className="text-white font-semibold">
+                    {isDriver ? filteredDrivers.length : filteredCustomers.length}
+                  </strong>{' '}
+                  {isDriver ? 'drivers' : 'customers'}
+                </span>
               </>
             )}
-          </span>
-          <button
-            type="button"
-            onClick={onClose}
-            className="px-3 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg transition"
-          >
-            Close
-          </button>
+          </div>
+
+          <div className="flex items-center gap-2">
+            {!isManualMode && (
+              <div className="flex items-center gap-1">
+                <button
+                  type="button"
+                  onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                  disabled={currentPage <= 1 || loading}
+                  className="flex items-center gap-1 px-2.5 py-1 rounded-lg border border-slate-800 bg-slate-900 text-slate-300 hover:bg-slate-800 hover:text-white disabled:opacity-30 disabled:pointer-events-none text-xs font-medium transition cursor-pointer"
+                  title="Previous Page"
+                >
+                  <i className="fa fa-chevron-left text-[9px]"></i>
+                  <span>Prev</span>
+                </button>
+
+                <span className="px-2.5 py-1 rounded-lg bg-blue-600/20 border border-blue-500/30 text-blue-300 font-bold text-xs">
+                  Page {currentPage}
+                </span>
+
+                <button
+                  type="button"
+                  onClick={() => setCurrentPage((p) => p + 1)}
+                  disabled={(isDriver ? drivers.length : customers.length) < limit || loading}
+                  className="flex items-center gap-1 px-2.5 py-1 rounded-lg border border-slate-800 bg-slate-900 text-slate-300 hover:bg-slate-800 hover:text-white disabled:opacity-30 disabled:pointer-events-none text-xs font-medium transition cursor-pointer"
+                  title="Next Page"
+                >
+                  <span>Next</span>
+                  <i className="fa fa-chevron-right text-[9px]"></i>
+                </button>
+              </div>
+            )}
+
+            <button
+              type="button"
+              onClick={onClose}
+              className="px-3.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg transition text-xs font-semibold cursor-pointer"
+            >
+              Close
+            </button>
+          </div>
         </div>
       </div>
     </div>

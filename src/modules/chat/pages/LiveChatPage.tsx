@@ -12,8 +12,22 @@ export const LiveChatPage: React.FC = () => {
     loadingRooms,
     customers,
     loadingCustomers,
+    customerPage,
+    customerLimit,
+    customerHasMore,
+    onCustomerPageChange,
+    onCustomerLimitChange,
     drivers,
     loadingDrivers,
+    driverPage,
+    driverLimit,
+    driverHasMore,
+    onDriverPageChange,
+    onDriverLimitChange,
+    chatPage,
+    chatLimit,
+    onChatPageChange,
+    onChatLimitChange,
     activeTarget,
     messages,
     loadingMessages,
@@ -31,7 +45,7 @@ export const LiveChatPage: React.FC = () => {
   } = useLiveChat();
 
   return (
-    <div className="flex flex-col h-[calc(100vh-118px)] min-h-[520px]">
+    <div className="flex flex-col h-[calc(100vh-172px)] min-h-[540px]">
       {/* Top Header Bar - Sleek & Compact */}
       <div className="flex items-center justify-between gap-3 bg-white px-4 py-2 rounded-xl shadow-xs border border-gray-200/80 mb-2.5 shrink-0 select-none">
         <div className="flex items-center gap-2.5">
@@ -53,12 +67,12 @@ export const LiveChatPage: React.FC = () => {
         <div className="flex items-center gap-2">
           <div className="px-2.5 py-1 bg-violet-50 border border-violet-200/80 rounded-lg text-[11px] font-semibold text-violet-700 flex items-center gap-1.5">
             <i className="fa fa-users text-[10px]"></i>
-            <span>{customers.length} Customers</span>
+            <span>{customers.length} Customers (P.{customerPage})</span>
           </div>
 
           <div className="px-2.5 py-1 bg-emerald-50 border border-emerald-200/80 rounded-lg text-[11px] font-semibold text-emerald-700 flex items-center gap-1.5">
             <i className="fa fa-car text-[10px]"></i>
-            <span>{drivers.length} Drivers</span>
+            <span>{drivers.length} Drivers (P.{driverPage})</span>
           </div>
 
           {totalUnreadCount > 0 && (
@@ -87,8 +101,22 @@ export const LiveChatPage: React.FC = () => {
             loadingRooms={loadingRooms}
             customers={customers}
             loadingCustomers={loadingCustomers}
+            customerPage={customerPage}
+            customerLimit={customerLimit}
+            customerHasMore={customerHasMore}
+            onCustomerPageChange={onCustomerPageChange}
+            onCustomerLimitChange={onCustomerLimitChange}
             drivers={drivers}
             loadingDrivers={loadingDrivers}
+            driverPage={driverPage}
+            driverLimit={driverLimit}
+            driverHasMore={driverHasMore}
+            onDriverPageChange={onDriverPageChange}
+            onDriverLimitChange={onDriverLimitChange}
+            chatPage={chatPage}
+            chatLimit={chatLimit}
+            onChatPageChange={onChatPageChange}
+            onChatLimitChange={onChatLimitChange}
             activeTarget={activeTarget}
             onSelectRoom={selectRoom}
             onSelectCustomer={selectCustomer}
