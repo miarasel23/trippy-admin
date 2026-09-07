@@ -7,6 +7,7 @@ interface ChatConversationViewProps {
   messages: ChatMessage[];
   loading: boolean;
   sending: boolean;
+  newIncomingMessageId?: string | null;
   onBack?: () => void;
   onSendMessage: (text?: string, file?: File | null) => Promise<boolean>;
   onRefresh?: () => void;
@@ -17,6 +18,7 @@ export const ChatConversationView: React.FC<ChatConversationViewProps> = ({
   messages,
   loading,
   sending,
+  newIncomingMessageId,
   onBack,
   onSendMessage,
   onRefresh,
@@ -25,25 +27,57 @@ export const ChatConversationView: React.FC<ChatConversationViewProps> = ({
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [filePreviewUrl, setFilePreviewUrl] = useState<string | null>(null);
   const [previewModalImg, setPreviewModalImg] = useState<string | null>(null);
+  const [isNearBottom, setIsNearBottom] = useState(true);
+  const [hasNewMessageBelow, setHasNewMessageBelow] = useState(false);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const prevMessagesCountRef = useRef<number>(messages.length);
 
-  // Auto-scroll to bottom on messages change
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  // Auto-scroll to bottom
+  const scrollToBottom = (smooth = true) => {
+    messagesEndRef.current?.scrollIntoView({ behavior: smooth ? 'smooth' : 'auto' });
+    setHasNewMessageBelow(false);
   };
 
+  // Detect scroll position
+  const handleScroll = () => {
+    if (!scrollContainerRef.current) return;
+    const { scrollTop, scrollHeight, clientHeight } = scrollContainerRef.current;
+    const distanceToBottom = scrollHeight - scrollTop - clientHeight;
+    const near = distanceToBottom < 100;
+    setIsNearBottom(near);
+    if (near) {
+      setHasNewMessageBelow(false);
+    }
+  };
+
+  // Scroll to bottom on initial load or target change
   useEffect(() => {
-    scrollToBottom();
-  }, [messages, loading]);
+    scrollToBottom(false);
+    prevMessagesCountRef.current = messages.length;
+  }, [target.receiver_uuid]);
+
+  // Handle incoming messages
+  useEffect(() => {
+    const isNew = messages.length > prevMessagesCountRef.current;
+    prevMessagesCountRef.current = messages.length;
+
+    if (isNew) {
+      if (isNearBottom) {
+        scrollToBottom(true);
+      } else {
+        setHasNewMessageBelow(true);
+      }
+    }
+  }, [messages, isNearBottom]);
 
   // Handle File selection
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Check size (e.g. max 10MB)
     if (file.size > 10 * 1024 * 1024) {
       alert('File size exceeds 10MB limit.');
       return;
@@ -79,10 +113,10 @@ export const ChatConversationView: React.FC<ChatConversationViewProps> = ({
     // Clear inputs immediately for snappy feel
     setInputText('');
     removeSelectedFile();
+    scrollToBottom(true);
 
     const success = await onSendMessage(textToSend, fileToSend);
     if (!success) {
-      // Restore if failed
       setInputText(textToSend);
       setSelectedFile(fileToSend);
     }
@@ -100,7 +134,7 @@ export const ChatConversationView: React.FC<ChatConversationViewProps> = ({
       const d = new Date(dateStr);
       return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     } catch {
-      return '';
+      return dateStr;
     }
   };
 
@@ -114,7 +148,7 @@ export const ChatConversationView: React.FC<ChatConversationViewProps> = ({
           {onBack && (
             <button
               onClick={onBack}
-              className="p-1.5 -ml-1 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition-colors"
+              className="p-1.5 -ml-1 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition-colors cursor-pointer"
               title="Back to inbox"
             >
               <i className="fa fa-arrow-left text-xs"></i>
@@ -153,12 +187,21 @@ export const ChatConversationView: React.FC<ChatConversationViewProps> = ({
           </div>
         </div>
 
-        {/* Actions */}
-        <div className="flex items-center gap-1">
+        {/* Real-time Status Badge & Actions */}
+        <div className="flex items-center gap-2">
+          {/* Live Sync Status Indicator */}
+          <div
+            className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-950/70 border border-emerald-500/40 text-[10px] font-medium text-emerald-400 shadow-xs"
+            title="Real-time auto sync is running (every 2 seconds) without page reload"
+          >
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+            <span className="hidden sm:inline">Live Auto-Sync</span>
+          </div>
+
           {onRefresh && (
             <button
               onClick={onRefresh}
-              className="p-1.5 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition-colors"
+              className="p-1.5 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition-colors cursor-pointer"
               title="Refresh messages"
             >
               <i className={`fa fa-refresh text-xs ${loading ? 'fa-spin text-blue-400' : ''}`}></i>
@@ -168,7 +211,11 @@ export const ChatConversationView: React.FC<ChatConversationViewProps> = ({
       </div>
 
       {/* Messages Scroll Area */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-3 custom-scrollbar bg-slate-900/50">
+      <div
+        ref={scrollContainerRef}
+        onScroll={handleScroll}
+        className="flex-1 overflow-y-auto p-4 space-y-3 custom-scrollbar bg-slate-900/50 relative"
+      >
         {loading && messages.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full text-slate-400 gap-2">
             <i className="fa fa-circle-o-notch fa-spin text-xl text-blue-500"></i>
@@ -192,11 +239,14 @@ export const ChatConversationView: React.FC<ChatConversationViewProps> = ({
               msg.file_type?.toLowerCase() === 'file' ||
               msg.file_type?.toLowerCase() === 'image' ||
               (msg.file_url && /\.(jpg|jpeg|png|webp|gif)$/i.test(msg.file_url));
+            const isJustArrived = msg.uuid === newIncomingMessageId;
 
             return (
               <div
                 key={msg.uuid}
-                className={`flex flex-col ${isAdmin ? 'items-end' : 'items-start'}`}
+                className={`flex flex-col ${isAdmin ? 'items-end' : 'items-start'} ${
+                  isJustArrived ? 'animate-in fade-in slide-in-from-bottom-2 duration-300' : ''
+                }`}
               >
                 {/* Sender Name tag for recipient messages */}
                 {!isAdmin && (
@@ -206,11 +256,11 @@ export const ChatConversationView: React.FC<ChatConversationViewProps> = ({
                 )}
 
                 <div
-                  className={`max-w-[82%] sm:max-w-[75%] rounded-2xl p-2.5 shadow-sm space-y-1.5 ${
+                  className={`max-w-[82%] sm:max-w-[75%] rounded-2xl p-2.5 shadow-sm space-y-1.5 transition-all ${
                     isAdmin
                       ? 'bg-blue-600 text-white rounded-br-xs'
                       : 'bg-slate-800 text-slate-100 rounded-bl-xs border border-slate-700/60'
-                  }`}
+                  } ${isJustArrived ? 'ring-2 ring-emerald-400/80 shadow-lg shadow-emerald-500/20' : ''}`}
                 >
                   {/* Image attachment */}
                   {fullFileUrl && (
@@ -272,6 +322,19 @@ export const ChatConversationView: React.FC<ChatConversationViewProps> = ({
         <div ref={messagesEndRef} />
       </div>
 
+      {/* Floating Jump to New Message Button */}
+      {hasNewMessageBelow && (
+        <div className="absolute bottom-16 right-4 z-20">
+          <button
+            onClick={() => scrollToBottom(true)}
+            className="px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white rounded-full shadow-lg shadow-blue-500/30 text-xs font-bold flex items-center gap-1.5 animate-bounce transition cursor-pointer"
+          >
+            <i className="fa fa-arrow-down text-[10px]"></i>
+            <span>New message</span>
+          </button>
+        </div>
+      )}
+
       {/* Selected File Preview Box */}
       {selectedFile && (
         <div className="px-3 py-2 bg-slate-950/90 border-t border-slate-800 flex items-center justify-between gap-2 shrink-0">
@@ -298,7 +361,7 @@ export const ChatConversationView: React.FC<ChatConversationViewProps> = ({
           </div>
           <button
             onClick={removeSelectedFile}
-            className="p-1 text-slate-400 hover:text-red-400 rounded-full hover:bg-slate-800 transition-colors"
+            className="p-1 text-slate-400 hover:text-red-400 rounded-full hover:bg-slate-800 transition-colors cursor-pointer"
             title="Remove attachment"
           >
             ✕
@@ -320,7 +383,7 @@ export const ChatConversationView: React.FC<ChatConversationViewProps> = ({
           <button
             type="button"
             onClick={() => fileInputRef.current?.click()}
-            className={`p-2 rounded-xl transition-colors shrink-0 ${
+            className={`p-2 rounded-xl transition-colors shrink-0 cursor-pointer ${
               selectedFile
                 ? 'bg-blue-600/20 text-blue-400 border border-blue-500/30'
                 : 'text-slate-400 hover:text-white hover:bg-slate-800'
@@ -346,7 +409,7 @@ export const ChatConversationView: React.FC<ChatConversationViewProps> = ({
             type="button"
             onClick={handleSend}
             disabled={(!inputText.trim() && !selectedFile) || sending}
-            className="p-2 bg-blue-600 hover:bg-blue-500 text-white rounded-xl transition-colors disabled:opacity-40 disabled:cursor-not-allowed shrink-0 shadow-sm flex items-center justify-center w-9 h-9"
+            className="p-2 bg-blue-600 hover:bg-blue-500 text-white rounded-xl transition-colors disabled:opacity-40 disabled:cursor-not-allowed shrink-0 shadow-sm flex items-center justify-center w-9 h-9 cursor-pointer"
             title="Send Message"
           >
             {sending ? (
@@ -367,7 +430,7 @@ export const ChatConversationView: React.FC<ChatConversationViewProps> = ({
           <div className="relative max-w-3xl max-h-[85vh] flex flex-col items-center">
             <button
               onClick={() => setPreviewModalImg(null)}
-              className="absolute -top-10 right-0 text-white text-lg bg-slate-800/80 hover:bg-slate-700 w-8 h-8 rounded-full flex items-center justify-center transition-colors"
+              className="absolute -top-10 right-0 text-white text-lg bg-slate-800/80 hover:bg-slate-700 w-8 h-8 rounded-full flex items-center justify-center transition-colors cursor-pointer"
             >
               ✕
             </button>
@@ -383,3 +446,5 @@ export const ChatConversationView: React.FC<ChatConversationViewProps> = ({
     </div>
   );
 };
+
+export default ChatConversationView;

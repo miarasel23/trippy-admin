@@ -27,6 +27,7 @@ import TripTrack from '../../modules/trip/pages/TripTrack';
 import RiderList from '../../modules/rider/pages/RiderList';
 import LiveChatPage from '../../modules/chat/pages/LiveChatPage';
 import { ChatFloatingWidget } from '../../modules/chat/components/ChatFloatingWidget';
+import { LiveChatProvider } from '../../modules/chat';
 
 export const AppRoutes = () => {
   const auth = useContext(AuthContextTrippy);
@@ -50,8 +51,9 @@ export const AppRoutes = () => {
 
   return (
     <Router>
-      <div className="min-h-screen bg-gray-50 text-gray-800 flex">
-        {isAuthenticated && <Sidebar isOpen={!sidebarCollapsed} />}
+      <LiveChatProvider>
+        <div className="min-h-screen bg-gray-50 text-gray-800 flex">
+          {isAuthenticated && <Sidebar isOpen={!sidebarCollapsed} />}
 
         <div className={`flex-1 flex flex-col min-h-screen transition-all duration-300 ${isAuthenticated ? (sidebarCollapsed ? 'pl-0' : 'pl-64') : ''
           }`}>
@@ -90,6 +92,7 @@ export const AppRoutes = () => {
         {/* Global Floating Chat Widget pinned at bottom right */}
         {isAuthenticated && <ChatFloatingWidget />}
       </div>
+      </LiveChatProvider>
     </Router>
   );
 };

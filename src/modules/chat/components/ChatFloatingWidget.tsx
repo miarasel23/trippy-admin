@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useLiveChat } from '../hooks/useLiveChat';
 import { ChatInboxList } from './ChatInboxList';
 import { ChatConversationView } from './ChatConversationView';
@@ -7,6 +7,7 @@ import { NewChatModal } from './NewChatModal';
 
 export const ChatFloatingWidget: React.FC = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [isOpen, setIsOpen] = useState(false);
   const [isNewChatOpen, setIsNewChatOpen] = useState(false);
 
@@ -18,6 +19,7 @@ export const ChatFloatingWidget: React.FC = () => {
     loadingMessages,
     sending,
     totalUnreadCount,
+    newIncomingMessageId,
     loadRooms,
     loadMessages,
     selectRoom,
@@ -25,6 +27,11 @@ export const ChatFloatingWidget: React.FC = () => {
     closeActiveChat,
     sendMessage,
   } = useLiveChat();
+
+  // If user is currently on the dedicated Live Chat page, hide floating widget to avoid layout clash
+  if (location.pathname === '/dashboard/live-chat') {
+    return null;
+  }
 
   return (
     <>
@@ -58,30 +65,33 @@ export const ChatFloatingWidget: React.FC = () => {
         <div className="fixed bottom-5 right-5 z-50 w-[380px] sm:w-[410px] h-[550px] max-h-[calc(100vh-5rem)] max-w-[calc(100vw-2rem)] rounded-2xl shadow-2xl overflow-hidden border border-slate-700/80 bg-slate-900 text-white flex flex-col animate-in slide-in-from-bottom-5 duration-200">
           {/* Top Title Bar */}
           <div className="h-12 px-4 bg-slate-950 border-b border-slate-800 flex items-center justify-between shrink-0 select-none">
-            <div className="flex items-center gap-2.5">
-              <div className="relative">
-                <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 block"></span>
-                <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 block absolute inset-0 animate-ping opacity-75"></span>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="text-xs font-bold text-white tracking-wide">Live Support Chat</span>
-                {totalUnreadCount > 0 && (
-                  <span className="bg-amber-500/20 text-amber-400 border border-amber-500/30 text-[10px] font-bold px-1.5 py-0.2 rounded-full">
-                    {totalUnreadCount} unread
-                  </span>
-                )}
-              </div>
+            <div className="flex items-center gap-2 min-w-0">
+              <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse shrink-0"></span>
+              <span className="text-xs font-bold truncate">Trippy Live Chat</span>
+              {totalUnreadCount > 0 && (
+                <span className="bg-amber-500/20 text-amber-300 border border-amber-500/40 text-[10px] px-1.5 py-0.5 rounded-full font-bold">
+                  {totalUnreadCount} new
+                </span>
+              )}
             </div>
 
-            {/* Header Window Actions */}
             <div className="flex items-center gap-1">
+              {/* New chat modal trigger */}
+              <button
+                onClick={() => setIsNewChatOpen(true)}
+                className="p-1.5 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition-colors cursor-pointer"
+                title="Start new conversation"
+              >
+                <i className="fa fa-plus text-xs"></i>
+              </button>
+
               {/* Expand to Full Page */}
               <button
                 onClick={() => {
                   setIsOpen(false);
                   navigate('/dashboard/live-chat');
                 }}
-                className="p-1.5 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition-colors"
+                className="p-1.5 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition-colors cursor-pointer"
                 title="Open in full screen"
               >
                 <i className="fa fa-arrows-alt text-xs"></i>
@@ -90,7 +100,7 @@ export const ChatFloatingWidget: React.FC = () => {
               {/* Minimize */}
               <button
                 onClick={() => setIsOpen(false)}
-                className="p-1.5 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition-colors"
+                className="p-1.5 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition-colors cursor-pointer"
                 title="Minimize chat"
               >
                 <i className="fa fa-minus text-xs"></i>
@@ -99,7 +109,7 @@ export const ChatFloatingWidget: React.FC = () => {
               {/* Close */}
               <button
                 onClick={() => setIsOpen(false)}
-                className="p-1.5 text-slate-400 hover:text-rose-400 hover:bg-slate-800 rounded-lg transition-colors"
+                className="p-1.5 text-slate-400 hover:text-rose-400 hover:bg-slate-800 rounded-lg transition-colors cursor-pointer"
                 title="Close chat"
               >
                 <i className="fa fa-times text-xs"></i>
@@ -115,6 +125,7 @@ export const ChatFloatingWidget: React.FC = () => {
                 messages={messages}
                 loading={loadingMessages}
                 sending={sending}
+                newIncomingMessageId={newIncomingMessageId}
                 onBack={closeActiveChat}
                 onSendMessage={sendMessage}
                 onRefresh={() => loadMessages(activeTarget, false)}
@@ -132,15 +143,18 @@ export const ChatFloatingWidget: React.FC = () => {
         </div>
       )}
 
-      {/* New Conversation Modal */}
+      {/* Manual Target Modal */}
       <NewChatModal
         isOpen={isNewChatOpen}
         onClose={() => setIsNewChatOpen(false)}
         onStartChat={(target) => {
           startNewChat(target);
+          setIsNewChatOpen(false);
           setIsOpen(true);
         }}
       />
     </>
   );
 };
+
+export default ChatFloatingWidget;

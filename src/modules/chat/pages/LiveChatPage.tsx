@@ -19,6 +19,7 @@ export const LiveChatPage: React.FC = () => {
     loadingMessages,
     sending,
     totalUnreadCount,
+    newIncomingMessageId,
     selectRoom,
     selectCustomer,
     selectDriver,
@@ -43,7 +44,7 @@ export const LiveChatPage: React.FC = () => {
               <span className="w-2 h-2 rounded-full bg-emerald-500 inline-block animate-pulse" title="Connected"></span>
             </div>
             <p className="text-[10px] text-gray-500">
-              Direct real-time communication with Customers and Drivers
+              Direct real-time communication with Customers and Drivers (Live sync without reload)
             </p>
           </div>
         </div>
@@ -105,6 +106,7 @@ export const LiveChatPage: React.FC = () => {
               messages={messages}
               loading={loadingMessages}
               sending={sending}
+              newIncomingMessageId={newIncomingMessageId}
               onBack={closeActiveChat}
               onSendMessage={sendMessage}
               onRefresh={() => loadMessages(activeTarget, false)}
