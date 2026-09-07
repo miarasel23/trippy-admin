@@ -77,12 +77,11 @@ export default function Sidebar({ isOpen = true }: { isOpen?: boolean }) {
   };
 
   return (
-    <aside className={`fixed top-0 bottom-0 left-0 z-50 bg-slate-900 text-slate-300 w-64 border-r border-slate-800 flex flex-col transition-transform duration-300 ${
-      isOpen ? 'translate-x-0' : '-translate-x-full'
-    }`}>
+    <aside className={`fixed top-0 bottom-0 left-0 z-50 bg-slate-900 text-slate-300 w-64 border-r border-slate-800 flex flex-col transition-transform duration-300 ${isOpen ? 'translate-x-0' : '-translate-x-full'
+      }`}>
       {/* Brand Logo */}
       <div className="h-16 flex items-center px-6 border-b border-slate-800 bg-slate-950">
-        <span className="text-white font-bold tracking-wider text-sm">TRIPPY SERVICE LTD</span>
+        <span className="text-white font-bold tracking-wider text-sm">TRIPPY SERVICES</span>
       </div>
 
       {/* Sidebar Links */}
@@ -97,9 +96,8 @@ export default function Sidebar({ isOpen = true }: { isOpen?: boolean }) {
               return (
                 <div key={index} className="space-y-1">
                   <button
-                    className={`w-full flex items-center justify-between px-4 py-2.5 rounded-lg text-sm font-medium transition-colors ${
-                      isAnySubActive ? 'bg-slate-800 text-white' : 'hover:bg-slate-800 hover:text-white'
-                    }`}
+                    className={`w-full flex items-center justify-between px-4 py-2.5 rounded-lg text-sm font-medium transition-colors ${isAnySubActive ? 'bg-slate-800 text-white' : 'hover:bg-slate-800 hover:text-white'
+                      }`}
                     onClick={() => setIsSettingsOpen(!isSettingsOpen)}
                   >
                     <div className="flex items-center gap-3">
@@ -118,9 +116,8 @@ export default function Sidebar({ isOpen = true }: { isOpen?: boolean }) {
                           return (
                             <div key={sIdx} className="space-y-1">
                               <button
-                                className={`w-full flex items-center justify-between px-4 py-2 rounded-lg text-xs font-medium transition-colors ${
-                                  isNestedActive ? 'bg-slate-800/60 text-white' : 'hover:bg-slate-800/60 hover:text-white'
-                                }`}
+                                className={`w-full flex items-center justify-between px-4 py-2 rounded-lg text-xs font-medium transition-colors ${isNestedActive ? 'bg-slate-800/60 text-white' : 'hover:bg-slate-800/60 hover:text-white'
+                                  }`}
                                 onClick={() => setIsCarsOpen(!isCarsOpen)}
                               >
                                 <div className="flex items-center gap-3">
@@ -138,11 +135,10 @@ export default function Sidebar({ isOpen = true }: { isOpen?: boolean }) {
                                       <Link
                                         key={cIdx}
                                         to={child.to}
-                                        className={`flex items-center gap-3 px-4 py-1.5 rounded-md text-xs transition-colors ${
-                                          isChildActive
-                                            ? 'bg-blue-600 text-white font-medium'
-                                            : 'hover:bg-slate-800/40 hover:text-white text-slate-400'
-                                        }`}
+                                        className={`flex items-center gap-3 px-4 py-1.5 rounded-md text-xs transition-colors ${isChildActive
+                                          ? 'bg-blue-600 text-white font-medium'
+                                          : 'hover:bg-slate-800/40 hover:text-white text-slate-400'
+                                          }`}
                                       >
                                         <i className={`fa ${childIcon} w-4 text-center`}></i>
                                         <span>{child.text}</span>
@@ -160,11 +156,10 @@ export default function Sidebar({ isOpen = true }: { isOpen?: boolean }) {
                           <Link
                             key={sIdx}
                             to={sub.to || '#'}
-                            className={`flex items-center gap-3 px-4 py-2 rounded-lg text-xs transition-colors ${
-                              isSubActive
-                                ? 'bg-blue-600 text-white font-medium'
-                                : 'hover:bg-slate-800/60 hover:text-white text-slate-400'
-                            }`}
+                            className={`flex items-center gap-3 px-4 py-2 rounded-lg text-xs transition-colors ${isSubActive
+                              ? 'bg-blue-600 text-white font-medium'
+                              : 'hover:bg-slate-800/60 hover:text-white text-slate-400'
+                              }`}
                           >
                             <i className={`fa ${subIcon} w-4 text-center`}></i>
                             <span>{sub.text}</span>
@@ -181,11 +176,10 @@ export default function Sidebar({ isOpen = true }: { isOpen?: boolean }) {
               <Link
                 key={index}
                 to={link.to}
-                className={`flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition-colors ${
-                  isActive
-                    ? 'bg-blue-600 text-white'
-                    : 'hover:bg-slate-800 hover:text-white text-slate-400'
-                }`}
+                className={`flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition-colors ${isActive
+                  ? 'bg-blue-600 text-white'
+                  : 'hover:bg-slate-800 hover:text-white text-slate-400'
+                  }`}
               >
                 <i className={`fa ${link.icon} w-5 text-center`}></i>
                 <span>{link.text}</span>

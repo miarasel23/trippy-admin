@@ -12,6 +12,7 @@ import type {
   CarServiceCategoryItem,
   CreateOrUpdateCarServiceCategoryPayload,
   DriverSubscriptionItem,
+  GroupedDriverSubscriptionResponse,
   CreateUpdateSubscriptionPayload,
   PriceSetAsPerKmItem,
   CreateOrUpdatePriceSetAsPerKmPayload,
@@ -30,6 +31,7 @@ export type {
   CarServiceCategoryItem,
   CreateOrUpdateCarServiceCategoryPayload,
   DriverSubscriptionItem,
+  GroupedDriverSubscriptionResponse,
   CreateUpdateSubscriptionPayload,
   PriceSetAsPerKmItem,
   CreateOrUpdatePriceSetAsPerKmPayload,
@@ -308,7 +310,7 @@ export const deleteOtpMessage = async (uuid: string): Promise<void> => {
 
 // ─── Driver Subscriptions ───────────────────────────────────
 
-export const fetchDriverSubscriptionList = async (): Promise<DriverSubscriptionItem[]> => {
+export const fetchDriverSubscriptionList = async (): Promise<GroupedDriverSubscriptionResponse> => {
   const token = localStorage.getItem('authToken');
   const response = await axios.get(
     `${BASE_URL}/v1/subscription/list-car-subscription?platform=web&language_code=bn&action_when=driver_subscription_list`,
@@ -319,7 +321,16 @@ export const fetchDriverSubscriptionList = async (): Promise<DriverSubscriptionI
     }
   );
   if (response.data && response.data.status) {
-    return response.data.data;
+    if (Array.isArray(response.data.data)) {
+      const grouped: GroupedDriverSubscriptionResponse = {};
+      response.data.data.forEach((item: DriverSubscriptionItem) => {
+        const cat = item.car_category_name || item.car_type || 'OTHER';
+        if (!grouped[cat]) grouped[cat] = [];
+        grouped[cat].push(item);
+      });
+      return grouped;
+    }
+    return (response.data.data as GroupedDriverSubscriptionResponse) || {};
   }
   throw new Error(response.data.message || 'Failed to fetch driver subscription list');
 };

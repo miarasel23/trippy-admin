@@ -99,7 +99,13 @@ export interface DriverSubscriptionItem {
   status: string;
   flag_one?: number | string | null;
   flag_two?: number | string | null;
+  car_categories_uuid?: string;
+  car_type?: string;
+  car_category_name?: string;
+  car_avatar?: string | null;
 }
+
+export type GroupedDriverSubscriptionResponse = Record<string, DriverSubscriptionItem[]>;
 
 export interface CreateUpdateSubscriptionPayload {
   uuid?: string;
