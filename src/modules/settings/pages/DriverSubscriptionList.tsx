@@ -473,15 +473,21 @@ export default function DriverSubscriptionList() {
                     <div className="bg-slate-950/80 px-5 py-3.5 border-b border-slate-800/80 flex flex-wrap items-center justify-between gap-3">
                       {/* Left: Avatar + Title + Stats */}
                       <div className="flex items-center gap-3.5 min-w-0">
-                        <div className="relative shrink-0">
+                        <div
+                          className="w-14 h-14 rounded-2xl bg-slate-850 border border-slate-800 flex items-center justify-center p-1.5 shrink-0 shadow-md hover:border-indigo-500/80 transition-all cursor-pointer group/car"
+                          onClick={() =>
+                            setPreviewImage({ url: avatarUrl, title: categoryName.replace(/_/g, ' ') })
+                          }
+                          title="Click to preview car photo"
+                        >
                           <img
                             src={avatarUrl}
                             alt={categoryName}
-                            className="w-11 h-11 rounded-xl object-cover ring-2 ring-slate-800 bg-slate-900 cursor-pointer hover:ring-indigo-500 transition shadow"
-                            onClick={() =>
-                              setPreviewImage({ url: avatarUrl, title: categoryName })
-                            }
-                            title="Click to preview image"
+                            className="w-full h-full object-contain rounded-xl group-hover/car:scale-105 transition-transform duration-200"
+                            onError={(e) => {
+                              e.currentTarget.onerror = null;
+                              e.currentTarget.src = noImage;
+                            }}
                           />
                         </div>
                         <div className="min-w-0">
@@ -756,6 +762,29 @@ export default function DriverSubscriptionList() {
                         </option>
                       ))}
                     </select>
+                    {(() => {
+                      const selectedCat = carCategories.find((c) => c.uuid === selectedCategoryUuid);
+                      if (!selectedCat) return null;
+                      const catAvatarUrl = selectedCat.car_avatar
+                        ? (selectedCat.car_avatar.startsWith('http') ? selectedCat.car_avatar : `${newwork_image_url}${selectedCat.car_avatar}`)
+                        : noImage;
+                      return (
+                        <div className="flex items-center gap-3 mt-2.5 p-2 bg-slate-950/60 rounded-xl border border-slate-800">
+                          <div className="w-12 h-12 rounded-xl bg-slate-850 border border-slate-800 flex items-center justify-center p-1 shrink-0 shadow-sm">
+                            <img
+                              src={catAvatarUrl}
+                              alt={selectedCat.car_type}
+                              className="w-full h-full object-contain rounded-lg"
+                              onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = noImage; }}
+                            />
+                          </div>
+                          <div className="min-w-0">
+                            <p className="text-xs font-bold text-white truncate">{selectedCat.car_type.replace(/_/g, ' ')}</p>
+                            <p className="text-[10px] text-slate-400">{selectedCat.set_capacity} Seats capacity</p>
+                          </div>
+                        </div>
+                      );
+                    })()}
                   </div>
 
                   <div>

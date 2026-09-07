@@ -136,9 +136,18 @@ export default function CarCategoryList() {
                     <td className="px-4 py-3 text-slate-400 font-mono">{index + 1}</td>
                     <td className="px-4 py-3 text-xs font-mono text-slate-500 max-w-xs truncate">{item.uuid}</td>
                     <td className="px-4 py-3">
-                      <img src={avatarUrl} alt={item.car_type} className="w-9 h-9 rounded-full object-cover ring-2 ring-slate-700 cursor-pointer hover:ring-indigo-500 transition-all"
-                        onClick={() => setPreviewImage({ url: avatarUrl, title: item.car_type })}
-                        onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = noImage; }} />
+                      <div
+                        className="w-14 h-14 rounded-2xl bg-slate-850 border border-slate-800 flex items-center justify-center p-1.5 shrink-0 shadow-md hover:border-indigo-500/80 transition-all cursor-pointer group/car"
+                        onClick={() => setPreviewImage({ url: avatarUrl, title: item.car_type.replace(/_/g, ' ') })}
+                        title="Click to preview car photo"
+                      >
+                        <img
+                          src={avatarUrl}
+                          alt={item.car_type}
+                          className="w-full h-full object-contain rounded-xl group-hover/car:scale-105 transition-transform duration-200"
+                          onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = noImage; }}
+                        />
+                      </div>
                     </td>
                     <td className="px-4 py-3">
                       <span className="px-2.5 py-1 bg-indigo-900/50 text-indigo-300 rounded-md text-xs font-semibold border border-indigo-700/50">{item.car_type}</span>
@@ -222,13 +231,17 @@ export default function CarCategoryList() {
                 <div>
                   <label className={labelCls}>Car Avatar Image</label>
                   {carAvatar ? (
-                    <div className="mb-2 flex items-center gap-2">
-                      <img src={URL.createObjectURL(carAvatar)} alt="preview" className="h-12 w-12 object-contain rounded-lg border border-slate-700" />
-                      <span className="text-xs text-slate-400">{carAvatar.name}</span>
+                    <div className="mb-3 flex items-center gap-3 bg-slate-950/40 border border-slate-800 p-2 rounded-xl">
+                      <div className="w-14 h-14 rounded-2xl bg-slate-850 border border-slate-800 flex items-center justify-center p-1.5 shrink-0 shadow-md">
+                        <img src={URL.createObjectURL(carAvatar)} alt="preview" className="w-full h-full object-contain rounded-xl" />
+                      </div>
+                      <span className="text-xs text-slate-400 font-mono truncate max-w-[200px]">{carAvatar.name}</span>
                     </div>
                   ) : editItem?.car_avatar ? (
-                    <div className="mb-2">
-                      <img src={editItem.car_avatar.startsWith('http') ? editItem.car_avatar : `${newwork_image_url}${editItem.car_avatar}`} alt="current" className="h-12 w-12 object-contain rounded-lg border border-slate-700" />
+                    <div className="mb-3">
+                      <div className="w-14 h-14 rounded-2xl bg-slate-850 border border-slate-800 flex items-center justify-center p-1.5 shrink-0 shadow-md">
+                        <img src={editItem.car_avatar.startsWith('http') ? editItem.car_avatar : `${newwork_image_url}${editItem.car_avatar}`} alt="current" className="w-full h-full object-contain rounded-xl" />
+                      </div>
                     </div>
                   ) : null}
                   <input type="file" className="block w-full text-sm text-slate-400 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:bg-slate-700 file:text-slate-300 hover:file:bg-slate-600 file:cursor-pointer transition-colors" accept="image/*"

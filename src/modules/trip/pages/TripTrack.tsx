@@ -403,11 +403,11 @@ export default function TripTrack() {
                                 type="button"
                                 title="Click to preview vehicle image"
                                 onClick={() => trip.trip_details.car_category && setPreviewImage({ url: `${newwork_image_url}${trip.trip_details.car_category.car_avatar}`, title: trip.trip_details.car_category.car_type })}
-                                className="w-16 h-12 rounded-xl bg-white border border-slate-200/20 shadow-md overflow-hidden flex items-center justify-center p-1 shrink-0 hover:ring-2 hover:ring-violet-500/60 transition-all cursor-pointer"
+                                className="w-14 h-14 rounded-2xl bg-slate-850 border border-slate-800 shadow-md flex items-center justify-center p-1.5 shrink-0 hover:border-indigo-500/80 transition-all cursor-pointer group/car"
                               >
                                 <img src={`${newwork_image_url}${trip.trip_details.car_category?.car_avatar || ''}`}
                                   alt={trip.trip_details.car_category?.car_type || ''}
-                                  className="w-full h-full object-contain"
+                                  className="w-full h-full object-contain rounded-xl group-hover/car:scale-105 transition-transform duration-200"
                                   onError={e => { e.currentTarget.onerror = null; e.currentTarget.src = noImage; }} />
                               </button>
                               <div>

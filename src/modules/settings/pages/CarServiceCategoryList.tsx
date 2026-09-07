@@ -366,12 +366,18 @@ export default function CarServiceCategoryList() {
                               <div key={map.mapping_uuid} className="group/item flex items-center justify-between p-3.5 bg-slate-950/30 border border-slate-800/40 rounded-xl hover:bg-slate-950/60 hover:border-slate-800 transition-all">
                                 <div className="flex items-center gap-3">
                                   {/* Vehicle icon */}
-                                  <img
-                                    src={carAvatarUrl}
-                                    alt={map.car_type}
-                                    className="w-10 h-7 object-contain bg-slate-900 border border-slate-800 rounded-lg p-0.5 shrink-0"
-                                    onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = noImage; }}
-                                  />
+                                  <div
+                                    className="w-14 h-14 rounded-2xl bg-slate-850 border border-slate-800 flex items-center justify-center p-1.5 shrink-0 shadow-md group/car cursor-pointer hover:border-indigo-500/80 transition-all"
+                                    onClick={() => setPreviewImage({ url: carAvatarUrl, title: map.car_type.replace(/_/g, ' ') })}
+                                    title="Click to preview car photo"
+                                  >
+                                    <img
+                                      src={carAvatarUrl}
+                                      alt={map.car_type}
+                                      className="w-full h-full object-contain rounded-xl group-hover/car:scale-105 transition-transform duration-200"
+                                      onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = noImage; }}
+                                    />
+                                  </div>
                                   <div>
                                     <h4 className="text-xs font-bold text-slate-200">{map.car_type.replace(/_/g, ' ')}</h4>
                                     <div className="flex items-center gap-2 mt-1">
@@ -455,6 +461,29 @@ export default function CarServiceCategoryList() {
                       <option key={cat.uuid} value={cat.uuid}>{cat.car_type.replace(/_/g, ' ')} (Capacity: {cat.set_capacity} seats)</option>
                     ))}
                   </select>
+                  {(() => {
+                    const selectedCat = carCategories.find(c => c.uuid === selectedCategoryUuid);
+                    if (!selectedCat) return null;
+                    const catAvatarUrl = selectedCat.car_avatar
+                      ? (selectedCat.car_avatar.startsWith('http') ? selectedCat.car_avatar : `${newwork_image_url}${selectedCat.car_avatar}`)
+                      : noImage;
+                    return (
+                      <div className="flex items-center gap-3 mt-2.5 p-2 bg-slate-950/60 rounded-xl border border-slate-800">
+                        <div className="w-12 h-12 rounded-2xl bg-slate-850 border border-slate-800 flex items-center justify-center p-1 shrink-0 shadow-sm">
+                          <img
+                            src={catAvatarUrl}
+                            alt={selectedCat.car_type}
+                            className="w-full h-full object-contain rounded-xl"
+                            onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = noImage; }}
+                          />
+                        </div>
+                        <div className="min-w-0">
+                          <p className="text-xs font-bold text-white truncate">{selectedCat.car_type.replace(/_/g, ' ')}</p>
+                          <p className="text-[10px] text-slate-400">{selectedCat.set_capacity} Seats capacity</p>
+                        </div>
+                      </div>
+                    );
+                  })()}
                 </div>
                 
                 <div>
@@ -469,12 +498,16 @@ export default function CarServiceCategoryList() {
                   <label className={labelCls}>Service Avatar Image</label>
                   {serviceAvatar ? (
                     <div className="mb-3 flex items-center gap-3 bg-slate-950/40 border border-slate-800 p-2 rounded-xl">
-                      <img src={URL.createObjectURL(serviceAvatar)} alt="preview" className="h-10 w-10 object-contain rounded-lg border border-slate-700 bg-slate-900" />
+                      <div className="w-14 h-14 rounded-2xl bg-slate-850 border border-slate-800 flex items-center justify-center p-1.5 shrink-0 shadow-md">
+                        <img src={URL.createObjectURL(serviceAvatar)} alt="preview" className="w-full h-full object-contain rounded-xl" />
+                      </div>
                       <span className="text-xs text-slate-400 font-mono truncate max-w-[200px]">{serviceAvatar.name}</span>
                     </div>
                   ) : editItem?.avatar ? (
                     <div className="mb-3">
-                      <img src={editItem.avatar.startsWith('http') ? editItem.avatar : `${newwork_image_url}${editItem.avatar}`} alt="current" className="h-10 w-10 object-contain rounded-lg border border-slate-855 bg-slate-900" />
+                      <div className="w-14 h-14 rounded-2xl bg-slate-850 border border-slate-800 flex items-center justify-center p-1.5 shrink-0 shadow-md">
+                        <img src={editItem.avatar.startsWith('http') ? editItem.avatar : `${newwork_image_url}${editItem.avatar}`} alt="current" className="w-full h-full object-contain rounded-xl" />
+                      </div>
                     </div>
                   ) : null}
                   <input type="file" className="block w-full text-xs text-slate-400 file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:bg-slate-800 file:text-slate-300 hover:file:bg-slate-700 file:cursor-pointer file:font-semibold" accept="image/*"

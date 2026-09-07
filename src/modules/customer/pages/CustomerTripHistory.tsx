@@ -512,9 +512,9 @@ export default function CustomerTripHistory() {
                                       type="button"
                                       title="Click to preview vehicle image"
                                       onClick={() => setPreviewImage({ url: avatarUrl, title: trip.car_category?.car_type || 'Vehicle' })}
-                                      className="w-16 h-12 rounded-xl bg-white border border-slate-200/20 shadow-md overflow-hidden flex items-center justify-center p-1 shrink-0 hover:ring-2 hover:ring-violet-500/60 transition-all cursor-pointer"
+                                      className="w-14 h-14 rounded-2xl bg-slate-850 border border-slate-800 shadow-md flex items-center justify-center p-1.5 shrink-0 hover:border-indigo-500/80 transition-all cursor-pointer group/car"
                                     >
-                                      <img src={avatarUrl} alt={trip.car_category.car_type} className="w-full h-full object-contain" onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = noImage; }} />
+                                      <img src={avatarUrl} alt={trip.car_category.car_type} className="w-full h-full object-contain rounded-xl group-hover/car:scale-105 transition-transform duration-200" onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = noImage; }} />
                                     </button>
                                     <div>
                                       <p className="text-sm font-bold text-slate-100 leading-snug">{trip.car_category.car_type}</p>
