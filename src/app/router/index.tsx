@@ -19,6 +19,7 @@ import DriverSubscriptionList from '../../modules/settings/pages/DriverSubscript
 import CarCategoryList from '../../modules/settings/pages/CarCategoryList';
 import CarServiceCategoryList from '../../modules/settings/pages/CarServiceCategoryList';
 import PriceSetAsPerKm from '../../modules/settings/pages/PriceSetAsPerKm';
+import PrivacyPolicyList from '../../modules/settings/pages/PrivacyPolicyList';
 
 import CustomerList from '../../modules/customer/pages/CustomerList';
 import CustomerTripHistory from '../../modules/customer/pages/CustomerTripHistory';
@@ -72,6 +73,7 @@ export const AppRoutes = () => {
               <Route path="/dashboard/setting/cars/car-category" element={isAuthenticated ? <CarCategoryList /> : <Navigate to="/" replace />} />
               <Route path="/dashboard/setting/cars/car-service-category" element={isAuthenticated ? <CarServiceCategoryList /> : <Navigate to="/" replace />} />
               <Route path="/dashboard/setting/cars/price-set-as-per-km" element={isAuthenticated ? <PriceSetAsPerKm /> : <Navigate to="/" replace />} />
+              <Route path="/dashboard/setting/privacy-policy" element={isAuthenticated ? <PrivacyPolicyList /> : <Navigate to="/" replace />} />
               <Route path="/dashboard/admin-user" element={isAuthenticated ? <AdminUserList /> : <Navigate to="/" replace />} />
               
               <Route path="/dashboard/customer" element={isAuthenticated ? <CustomerList /> : <Navigate to="/" replace />} />

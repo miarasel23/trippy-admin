@@ -51,7 +51,8 @@ export default function Sidebar({ isOpen = true }: { isOpen?: boolean }) {
         { to: '/dashboard/setting/action-language', text: t('actionWithLanguage'), icon: 'fa-language' },
         { to: '/dashboard/setting/role-permission', text: t('rolePermission') },
         { to: '/dashboard/setting/driver-subscription', text: t('driverSubscription') },
-        { to: '/dashboard/setting/otp-setup', text: t('otpSetup') }
+        { to: '/dashboard/setting/otp-setup', text: t('otpSetup') },
+        { to: '/dashboard/setting/privacy-policy', text: t('privacyPolicy'), icon: 'fa-shield' }
       ]
     }
   ].filter(item => {
