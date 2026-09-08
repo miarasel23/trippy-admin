@@ -43,6 +43,9 @@ export type {
   ApiKeyListResponse,
   CreateApiKeyPayload,
   UpdateApiKeyPayload,
+  CommissionInsuranceItem,
+  CommissionInsuranceListResponse,
+  CreateOrUpdateCommissionInsurancePayload,
 } from './types';
 
 // ─── Actions ────────────────────────────────────────────────
@@ -727,4 +730,13 @@ export {
   updateApiKey,
   deleteApiKey,
 } from './apiKeyApi';
+
+// ─── Commission & Insurance ──────────────────────────────────
+export {
+  fetchCommissionInsuranceList,
+  fetchCommissionInsuranceSingle,
+  createCommissionInsurance,
+  updateCommissionInsurance,
+  deleteCommissionInsurance,
+} from './commissionInsuranceApi';
 

@@ -21,6 +21,7 @@ import CarServiceCategoryList from '../../modules/settings/pages/CarServiceCateg
 import PriceSetAsPerKm from '../../modules/settings/pages/PriceSetAsPerKm';
 import PrivacyPolicyList from '../../modules/settings/pages/PrivacyPolicyList';
 import ApiKeyList from '../../modules/settings/pages/ApiKeyList';
+import CommissionInsuranceList from '../../modules/settings/pages/CommissionInsuranceList';
 
 import CustomerList from '../../modules/customer/pages/CustomerList';
 import CustomerTripHistory from '../../modules/customer/pages/CustomerTripHistory';
@@ -78,6 +79,7 @@ export const AppRoutes = () => {
               <Route path="/dashboard/setting/cars/price-set-as-per-km" element={isAuthenticated ? <PriceSetAsPerKm /> : <Navigate to="/" replace />} />
               <Route path="/dashboard/setting/privacy-policy" element={isAuthenticated ? <PrivacyPolicyList /> : <Navigate to="/" replace />} />
               <Route path="/dashboard/setting/api-key" element={isAuthenticated ? <ApiKeyList /> : <Navigate to="/" replace />} />
+              <Route path="/dashboard/setting/commission-insurance" element={isAuthenticated ? <CommissionInsuranceList /> : <Navigate to="/" replace />} />
               <Route path="/dashboard/admin-user" element={isAuthenticated ? <AdminUserList /> : <Navigate to="/" replace />} />
               
               <Route path="/dashboard/customer" element={isAuthenticated ? <CustomerList /> : <Navigate to="/" replace />} />

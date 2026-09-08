@@ -212,3 +212,37 @@ export const SERVICE_IDENTIFIERS = [
 
 export type ServiceIdentifierType = typeof SERVICE_IDENTIFIERS[number];
 
+// ─── Commission & Insurance ──────────────────────────────────
+
+export interface CommissionInsuranceItem {
+  id: number;
+  uuid: string;
+  amount_range: number;
+  percentage: number;
+  insurance_percentage: number;
+  booking_cancelled_fine_percentage: number;
+  status: string;
+  created_at?: string | null;
+  updated_at?: string | null;
+}
+
+export interface CommissionInsuranceListResponse {
+  status: boolean;
+  message: string;
+  data: {
+    total: number;
+    page: number;
+    page_size: number;
+    items: CommissionInsuranceItem[];
+  };
+}
+
+export interface CreateOrUpdateCommissionInsurancePayload {
+  uuid?: string;
+  amount_range: number;
+  percentage: number;
+  insurance_percentage: number;
+  booking_cancelled_fine_percentage: number;
+  status: string;
+}
+
