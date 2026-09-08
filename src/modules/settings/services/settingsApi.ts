@@ -38,6 +38,13 @@ export type {
   OtpMessageItem,
 } from './types';
 
+export type {
+  ApiKeyItem,
+  ApiKeyListResponse,
+  CreateApiKeyPayload,
+  UpdateApiKeyPayload,
+} from './types';
+
 // ─── Actions ────────────────────────────────────────────────
 
 export const fetchActionList = async (): Promise<ActionItem[]> => {
@@ -712,3 +719,12 @@ export const deletePriceSetAsPerKm = async (uuid: string): Promise<string> => {
 
   return response.data.message || 'Deleted successfully';
 };
+
+// ─── API Keys ───────────────────────────────────────────────
+export {
+  fetchApiKeyList,
+  createApiKey,
+  updateApiKey,
+  deleteApiKey,
+} from './apiKeyApi';
+

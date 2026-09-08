@@ -166,3 +166,49 @@ export interface OtpMessageItem {
   created_at: string;
   updated_at: string;
 }
+
+// ─── API Key ────────────────────────────────────────────────
+
+export interface ApiKeyItem {
+  id: number;
+  uuid: string;
+  api_url: string;
+  api_key: string;
+  user_agent?: string | null;
+  status: string;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface ApiKeyListResponse {
+  status: boolean;
+  message: string;
+  data: ApiKeyItem[];
+}
+
+export interface CreateApiKeyPayload {
+  api_url: string;
+  api_key: string;
+  status: string;
+  user_agent?: string;
+}
+
+export interface UpdateApiKeyPayload {
+  uuid: string;
+  api_url: string;
+  api_key: string;
+  status: string;
+  user_agent?: string;
+}
+
+export const SERVICE_IDENTIFIERS = [
+  'GOOGLE_PAY_API',
+  'SSLCOMMERZ_STORE_ID',
+  'SSLCOMMERZ_STORE_PASSWORD',
+  'ADN_API',
+  'GOOGLE_MAP_API',
+  'GOOGLE_MAP_PLACE_DETAILS_API',
+] as const;
+
+export type ServiceIdentifierType = typeof SERVICE_IDENTIFIERS[number];
+
